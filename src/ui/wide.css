@@ -1,0 +1,470 @@
+/* ---- 横長（PC）レイアウト：共有ボードを左半分、個人ボードを右半分に置く（ui_design §21） ---- */
+.game.wide {
+  --mainzoom: 0.76; /* メインボードの表示倍率 */
+  --pzoom: 1.12; /* キャラボード（個人ボード）の表示倍率。下に「プレイしたカード」の帯が入っても全キャラクターで収まる値 */
+  --cardzoom: 1.7; /* 手札のカードの表示倍率 */
+  grid-template-rows: 34px 30px auto minmax(0, 1fr);
+}
+.wide-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+  padding: 6px;
+  min-height: 0;
+  overflow: hidden;
+}
+.wide-shared,
+.wide-personal {
+  display: grid;
+  gap: 6px;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+}
+
+/* ---- 左半分：共有ボード ---- */
+.wide-shared {
+  grid-template-rows: auto auto minmax(0, 1fr);
+  padding-right: 6px;
+  border-right: 3px solid var(--crust);
+}
+.wide-main {
+  overflow: visible;
+}
+/* メインボードの3列を、左半分に合わせて「繁栄トラック｜アクションエリア」と下段のボタン列に組み替える */
+.game.wide .mainboard {
+  zoom: var(--mainzoom);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'pros areas'
+    'free free';
+  height: auto;
+}
+.game.wide .mainboard .pros-col {
+  grid-area: pros;
+  position: relative;
+  padding-top: 26px;
+}
+.game.wide .mainboard .areas-col {
+  grid-area: areas;
+}
+.game.wide .mainboard .free-col {
+  grid-area: free;
+  display: block;
+}
+.game.wide .pros-col > .mag {
+  zoom: calc(1 / var(--mainzoom));
+  top: 0;
+  right: 0;
+}
+.game.wide .rounds::before {
+  white-space: nowrap;
+}
+/* フリーアクション・スキルタイル・ラウンド支援ボードの展開ボタン（メインボードの zoom を打ち消して等倍で出す） */
+.wide-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  zoom: calc(1 / var(--mainzoom));
+}
+
+/* 模倣ボード・マイルストーン・最終得点計算を1段に並べる */
+.sidestrip {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px 14px;
+  align-items: flex-start;
+}
+.sidestrip h2 {
+  font-size: 12px;
+  color: var(--cocoa-soft);
+  font-weight: 700;
+  margin: 0 0 3px;
+}
+.sidestrip .sgroup {
+  min-width: 0;
+}
+.sidestrip .milestones,
+.sidestrip .finals {
+  display: grid;
+  gap: 3px;
+}
+.sidestrip .milestones {
+  grid-template-columns: repeat(2, max-content);
+}
+.sidestrip .milestone,
+.sidestrip .final {
+  white-space: nowrap;
+  font-size: 10px;
+  padding: 2px 5px;
+}
+.sidestrip .areas.imitation .area {
+  width: 62px;
+}
+
+/* 左下：手札。左の細い列に自分のディスク・ダイヤと共通サプライ（地形タイルと道は置けるときだけ現れる） */
+.wide-hand {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 8px;
+  background: var(--biscuit-deep);
+  border: 2px solid var(--crust);
+  border-radius: 14px;
+  padding: 6px 8px;
+  overflow: visible;
+}
+.lefthand-side {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+}
+.lefthand-side .mine-supply,
+.lefthand-side .shared-supply {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  align-content: start;
+}
+.lefthand-side .mine-supply {
+  padding-bottom: 4px;
+  border-bottom: 1.5px dashed var(--crust);
+}
+.lefthand-side .stackpile,
+.lefthand-side .dropzone {
+  min-width: 0;
+  padding: 2px;
+}
+.lefthand-side .shared-supply .fold {
+  grid-column: span 2;
+}
+.lefthand-side .fold-head {
+  width: 100%;
+  justify-content: center;
+  padding: 3px 4px;
+  gap: 3px;
+  font-size: 11px;
+}
+
+/* 手札：1列に重ねる。最後の1枚は全体を見せ、残りは左端の帯を残して縮む */
+.handrow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+}
+.handrow .hand {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  padding: 0 4px 0 0;
+  overflow: visible;
+  min-width: 0;
+}
+.handrow .hslot {
+  flex: 0 1 calc(96px * var(--cardzoom) + 6px);
+  min-width: 18px;
+}
+.handrow .hslot:last-child {
+  flex-shrink: 0;
+}
+/* 手札のカードはカーソルを合わせても動かさない（右へなぞったとき次のカードへ移れるように）。
+   高さはカード共通の 100px（layout.css）*/
+.handrow .hand .card,
+.handrow .hand:hover .card {
+  margin-left: 0;
+  zoom: var(--cardzoom);
+}
+.handrow .hand .card:hover {
+  transform: none;
+  z-index: auto;
+}
+.handrow .hslot:hover > .card {
+  outline: 3px solid var(--cocoa);
+  outline-offset: -1px;
+}
+/* 覗き窓：カーソルを合わせたカードの「表面＋文章」を、手札の上の決まった位置に出す */
+.hpeek {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 30;
+  pointer-events: none;
+  background: var(--sugar);
+  border: 2px solid var(--cocoa);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 12px 30px rgba(60, 30, 10, 0.4);
+}
+.handrow .hslot:hover .hpeek {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.handrow .hand .hpeek .card {
+  zoom: 2;
+  flex: none;
+  box-shadow: none;
+  border: 2px solid var(--cocoa);
+}
+.hpeek-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--cocoa);
+  overflow-wrap: anywhere;
+  padding-right: 4px;
+}
+.hpeek-text .cardfull h3 {
+  font-size: 14px;
+  margin: 0 0 2px;
+}
+/* 手札にカーソルがあるあいだは、説明の小窓は出さない（覗き窓に同じ内容がある） */
+body:has(.game.wide .hand .hslot:hover) .zoom {
+  display: none;
+}
+
+/* ---- 右半分：個人ボード（上に工業ボード、下にマップ、右列にキャラボード） ---- */
+.wide-personal {
+  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'industry pboard'
+    'map pboard';
+}
+.wide-map {
+  grid-area: map;
+}
+.wide-pcol {
+  grid-area: pboard;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+.wide-pboard {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+/* キャラボードの下の「プレイしたカード」の帯 */
+.tableau-bar {
+  flex: none;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+.tableau-bar .fold,
+.tableau-bar .fold-head {
+  width: 100%;
+}
+.tableau-bar .fold-head {
+  justify-content: center;
+  padding: 7px 10px;
+}
+.tableau-bar.drop {
+  justify-content: center;
+  gap: 6px;
+  border: 2px dashed var(--me);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--me) 12%, var(--sugar));
+  font-weight: 800;
+  font-size: 12px;
+  color: var(--cocoa);
+}
+.wide-industry {
+  grid-area: industry;
+  position: relative;
+}
+.wide-pboard .personal {
+  zoom: var(--pzoom);
+}
+.wide-pboard .charline,
+.wide-industry .istats {
+  padding-right: 58px;
+}
+
+/* ---- 「拡大」ボタンと拡大表示 ---- */
+.mag {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  z-index: 6;
+  border: 1.5px solid var(--crust);
+  background: var(--sugar);
+  color: var(--cocoa);
+  border-radius: 999px;
+  padding: 1px 9px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.mag:hover {
+  border-color: var(--cocoa);
+}
+/* 拡大表示は、置かれた側（繁栄トラックは左半分、ほかは右半分）の中だけを覆う */
+.enlarged {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  background: var(--biscuit);
+  border: 3px solid var(--cocoa);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(60, 30, 10, 0.3);
+  overflow: hidden;
+}
+.enlarged-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 2px solid var(--crust);
+  background: var(--sugar);
+}
+.enlarged-head .spacer {
+  flex: 1;
+}
+.enlarged-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 8px;
+}
+.enlarged-map .enlarged-body {
+  padding: 0;
+  place-items: stretch;
+  overflow: hidden;
+}
+.enlarged-map .enlarged-body > * {
+  min-height: 0;
+  min-width: 0;
+}
+.enlarged-char .personal {
+  width: 300px;
+  zoom: 1.55;
+}
+.enlarged-industry .industry {
+  width: 330px;
+  zoom: 1.8;
+}
+.enlarged-pros .prosboard {
+  width: 330px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  zoom: 1.75;
+}
+
+/* ---- クリックで展開する見出し（Fold） ---- */
+.fold {
+  position: relative;
+  flex: none;
+}
+.fold-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--crust);
+  background: var(--sugar);
+  color: var(--cocoa);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.fold.open .fold-head {
+  border-color: var(--cocoa);
+}
+.fold.hint .fold-head {
+  border-color: var(--me);
+}
+.fold-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--me);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--me) 30%, transparent);
+}
+.fold-sum {
+  font-weight: 500;
+  color: var(--cocoa-soft);
+}
+.fold-caret {
+  font-size: 10px;
+  color: var(--cocoa-soft);
+}
+.fold-pop {
+  position: fixed;
+  z-index: 40;
+  background: var(--biscuit);
+  border: 2px solid var(--cocoa);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(60, 30, 10, 0.25);
+}
+.fold-pop h3 {
+  font-size: 12px;
+  color: var(--cocoa-soft);
+  margin: 0 0 6px;
+}
+.fold-pop .frees {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.fold-pop .skills {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.fold-pop h3 + .skills,
+.fold-pop .skills + h3 {
+  margin-top: 6px;
+}
+.special-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+/* 展開したプレイ済みカード：手札と同じ表面で見せる */
+.tableau.full {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border: 2px dashed var(--line);
+  border-radius: 10px;
+  padding: 6px;
+  min-height: 90px;
+}
+.tableau.full .card {
+  zoom: 1.15;
+  box-shadow: none;
+}
+/* 覗き窓の文章は窓の幅に合わせる（拡大表示の小窓の固定幅 280px を外す） */
+.hpeek-text .cardfull {
+  width: auto;
+}
+.tableau-bar .fold-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.tableau-bar .fold-head {
+  padding: 5px 10px;
+}
+/* カードを持ち上げているあいだは覗き窓を出さない（置き先を覆わないように） */
+.handrow.holding .hslot:hover .hpeek {
+  display: none;
+}

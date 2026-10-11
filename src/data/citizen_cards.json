@@ -1,0 +1,3753 @@
+[
+ {
+  "id": "p01-r1c1",
+  "name_en": "Tabitha Truffe",
+  "name_ja": "タビサ・トリュフ",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "2 D",
+  "main_text": "ダイヤを2個得る。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* 1 I",
+  "auto_text": "所持しているマカロンタグ1個につき鉄1個を得る。",
+  "industry": "鉱業",
+  "notes": "英語名はカード上 'Truffe'（Truffleではない）。",
+  "verify": []
+ },
+ {
+  "id": "p01-r1c2",
+  "name_en": "Isaiah Iced Latte",
+  "name_ja": "イザヤ・アイスドラテ",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "1 foodAdv 2 indAdv",
+  "main_text": "食料トラックを1進め、工業トラックを2進める。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "6 hexM裏 => 2 I 1 indAdv",
+  "auto_text": "地図ボード上の鉱山タイル（裏）が6枚あるならば1回だけ、鉄2個を得て工業トラックを1進める。",
+  "industry": "オールマイティ",
+  "notes": "オート能力の矢印は白抜き（∞なし）に見える。",
+  "verify": []
+ },
+ {
+  "id": "p01-r1c3",
+  "name_en": "Custard Capeman",
+  "name_ja": "カスタード・ケープマン",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "1 indAdv 1 hexM | 2 tShort 1 tTiramisu => 1 indAdv",
+  "main_text": "工業トラックを1進め、鉱山タイルを1枚置く。／ショートケーキタグ2個とティラミスタグ1個を所持しているならば1回だけ、工業トラックを1進める。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hexM",
+  "auto_text": "鉱山タイルを1枚置く。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p01-r1c4",
+  "name_en": "Toby Tarte Tatin",
+  "name_ja": "トビー・タルトタタン",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "1 hexM =>* 1 W",
+  "main_text": "地図ボード上の鉱山タイル1枚につき麦1個を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 hexM",
+  "auto_text": "鉱山タイルを1枚置く。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p01-r1c5",
+  "name_en": "Herbert Honeycomb",
+  "name_ja": "ハーバート・ハニーコーム",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": true,
+  "main_icons": "1 hexW =>* 1 W",
+  "main_text": "地図ボード上の麦畑タイル1枚につき麦1個を得る。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "2 W",
+  "auto_text": "麦を2個得る。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p01-r2c1",
+  "name_en": "Madam Macaron",
+  "name_ja": "マダム・マカロン",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "2 [G] -> 1 prosO | 3 tShort 1 tTiramisu => 1 prosO",
+  "main_text": "ゴールドの収入値を2下げて、オレンジ色の繁栄トラックを1進める。／ショートケーキタグ3個とティラミスタグ1個を所持しているならば1回だけ、オレンジ色の繁栄トラックを1進める。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 [W]",
+  "auto_text": "麦の収入値を1上げる。",
+  "industry": "農業",
+  "notes": "1行目の『2』は赤字（コスト側）。",
+  "verify": []
+ },
+ {
+  "id": "p01-r2c2",
+  "name_en": "Teresa Tiramisu",
+  "name_ja": "テレサ・ティラミス",
+  "type": "immediate",
+  "cost": 6,
+  "brownie_discount": false,
+  "main_icons": "1 [I] =>* 1 G",
+  "main_text": "鉄の収入値1につき1ゴールドを得る。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* 1 G",
+  "auto_text": "所持しているマカロンタグ1個につき1ゴールドを得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p01-r2c3",
+  "name_en": "Viola Vivid",
+  "name_ja": "ヴィオラ・ヴィヴィッド",
+  "type": "immediate",
+  "cost": 26,
+  "brownie_discount": false,
+  "main_icons": "2 W -> 2 tWagashi =>* 1 prosO",
+  "main_text": "麦2個を支払い、所持している和菓子タグ2個につきオレンジ色の繁栄トラックを1進める。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 prosO",
+  "auto_text": "オレンジ色の繁栄トラックを1進める。",
+  "industry": "農業",
+  "notes": "矢印が2つ連なる構成（赤塗り矢印→、その後に白抜き∞矢印）。赤矢印は∞なしに見える。文章化は推定。 / 矢印連鎖。『2 W』は赤字。 / 連鎖矢印＝コスト1回支払い後、条件の回数分得る（ユーザー確認済み）",
+  "verify": []
+ },
+ {
+  "id": "p01-r2c4",
+  "name_en": "Sir Syrup Sugarton",
+  "name_ja": "シロップ・シュガートン卿",
+  "type": "immediate",
+  "cost": 17,
+  "brownie_discount": false,
+  "main_icons": "1 [I] =>* 1 [G]",
+  "main_text": "鉄の収入値1につきゴールドの収入値を1上げる。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "3 tMacaron =>* VP5",
+  "auto_text": "所持しているマカロンタグ3個につき5勝利点を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p01-r2c5",
+  "name_en": "Frederick Frangipane",
+  "name_ja": "フレデリック・フランジパニ",
+  "type": "pass",
+  "cost": 18,
+  "brownie_discount": false,
+  "main_icons": "clock 2 [I] =>* VP1 | clock 2 tWagashi => VP1",
+  "main_text": "パス時：鉄の収入値2につき1勝利点を得る。／パス時：和菓子タグを2個所持しているならば1回だけ、1勝利点を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "2行目の矢印は∞なしに見える（1行目は∞あり）。 / 2行目の白矢印は∞なし（拡大確認済み）。トロフィー内の数字は1と判断。",
+  "verify": []
+ },
+ {
+  "id": "p01-r3c1",
+  "name_en": "Andy Almond Aragon",
+  "name_ja": "アンディ・アーモンドアラガン",
+  "type": "immediate",
+  "cost": 10,
+  "brownie_discount": false,
+  "main_icons": "1 [I] 1 placeRoad | 1 tShort => 1 hexM",
+  "main_text": "鉄の収入値を1上げ、道駒を1個置く。／ショートケーキタグを1個所持しているならば1回だけ、鉱山タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "道駒を1個置く。",
+  "industry": "鉱業",
+  "notes": "2行目の鉱山タイルは他カードより濃い灰色だが表（全面塗り）。",
+  "verify": []
+ },
+ {
+  "id": "p01-r3c2",
+  "name_en": "Aldi Almond",
+  "name_ja": "アルディ・アーモンド",
+  "type": "immediate",
+  "cost": 5,
+  "brownie_discount": true,
+  "main_icons": "1 city =>* 3 G",
+  "main_text": "地図ボード上の都市1つにつき3ゴールドを得る。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p01-r3c3",
+  "name_en": "Fay Framboise",
+  "name_ja": "フェイ・フランボワーズ",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "2 [G] 1 hexF | 1 tShort => 1 placeRoad",
+  "main_text": "ゴールドの収入値を2上げ、森林タイルを1枚置く。／ショートケーキタグを1個所持しているならば1回だけ、道駒を1個置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hexF",
+  "auto_text": "森林タイルを1枚置く。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p01-r3c4",
+  "name_en": "Queen Cookie Crumble",
+  "name_ja": "クイーン・クッキークランブル",
+  "type": "immediate",
+  "cost": 9,
+  "brownie_discount": false,
+  "main_icons": "2 [I] 1 [G]",
+  "main_text": "鉄の収入値を2上げ、ゴールドの収入値を1上げる。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p01-r3c5",
+  "name_en": "Eugene Yuzu",
+  "name_ja": "ユージーン・ユズ",
+  "type": "immediate",
+  "cost": 24,
+  "brownie_discount": false,
+  "main_icons": "1 D -> 1 tWagashi =>* 1 placeRoad",
+  "main_text": "ダイヤ1個を支払い、所持している和菓子タグ1個につき道駒を1個置く。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "道駒を1個置く。",
+  "industry": "林業",
+  "notes": "矢印が2つ連なる構成（赤塗り矢印、その後に白抜き∞矢印）。文章化は推定。 / 矢印連鎖。『1 D』は赤字。 / 連鎖矢印＝コスト1回支払い後、条件の回数分得る（ユーザー確認済み）",
+  "verify": []
+ },
+ {
+  "id": "p02-r1c1",
+  "name_en": "Isla Impulse",
+  "name_ja": "アイラ・インパルス",
+  "type": "pass",
+  "cost": 19,
+  "brownie_discount": false,
+  "main_icons": "clock 5 [G] =>* VP1 | clock 1 tWagashi =>* VP1",
+  "main_text": "パス時：ゴールドの収入値5につき1勝利点を得る。／パス時：所持している和菓子タグ1個につき1勝利点を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p02-r1c2",
+  "name_en": "Margot Marron",
+  "name_ja": "マーゴット・マロン",
+  "type": "immediate",
+  "cost": 22,
+  "brownie_discount": false,
+  "main_icons": "1 D -> 2 placeBld | 1 tShort 2 tTiramisu => 2 placeRoad",
+  "main_text": "ダイヤ1個を支払い、地図ボード上に建物駒を2個置く。／ショートケーキタグ1個とティラミスタグ2個を所持しているならば1回だけ、道駒を2個置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "道駒を1個置く。",
+  "industry": "林業",
+  "notes": "建物駒の土台は白～淡色で地形色ではないため placeBld と判断。",
+  "verify": []
+ },
+ {
+  "id": "p02-r1c3",
+  "name_en": "Charles Cherry Charm",
+  "name_ja": "チャールズ・チェリーチャーム",
+  "type": "pass",
+  "cost": 20,
+  "brownie_discount": false,
+  "main_icons": "clock CP2 =>* VP1 | clock 1 tWagashi =>* VP1",
+  "main_text": "パス時：都市点2点につき1勝利点を得る。／パス時：所持している和菓子タグ1個につき1勝利点を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "1行目の条件アイコンは都市の月桂樹に「2」（都市点2と判断）。数字の前置きはなし。 / 1行目は数字なしで都市点アイコン（月桂樹の中に2）。",
+  "verify": []
+ },
+ {
+  "id": "p02-r1c4",
+  "name_en": "Tristan Truffe",
+  "name_ja": "トリスタン・トリュフ",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": true,
+  "main_icons": "1 pros?",
+  "main_text": "任意の繁栄トラックを1進める。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 pros?",
+  "auto_text": "任意の繁栄トラックを1進める。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p02-r1c5",
+  "name_en": "Xavier Zabaglione",
+  "name_ja": "ザビエル・ザバグリオーネ",
+  "type": "immediate",
+  "cost": 23,
+  "brownie_discount": false,
+  "main_icons": "1 [G] | 2 tWagashi =>* 1 placeRabbit",
+  "main_text": "ゴールドの収入値を1上げる。／所持している和菓子タグ2個につきクッキーラビット駒を1個置く。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 rabbit =>* 1 W",
+  "auto_text": "地図ボード上のクッキーラビット駒1個につき麦1個を得る。",
+  "industry": "農業",
+  "notes": "オートメーションのラビットは六角形の台座の上に描かれている（地図ボード上の駒と解釈）。",
+  "verify": []
+ },
+ {
+  "id": "p02-r2c1",
+  "name_en": "Wendy Walnut Whip",
+  "name_ja": "ウェンディ・ウォールナットホイップ",
+  "type": "immediate",
+  "cost": 4,
+  "brownie_discount": false,
+  "main_icons": "4 Wd",
+  "main_text": "木材を4個得る。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材を2個得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p02-r2c2",
+  "name_en": "Heidi Hazelnut",
+  "name_ja": "ハイディ・ヘーゼルナッツ",
+  "type": "pass",
+  "cost": 18,
+  "brownie_discount": true,
+  "main_icons": "clock 1 playedAgr =>* VP1 | clock 1 tWagashi =>* VP1",
+  "main_text": "パス時：プレイした農業タグを持つ市民カード1枚につき1勝利点を得る。／パス時：所持している和菓子タグ1個につき1勝利点を得る。",
+  "tags": {
+   "ブラウニー": 1,
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p02-r2c3",
+  "name_en": "Vincent Very Berry",
+  "name_ja": "ヴィンセント・ヴェリーベリー",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": true,
+  "main_icons": "2 hex? 1 placeRoad",
+  "main_text": "任意の地形タイルを2枚置き、道駒を1個置く。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "道駒を1個置く。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p02-r2c4",
+  "name_en": "Rita Raspberry Ripple",
+  "name_ja": "リタ・ラズベリーリップル",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "1 Wd 1 I 1 hexF | 1 tShort => 1 hexF",
+  "main_text": "木材1個と鉄1個を得て、森林タイルを1枚置く。／ショートケーキタグを1個所持しているならば1回だけ、森林タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "2 I",
+  "auto_text": "鉄を2個得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p02-r2c5",
+  "name_en": "Layla Lake",
+  "name_ja": "レイラ・レイク",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "1 [I] -> 2 [Wd] 2 [W]",
+  "main_text": "鉄の収入値を1下げて、木材の収入値を2、麦の収入値を2上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 Wd 1 W",
+  "auto_text": "木材1個と麦1個を得る。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p02-r3c1",
+  "name_en": "Asher Anders",
+  "name_ja": "アッシャー・アンダース",
+  "type": "immediate",
+  "cost": 9,
+  "brownie_discount": false,
+  "main_icons": "draw2",
+  "main_text": "市民デッキから2枚引く。",
+  "tags": {
+   "ショートケーキ": 1,
+   "ブラウニー": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "オートメーション欄が空白（能力なし）のため auto は null。上端のストライプが淡い水色で他カードと異なる。産業タブは3つとも淡色。",
+  "verify": []
+ },
+ {
+  "id": "p02-r3c2",
+  "name_en": "Quinn Quart",
+  "name_ja": "クイン・クアート",
+  "type": "immediate",
+  "cost": 6,
+  "brownie_discount": false,
+  "main_icons": "1 D 2 hand -> draw4",
+  "main_text": "ダイヤ1個と手札2枚を支払い、市民デッキから4枚引く。",
+  "tags": {
+   "ブラウニー": 1,
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "撮り直し写真で確定（産業タグなし・オートメーション能力なし）",
+  "verify": []
+ },
+ {
+  "id": "p02-r3c3",
+  "name_en": "Marvin Marshmallow",
+  "name_ja": "マービン・マシュマロ",
+  "type": "immediate",
+  "cost": 4,
+  "brownie_discount": false,
+  "main_icons": "4 W",
+  "main_text": "麦を4個得る。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 W",
+  "auto_text": "麦を2個得る。",
+  "industry": "農業",
+  "notes": "反射あり。タグ・数字は読めた。",
+  "verify": []
+ },
+ {
+  "id": "p02-r3c4",
+  "name_en": "Alice Apricot",
+  "name_ja": "アリス・アプリコット",
+  "type": "immediate",
+  "cost": 24,
+  "brownie_discount": false,
+  "main_icons": "1 tWagashi =>* 1 hexF",
+  "main_text": "所持している和菓子タグ1個につき森林タイルを1枚置く。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 hexF",
+  "auto_text": "森林タイルを1枚置く。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p02-r3c5",
+  "name_en": "Davis Double",
+  "name_ja": "デイビス・ダブル",
+  "type": "immediate",
+  "cost": 13,
+  "brownie_discount": false,
+  "main_icons": "1 [W] -> 2 [Wd] 2 [I]",
+  "main_text": "麦の収入値を1下げて、木材の収入値を2、鉄の収入値を2上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 Wd 1 I",
+  "auto_text": "木材1個と鉄1個を得る。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p03-r1c1",
+  "name_en": "Cody Crumb Cake",
+  "name_ja": "コーディ・クラムケーキ",
+  "type": "immediate",
+  "cost": 5,
+  "brownie_discount": false,
+  "main_icons": "2 [Wd]",
+  "main_text": "木材の収入値を2上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [Wd]",
+  "auto_text": "木材の収入値を1上げる。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p03-r1c2",
+  "name_en": "Norman Nougat",
+  "name_ja": "ノーマン・ヌガー",
+  "type": "immediate",
+  "cost": 20,
+  "brownie_discount": false,
+  "main_icons": "1 tWagashi =>* 1 hexM",
+  "main_text": "所持している和菓子タグ1個につき鉱山タイルを1枚置く。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 hexM",
+  "auto_text": "鉱山タイルを1枚置く。",
+  "industry": "鉱業",
+  "notes": "鉱山タイルは淡い紫がかった灰色の六角形で描かれており、凡例の鉱山（灰）と判断。 / 紫がかった灰色の六角形（?なし・表）を鉱山タイル hexM と判断。",
+  "verify": []
+ },
+ {
+  "id": "p03-r1c3",
+  "name_en": "Betty Brioche",
+  "name_ja": "ベティ・ブリオッシュ",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "1 playedAgr =>* 1 [G]",
+  "main_text": "プレイした農業タグを持つ市民カード1枚につきゴールドの収入値を1上げる。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "5 hexW裏 => 2 [G]",
+  "auto_text": "地図ボード上の麦畑タイル（裏）が5枚あるならば1回だけ、ゴールドの収入値を2上げる。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p03-r1c4",
+  "name_en": "Seth Sorbet",
+  "name_ja": "セス・ソルベ",
+  "type": "immediate",
+  "cost": 9,
+  "brownie_discount": false,
+  "main_icons": "2 [G]",
+  "main_text": "ゴールドの収入値を2上げる。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "7 hexW => 1 playedAgr =>* 2 G",
+  "auto_text": "地図ボード上の麦畑タイル（表裏を問わない）が7枚あるならば1回だけ、プレイした農業タグを持つ市民カード1枚につき2ゴールドを得る。",
+  "industry": "農業",
+  "notes": "オートメーション行は白抜き矢印（∞なし）→農業カードアイコン→白抜き∞矢印→2ゴールドの連鎖。条件の入れ子として解釈。 / オートメーション欄は白抜き矢印（∞なし）→白抜き矢印（∞あり）の連鎖。",
+  "verify": []
+ },
+ {
+  "id": "p03-r1c5",
+  "name_en": "Ruby Red Velvet",
+  "name_ja": "ルビー・レッドベルベット",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": true,
+  "main_icons": "5 W -> 1 foodAdv 1 placeBldW",
+  "main_text": "麦5個を支払い、食料トラックを1進め、麦畑タイルに建物駒を1つ置く。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 foodAdv",
+  "auto_text": "食料トラックを1進める。",
+  "industry": "農業",
+  "notes": "建物駒（ハンマー付き）の土台が淡いオレンジの六角形なので placeBldW と判断。淡色のため汎用 placeBld の可能性あり。",
+  "verify": []
+ },
+ {
+  "id": "p03-r2c1",
+  "name_en": "Max Mocha",
+  "name_ja": "マックス・モカ",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "2 [G] 1 foodAdv",
+  "main_text": "ゴールドの収入値を2上げ、食料トラックを1進める。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "5 hexW裏 => 1 [G] 1 foodAdv",
+  "auto_text": "地図ボード上の麦畑タイル（裏）が5枚あるならば1回だけ、ゴールドの収入値を1上げ、食料トラックを1進める。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p03-r2c2",
+  "name_en": "Ginny Jujube",
+  "name_ja": "ジニー・ジュジューブ",
+  "type": "immediate",
+  "cost": 20,
+  "brownie_discount": false,
+  "main_icons": "1 placeRabbit | 2 tWagashi =>* 1 foodAdv",
+  "main_text": "クッキーラビット駒を1つ置く。｜所持している和菓子タグ2個につき食料トラックを1進める。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 rabbit =>* 1 W",
+  "auto_text": "地図ボード上のクッキーラビット駒1つにつき麦1個を得る。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p03-r2c3",
+  "name_en": "Franny Frangipane",
+  "name_ja": "フラニー・フランジパン",
+  "type": "immediate",
+  "cost": 13,
+  "brownie_discount": false,
+  "main_icons": "3 I -> 2 placeRoad",
+  "main_text": "鉄3個を支払い、地図ボード上に道駒を2つ置く。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "5 hexM => 1 [G] 1 placeRoad",
+  "auto_text": "地図ボード上の鉱山タイル（表裏を問わない）が5枚あるならば1回だけ、ゴールドの収入値を1上げ、道駒を1つ置く。",
+  "industry": "鉱業",
+  "notes": "鉱山タイルは淡い紫がかった灰色の六角形で描かれており、凡例の鉱山（灰）と判断。",
+  "verify": []
+ },
+ {
+  "id": "p03-r2c4",
+  "name_en": "Eric Eclair",
+  "name_ja": "エリック・エクレール",
+  "type": "immediate",
+  "cost": 8,
+  "brownie_discount": false,
+  "main_icons": "3 W 1 I 2 [G]",
+  "main_text": "麦3個と鉄1個を得て、ゴールドの収入値を2上げる。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "2 I",
+  "auto_text": "鉄2個を得る。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p03-r2c5",
+  "name_en": "Gabriela Gâteau",
+  "name_ja": "ガブリエラ・ガトー",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": true,
+  "main_icons": "2 [Wd] -> CP1",
+  "main_text": "木材の収入値を2下げて、都市点1点を得る。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "CP1",
+  "auto_text": "都市点1点を得る。",
+  "industry": "林業",
+  "notes": "都市点アイコン（都市の月桂樹）の中に数字1。",
+  "verify": []
+ },
+ {
+  "id": "p03-r3c1",
+  "name_en": "Natalie Nuts",
+  "name_ja": "ナタリー・ナッツ",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "1 I 1 W 1 hexM | 1 tTiramisu => 1 hexM",
+  "main_text": "鉄1個と麦1個を得て、鉱山タイルを1枚置く。｜所持しているティラミスタグが1個あるならば1回だけ、鉱山タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "2 W",
+  "auto_text": "麦2個を得る。",
+  "industry": "鉱業",
+  "notes": "このカードの六角形はやや濃い灰色。鉱山タイル（表）と判断。",
+  "verify": []
+ },
+ {
+  "id": "p03-r3c2",
+  "name_en": "Miranda Marrons Glacés",
+  "name_ja": "ミランダ・マロングラッセ",
+  "type": "immediate",
+  "cost": 19,
+  "brownie_discount": true,
+  "main_icons": "1 D -> IP2",
+  "main_text": "ダイヤ1個を支払い、工業点2点を得る。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "IP1",
+  "auto_text": "工業点1点を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p03-r3c3",
+  "name_en": "Felicia Fig",
+  "name_ja": "フェリシア・フィグ",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "1 placeRoad 1 hexM",
+  "main_text": "道駒を1つ置き、鉱山タイルを1枚置く。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "4 hexM裏 => 1 I 1 hexM",
+  "auto_text": "地図ボード上の鉱山タイル（裏）が4枚あるならば1回だけ、鉄1個を得て、鉱山タイルを1枚置く。",
+  "industry": "鉱業",
+  "notes": "鉱山タイルは淡い紫がかった灰色の六角形で描かれており、凡例の鉱山（灰）と判断。",
+  "verify": []
+ },
+ {
+  "id": "p03-r3c4",
+  "name_en": "Carla Caramelita",
+  "name_ja": "カーラ・カラメリタ",
+  "type": "immediate",
+  "cost": 8,
+  "brownie_discount": false,
+  "main_icons": "2 W 2 Wd 2 I",
+  "main_text": "麦2個、木材2個、鉄2個を得る。",
+  "tags": {
+   "ショートケーキ": 1,
+   "ティラミス": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "オートメーション能力欄は空白（印刷なし）。紫の縁・時計アイコンはなく即時カードと判断。産業タブは3つとも淡色。",
+  "verify": []
+ },
+ {
+  "id": "p03-r3c5",
+  "name_en": "Stefan Strawberry Swirl",
+  "name_ja": "ステファン・ストロベリースワール",
+  "type": "immediate",
+  "cost": 17,
+  "brownie_discount": false,
+  "main_icons": "1 [Wd] 2 placeRoad | 1 tShort 2 tTiramisu => 1 placeBld",
+  "main_text": "木材の収入値を1上げ、道駒を2つ置く。｜所持しているショートケーキタグ1個とティラミスタグ2個を満たしているならば1回だけ、地図ボード上に建物駒を1つ置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "道駒を1つ置く。",
+  "industry": "林業",
+  "notes": "2行目右の建物駒は白い台座＋ハンマーのため placeBld（地形指定なし）と判断。 / 建物駒の土台は白っぽい（汎用 placeBld と判断）。",
+  "verify": []
+ },
+ {
+  "id": "p04-r1c1",
+  "name_en": "Samuel Sugar Cube",
+  "name_ja": "サミュエル・シュガーキューブ",
+  "type": "immediate",
+  "cost": 8,
+  "brownie_discount": false,
+  "main_icons": "IP1 =>* 1 G",
+  "main_text": "工業点1点につき1ゴールドを得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "IP1",
+  "auto_text": "工業点1点を得る。",
+  "industry": "鉱業",
+  "notes": "メイン左側は数字なしの工業点アイコン（月桂樹内に1）。「工業点1点ぶんを満たしている回数分」と解釈。 / 左辺は数字なしの工業点（月桂樹内に1）。",
+  "verify": []
+ },
+ {
+  "id": "p04-r1c2",
+  "name_en": "Jody Jubilee",
+  "name_ja": "ジョディ・ジュビリー",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "1 [Wd] -> 2 [W] 2 [I]",
+  "main_text": "木材の収入値を1下げて、麦の収入値を2、鉄の収入値を2上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 W 1 I",
+  "auto_text": "麦1個と鉄1個を得る。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p04-r1c3",
+  "name_en": "Philip Fondant",
+  "name_ja": "フィリップ・フォンダン",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": true,
+  "main_icons": "1 [Wd] =>* 1 [G]",
+  "main_text": "木材の収入値1につき、ゴールドの収入値を1上げる。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 [Wd]",
+  "auto_text": "木材の収入値を1上げる。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p04-r1c4",
+  "name_en": "Harold Hazel Haven",
+  "name_ja": "ハロルド・ヘーゼルヘイブン",
+  "type": "immediate",
+  "cost": 9,
+  "brownie_discount": false,
+  "main_icons": "1 [I] 1 D",
+  "main_text": "鉄の収入値を1上げ、ダイヤ1個を得る。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "2 bldOnM => 1 [G] 1 [I]",
+  "auto_text": "鉱山タイル上の建物駒が2つあるならば1回だけ、ゴールドの収入値を1、鉄の収入値を1上げる。",
+  "industry": "鉱業",
+  "notes": "建物駒の台座は淡い紫灰色（ハンマーなし）で bldOnM と判断。 / 建物駒の土台が灰色の六角形なので bldOnM と判断（ハンマーなし）。",
+  "verify": []
+ },
+ {
+  "id": "p04-r1c5",
+  "name_en": "Basil Brownie",
+  "name_ja": "バジル・ブラウニー",
+  "type": "immediate",
+  "cost": 7,
+  "brownie_discount": false,
+  "main_icons": "2 [I]",
+  "main_text": "鉄の収入値を2上げる。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 [I]",
+  "auto_text": "鉄の収入値を1上げる。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p04-r2c1",
+  "name_en": "Wendy Waffle",
+  "name_ja": "ウェンディ・ワフル",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "2 [G] 1 hex? | 1 tShort 1 tTiramisu => 1 hex?",
+  "main_text": "ゴールドの収入値を2上げ、任意の地形タイルを1枚置く。｜所持しているショートケーキタグ1個とティラミスタグ1個を満たしているならば1回だけ、任意の地形タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hex?",
+  "auto_text": "任意の地形タイルを1枚置く。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p04-r2c2",
+  "name_en": "Olivia Oats",
+  "name_ja": "オリビア・オーツ",
+  "type": "immediate",
+  "cost": 10,
+  "brownie_discount": false,
+  "main_icons": "1 food =>* 1 G | 3 tTiramisu => 1 foodAdv",
+  "main_text": "食料トラック1につき1ゴールドを得る。｜所持しているティラミスタグが3個あるならば1回だけ、食料トラックを1進める。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 foodAdv",
+  "auto_text": "食料トラックを1進める。",
+  "industry": "農業",
+  "notes": "1行目左は矢印なしの食料トラックアイコン（food）。 / 1行目左辺は矢印なしの食料トラックアイコン（食料トラックの位置1つにつき、の意か）。",
+  "verify": []
+ },
+ {
+  "id": "p04-r2c3",
+  "name_en": "Xenia Xocoatl",
+  "name_ja": "クセニア・ショコアトル",
+  "type": "immediate",
+  "cost": 19,
+  "brownie_discount": false,
+  "main_icons": "ibAgr",
+  "main_text": "農業の産業ボーナスを得る。",
+  "tags": {
+   "ショートケーキ": 1,
+   "ブラウニー": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "産業ボーナスアイコンの上部帯がオレンジ→農業と判断。オートメーション能力欄は空白。産業タブは3つとも淡色。",
+  "verify": []
+ },
+ {
+  "id": "p04-r2c4",
+  "name_en": "Oliver Oatmeal",
+  "name_ja": "オリバー・オートミール",
+  "type": "immediate",
+  "cost": 5,
+  "brownie_discount": false,
+  "main_icons": "2 [W]",
+  "main_text": "麦の収入値を2上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [W]",
+  "auto_text": "麦の収入値を1上げる。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p04-r2c5",
+  "name_en": "Yolanda York",
+  "name_ja": "ヨランダ・ヨーク",
+  "type": "immediate",
+  "cost": 11,
+  "brownie_discount": false,
+  "main_icons": "2 [W] =>* 1 W",
+  "main_text": "麦の収入値2につき麦1個を得る。",
+  "tags": {
+   "ショートケーキ": 2
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "ショートケーキタグに「×2」。オートメーション能力欄は空白。産業タブは3つとも淡色。",
+  "verify": []
+ },
+ {
+  "id": "p04-r3c1",
+  "name_en": "Olivia Orange Orb",
+  "name_ja": "オリビア・オレンジオーブ",
+  "type": "immediate",
+  "cost": 20,
+  "brownie_discount": false,
+  "main_icons": "ibFor",
+  "main_text": "林業の産業ボーナスを得る。",
+  "tags": {
+   "ティラミス": 1,
+   "マカロン": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "産業ボーナスアイコンの上部帯が緑→林業と判断。オートメーション能力欄は空白。産業タブは3つとも淡色。 / 産業ボーナスアイコン上部は緑（林業）と判断。",
+  "verify": []
+ },
+ {
+  "id": "p04-r3c2",
+  "name_en": "Ginny Ginger Gate",
+  "name_ja": "ジニー・ジンジャーゲート",
+  "type": "immediate",
+  "cost": 7,
+  "brownie_discount": false,
+  "main_icons": "1 [W] 1 [I] 1 [G]",
+  "main_text": "麦、鉄、ゴールドの収入値をそれぞれ1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [I]",
+  "auto_text": "鉄の収入値を1上げる。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p04-r3c3",
+  "name_en": "Leo Lemon Drop",
+  "name_ja": "レオ・レモンドロップ",
+  "type": "immediate",
+  "cost": 6,
+  "brownie_discount": false,
+  "main_icons": "1 Wd ->* 2 G",
+  "main_text": "木材1個を任意の回数支払い、1回につき2ゴールドを得る。",
+  "tags": {
+   "ブラウニー": 1,
+   "ティラミス": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "オートメーション能力欄は空白。産業タブは3つとも淡色。",
+  "verify": []
+ },
+ {
+  "id": "p04-r3c4",
+  "name_en": "Rita Richlip",
+  "name_ja": "リタ・リッチリップ",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": true,
+  "main_icons": "1 [I] 2 hexM",
+  "main_text": "鉄の収入値を1上げ、鉱山タイルを2枚置く。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 hexM",
+  "auto_text": "鉱山タイルを1枚置く。",
+  "industry": "鉱業",
+  "notes": "鉱山タイルは淡い紫がかった灰色の六角形で描かれており、凡例の鉱山（灰）と判断。 / 紫がかった灰色の六角形（?なし・表）を鉱山タイル hexM と判断。",
+  "verify": []
+ },
+ {
+  "id": "p04-r3c5",
+  "name_en": "Skye Sugar Plum",
+  "name_ja": "スカイ・シュガープラム",
+  "type": "immediate",
+  "cost": 8,
+  "brownie_discount": false,
+  "main_icons": "1 I ->* 2 G",
+  "main_text": "鉄1個を任意の回数支払い、1回につき2ゴールドを得る。",
+  "tags": {
+   "ショートケーキ": 1,
+   "ブラウニー": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "オートメーション能力欄は空白。産業タブは3つとも淡色。",
+  "verify": []
+ },
+ {
+  "id": "p05-r1c1",
+  "name_en": "Colin Custard",
+  "name_ja": "コリン・カスタード",
+  "type": "immediate",
+  "cost": 4,
+  "brownie_discount": false,
+  "main_icons": "1 tShort =>* 1 R?",
+  "main_text": "所持しているショートケーキタグ1個につき任意の基礎資源1個を得る。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 R?",
+  "auto_text": "任意の基礎資源を2個得る。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p05-r1c2",
+  "name_en": "Marty Marsh",
+  "name_ja": "マーティー・マーシュ",
+  "type": "immediate",
+  "cost": 10,
+  "brownie_discount": false,
+  "main_icons": "2 [I] =>* 1 I",
+  "main_text": "鉄の収入値が2あるごとに鉄1個を得る（鉄の収入2を満たしている回数分、鉄1個を得る）。",
+  "tags": {
+   "マカロン": 1,
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "オートメーション欄に能力アイコンなし（空欄）。産業タブは3つとも淡色。",
+  "verify": []
+ },
+ {
+  "id": "p05-r1c3",
+  "name_en": "Wes Wispy",
+  "name_ja": "ウェス・ウィスプ",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "1 hexS 1 hexW 1 hexF 1 hexM",
+  "main_text": "海タイル1枚、麦畑タイル1枚、森林タイル1枚、鉱山タイル1枚を置く。",
+  "tags": {
+   "ショートケーキ": 1,
+   "ティラミス": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "オートメーション欄に能力アイコンなし（空欄）。産業タブは3つとも淡色。中央の4つのヘックスは左から 水色・オレンジ・緑・灰で全て塗りつぶし（表）。 / 4つ目のヘックスは紫がかった灰色。鉱山（hexM）と判断",
+  "verify": []
+ },
+ {
+  "id": "p05-r1c4",
+  "name_en": "Ian Ice",
+  "name_ja": "イアン・アイス",
+  "type": "immediate",
+  "cost": 7,
+  "brownie_discount": false,
+  "main_icons": "3 I 1 Wd 1 [G]",
+  "main_text": "鉄3個と木材1個を得て、ゴールドの収入値を1上げる。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材を2個得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p05-r1c5",
+  "name_en": "Gelato Genius",
+  "name_ja": "ジェラート・ジーニアス",
+  "type": "immediate",
+  "cost": 24,
+  "brownie_discount": false,
+  "main_icons": "3 W -> 1 tWagashi =>* 1 hexW",
+  "main_text": "麦3個を支払い、和菓子タグ1個につき麦畑タイルを1枚置く（赤矢印の右に和菓子タグ、続けて白抜き∞矢印→麦畑タイル）。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 hexW",
+  "auto_text": "麦畑タイルを1枚置く。",
+  "industry": "農業",
+  "notes": "中央の能力は「3麦(赤字) → 1和菓子 ⇒∞ 1麦畑タイル」と2本の矢印が連続しており、意味の解釈に自信なし（和菓子タグを得る効果なのか条件なのか不明）。アイコンはこの並びで確実。 / 矢印連鎖。赤矢印の後に和菓子タグ＋白抜き∞矢印 / 連鎖矢印＝コスト1回支払い後、条件の回数分得る（ユーザー確認済み）",
+  "verify": []
+ },
+ {
+  "id": "p05-r2c1",
+  "name_en": "Vance Vanilla Bean",
+  "name_ja": "ヴァンス・ヴァニラビーン",
+  "type": "immediate",
+  "cost": 5,
+  "brownie_discount": false,
+  "main_icons": "3 Wd 1 [G]",
+  "main_text": "木材3個を得て、ゴールドの収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材を2個得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p05-r2c2",
+  "name_en": "Louis Lime",
+  "name_ja": "ルイス・ライム",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "2 [G] -> 2 hexF | 2 tShort 1 tTiramisu => 1 placeBld",
+  "main_text": "ゴールドの収入値を2下げて森林タイルを2枚置く。／ショートケーキタグ2個とティラミスタグ1個を所持しているならば1回だけ、地図ボード上に建物駒を1個置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hexF",
+  "auto_text": "森林タイルを1枚置く。",
+  "industry": "林業",
+  "notes": "建物アイコンは白い台座＋ハンマー（地形色なし）なので placeBld と判断。",
+  "verify": []
+ },
+ {
+  "id": "p05-r2c3",
+  "name_en": "Oliver Optimum",
+  "name_ja": "オリヴァー・オプティム",
+  "type": "immediate",
+  "cost": 10,
+  "brownie_discount": false,
+  "main_icons": "2 R? 2 hand -> draw4",
+  "main_text": "任意の基礎資源2個と手札の市民カード2枚を支払い、市民デッキから4枚引く。",
+  "tags": {
+   "ショートケーキ": 1,
+   "マカロン": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "オートメーション欄に能力アイコンなし（空欄）。産業タブは3つとも淡色。 / 左側の数字2つは赤字（コスト）",
+  "verify": []
+ },
+ {
+  "id": "p05-r2c4",
+  "name_en": "Noel Napoleon",
+  "name_ja": "ノエル・ナパレオン",
+  "type": "immediate",
+  "cost": 17,
+  "brownie_discount": false,
+  "main_icons": "1 placeRoad 1 indAdv | 1 tShort => 1 hexM",
+  "main_text": "地図ボード上に道駒を1個置き、工業トラックを1進める。／ショートケーキタグを1個所持しているならば1回だけ、鉱山タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 indAdv",
+  "auto_text": "工業トラックを1進める。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p05-r2c5",
+  "name_en": "Philip Pumpkin",
+  "name_ja": "フィリップ・パンプキン",
+  "type": "immediate",
+  "cost": 17,
+  "brownie_discount": false,
+  "main_icons": "2 placeRoad 1 [G]",
+  "main_text": "地図ボード上に道駒を2個置き、ゴールドの収入値を1上げる。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* 1 [G]",
+  "auto_text": "所持しているマカロンタグ1個につきゴールドの収入値を1上げる。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p05-r3c1",
+  "name_en": "Milo Mint",
+  "name_ja": "ミロ・ミント",
+  "type": "immediate",
+  "cost": 8,
+  "brownie_discount": true,
+  "main_icons": "1 hexW =>* 2 G",
+  "main_text": "地図ボード上の麦畑タイル1枚につき2ゴールドを得る。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p05-r3c2",
+  "name_en": "Chuck Choco",
+  "name_ja": "チャック・チョコ",
+  "type": "immediate",
+  "cost": 19,
+  "brownie_discount": true,
+  "main_icons": "3 [G] -> 2 prosG",
+  "main_text": "ゴールドの収入値を3下げて、緑色の繁栄トラックを2進める。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 prosG",
+  "auto_text": "緑色の繁栄トラックを1進める。",
+  "industry": "林業",
+  "notes": "繁栄トラックアイコンに進める矢印は無いが、数字付きなので「2進める」と記述。 / 繁栄アイコンは「進める」の意と解釈（アイコン自体は緑の繁栄トラック）",
+  "verify": []
+ },
+ {
+  "id": "p05-r3c3",
+  "name_en": "Gloria Galette",
+  "name_ja": "グロリア・ガレット",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "2 I -> 1 placeBld 2 [G]",
+  "main_text": "鉄2個を支払い、地図ボード上に建物駒を1個置き、ゴールドの収入値を2上げる。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* 1 [G]",
+  "auto_text": "所持しているマカロンタグ1個につきゴールドの収入値を1上げる。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p05-r3c4",
+  "name_en": "Gil Galette",
+  "name_ja": "ギル・ガレット",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": true,
+  "main_icons": "2 indAdv",
+  "main_text": "工業トラックを2進める。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 indAdv",
+  "auto_text": "工業トラックを1進める。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p05-r3c5",
+  "name_en": "Becca Berry Tart",
+  "name_ja": "ベッカ・ベリータルト",
+  "type": "immediate",
+  "cost": 11,
+  "brownie_discount": false,
+  "main_icons": "1 hexS | 2 tShort => 1 hexS",
+  "main_text": "海タイルを1枚置く。／ショートケーキタグを2個所持しているならば1回だけ、海タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hexS",
+  "auto_text": "海タイルを1枚置く。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p06-r1c1",
+  "name_en": "Crystal Cream Puff",
+  "name_ja": "クリスタル・クリームパフ",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "3 Wd 1 W | 1 tShort =>* 1 [G]",
+  "main_text": "木材3個と麦1個を得る。／所持しているショートケーキタグ1個につきゴールドの収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 W",
+  "auto_text": "麦を2個得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p06-r1c2",
+  "name_en": "Marcia Marshmallow",
+  "name_ja": "マルシア・マシュマロ",
+  "type": "immediate",
+  "cost": 17,
+  "brownie_discount": false,
+  "main_icons": "3 I 1 [I] -> 2 prosY",
+  "main_text": "鉄3個と鉄の収入値1を支払い、灰色の繁栄トラックを2進める。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* VP1",
+  "auto_text": "所持しているマカロンタグ1個につき1勝利点を得る。",
+  "industry": "鉱業",
+  "notes": "繁栄トラックのハートは灰（薄紫がかった灰）色。 / 左側の3と1は赤字（コスト）",
+  "verify": []
+ },
+ {
+  "id": "p06-r1c3",
+  "name_en": "Quinn Crisp",
+  "name_ja": "クエン・クリスプ",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "3 W 1 [W] -> 2 prosO",
+  "main_text": "麦3個と麦の収入値1を支払い、オレンジ色の繁栄トラックを2進める。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "5 hexW裏 => 2 [G]",
+  "auto_text": "地図ボード上の麦畑タイル（裏）が5枚あるならば1回だけ、ゴールドの収入値を2上げる。",
+  "industry": "農業",
+  "notes": "オートの白抜き矢印に∞は見えない（=>と判断）。 / オートの矢印は∞なしの白抜き",
+  "verify": []
+ },
+ {
+  "id": "p06-r1c4",
+  "name_en": "Prince Peppermint",
+  "name_ja": "プリンス・ペパーミント",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "2 hex? | 1 tTiramisu => 1 hexS",
+  "main_text": "任意の地形タイルを2枚置く。／ティラミスタグを1個所持しているならば1回だけ、海タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hex?",
+  "auto_text": "任意の地形タイルを1枚置く。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p06-r1c5",
+  "name_en": "Eddie Essence",
+  "name_ja": "エディ・エッセンス",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "2 tShort =>* 1 [Wd] | 1 hexF",
+  "main_text": "所持しているショートケーキタグ2個につき木材の収入値を1上げる。／森林タイルを1枚置く。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 hexF",
+  "auto_text": "森林タイルを1枚置く。",
+  "industry": "林業",
+  "notes": "コストは別写真（p11端）で15と確認",
+  "verify": []
+ },
+ {
+  "id": "p06-r2c1",
+  "name_en": "Caroline Caraway",
+  "name_ja": "キャロライン・キャラウェイ",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "3 [G] | 1 tShort =>* 1 W",
+  "main_text": "ゴールドの収入値を3上げる。／所持しているショートケーキタグ1個につき麦1個を得る。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p06-r2c2",
+  "name_en": "Ema Mikan",
+  "name_ja": "エマ・ミカン",
+  "type": "immediate",
+  "cost": 11,
+  "brownie_discount": false,
+  "main_icons": "3 [G] -> CP1",
+  "main_text": "ゴールドの収入値を3下げて、1都市点を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "CP1",
+  "auto_text": "1都市点を得る。",
+  "industry": "林業",
+  "notes": "右側は都市の月桂樹に数字1（CP1）。中央・オートとも同アイコン。",
+  "verify": []
+ },
+ {
+  "id": "p06-r2c3",
+  "name_en": "Morgan Maloze",
+  "name_ja": "モーガン・マロゼ",
+  "type": "pass",
+  "cost": 20,
+  "brownie_discount": false,
+  "main_icons": "clock IP2 =>* VP1",
+  "main_text": "パス時：工業点2点につき1勝利点を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "紫縁のパス時カード。工業点アイコンの月桂樹内に数字2、勝利点の月桂樹内に1。産業タブは紫系で3つとも淡色に見えるためnull。",
+  "verify": []
+ },
+ {
+  "id": "p06-r2c4",
+  "name_en": "Holly Honey Bun",
+  "name_ja": "ホリー・ハニーバン",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "2 W 1 I 1 hex?",
+  "main_text": "麦2個と鉄1個を得て、任意の地形タイルを1枚置く。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "6 hexW裏 => 2 W 1 I",
+  "auto_text": "地図ボード上の麦畑タイル（裏）が6枚あるならば1回だけ、麦2個と鉄1個を得る。",
+  "industry": "農業",
+  "notes": "オートの白抜き矢印に∞は見えない（=>と判断）。",
+  "verify": []
+ },
+ {
+  "id": "p06-r2c5",
+  "name_en": "Doctor Donuts",
+  "name_ja": "ドクター・ドーナッツ",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": true,
+  "main_icons": "4 Wd -> searchMacaron2",
+  "main_text": "木材4個を支払い、市民デッキからマカロンタグの市民カードを探して手札に加える（アイコン推定）。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材を2個得る。",
+  "industry": "林業",
+  "notes": "右側は虫眼鏡付きデッキ＋カード（絵柄に緑と赤の丸＝マカロンと思われる）。凡例Cのマカロンタグ探索アイコンと判断したが正式トークンなし。",
+  "verify": []
+ },
+ {
+  "id": "p06-r3c1",
+  "name_en": "Kai Cassis",
+  "name_ja": "カイ・カシス",
+  "type": "immediate",
+  "cost": 8,
+  "brownie_discount": false,
+  "main_icons": "1 [G] -> 2 [Wd] 1 [I]",
+  "main_text": "ゴールドの収入値を1下げて、木材の収入値を2、鉄の収入値を1上げる。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "VP2",
+  "auto_text": "2勝利点を得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p06-r3c2",
+  "name_en": "Marble Madeleine",
+  "name_ja": "マーブル・マドレーヌ",
+  "type": "immediate",
+  "cost": 7,
+  "brownie_discount": true,
+  "main_icons": "1 hand -> searchMacaron2",
+  "main_text": "手札の市民カード1枚を支払い、市民デッキからマカロンタグの市民カードを探して手札に加える（アイコン推定）。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 [Wd]",
+  "auto_text": "木材の収入値を1上げる。",
+  "industry": "林業",
+  "notes": "探索アイコン内カードの絵柄が茶〜赤っぽく不鮮明。丸い形からマカロンと判断したが、ブラウニー等の可能性もあり要確認。",
+  "verify": []
+ },
+ {
+  "id": "p06-r3c3",
+  "name_en": "Monica Marron Magic",
+  "name_ja": "モニカ・マロンマジック",
+  "type": "immediate",
+  "cost": 7,
+  "brownie_discount": false,
+  "main_icons": "1 bld =>* 1 G",
+  "main_text": "地図ボード上の建物駒1個につき1ゴールドを得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "林業",
+  "notes": "建物アイコンはハンマーなし・白台座なので bld と判断。 / 建物アイコンにハンマーなし＝bld と判断",
+  "verify": []
+ },
+ {
+  "id": "p06-r3c4",
+  "name_en": "Holly Highland",
+  "name_ja": "ホリー・ハイランド",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "3 I -> 1 placeBld | 1 tTiramisu => 1 placeRoad",
+  "main_text": "鉄3個を支払い、地図ボード上に建物駒を1個置く。／ティラミスタグを1個所持しているならば1回だけ、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "2 I",
+  "auto_text": "鉄を2個得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p06-r3c5",
+  "name_en": "Oscar Orange Peel",
+  "name_ja": "オスカー・オレンジピール",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "1 foodAdv 1 placeRoad | 2 tShort 1 tTiramisu => 1 foodAdv",
+  "main_text": "食料トラックを1進め、地図ボード上に道駒を1個置く。／ショートケーキタグ2個とティラミスタグ1個を所持しているならば1回だけ、食料トラックを1進める。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "地図ボード上に道駒を1個置く。",
+  "industry": "農業",
+  "notes": "コストは撮り直し写真で12と確定",
+  "verify": []
+ },
+ {
+  "id": "p07-r1c1",
+  "name_en": "Gareth Grapefruit",
+  "name_ja": "ガレス・グレープフルーツ",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "3 Wd -> 1 placeBld | 1 tTiramisu => 1 hexF",
+  "main_text": "木材3個を支払い、地図ボード上に建物駒を1個置く。 | ティラミスタグを1個所持しているならば1回だけ、森林タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 [Wd]",
+  "auto_text": "木材の収入値を1上げる。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p07-r1c2",
+  "name_en": "Sylvia Sherbet",
+  "name_ja": "シルビア・シャーベット",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "1 D -> 2 hexM 2 placeRoad",
+  "main_text": "ダイヤ1個を支払い、鉱山タイルを2枚置き、地図ボード上に道駒を2個置く。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* VP1",
+  "auto_text": "所持しているマカロンタグ1個につき勝利点1点を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p07-r1c3",
+  "name_en": "Jacob Gingersnap",
+  "name_ja": "ジェイコブ・ジンジャースナップ",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "1 [W] 1 hex? | 1 tShort => 1 hexW",
+  "main_text": "麦の収入値を1上げ、任意の地形タイルを1枚置く。 | ショートケーキタグを1個所持しているならば1回だけ、麦畑タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hex?",
+  "auto_text": "任意の地形タイルを1枚置く。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p07-r1c4",
+  "name_en": "Candina Caramélisé",
+  "name_ja": "カンディーナ・キャラメリーゼ",
+  "type": "immediate",
+  "cost": 17,
+  "brownie_discount": false,
+  "main_icons": "2 Wd 1 W 1 placeRoad",
+  "main_text": "木材2個と麦1個を得て、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* 1 Wd",
+  "auto_text": "所持しているマカロンタグ1個につき木材1個を得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p07-r1c5",
+  "name_en": "Penny Puff",
+  "name_ja": "ペニー・パフ",
+  "type": "immediate",
+  "cost": 6,
+  "brownie_discount": true,
+  "main_icons": "1 rabbit =>* 1 [G]",
+  "main_text": "地図ボード上のクッキーラビット駒1個につき、ゴールドの収入値を1上げる。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p07-r2c1",
+  "name_en": "Martin Macadamia",
+  "name_ja": "マーティン・マカデミア",
+  "type": "immediate",
+  "cost": 8,
+  "brownie_discount": false,
+  "main_icons": "1 [W] 2 [G]",
+  "main_text": "麦の収入値を1、ゴールドの収入値を2上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p07-r2c2",
+  "name_en": "Elma Equinox",
+  "name_ja": "エルマ・エキノクス",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "3 I -> IP1 | 2 tShort 2 tTiramisu => IP2",
+  "main_text": "鉄3個を支払い、工業点1点を得る。 | ショートケーキタグ2個とティラミスタグ2個を所持しているならば1回だけ、工業点2点を得る。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "IP1",
+  "auto_text": "工業点1点を得る。",
+  "industry": "鉱業",
+  "notes": "工業点アイコン（月桂樹＋ミルク缶）に数字が入っているため VP 表記に倣い IP1/IP2 と記載。2行目の左端アイコンはショートケーキと判断（チョコ乗りに見えるがスロット1の絵柄と同じ）。",
+  "verify": []
+ },
+ {
+  "id": "p07-r2c3",
+  "name_en": "Veronica Berry",
+  "name_ja": "ベロニカ・ベリー",
+  "type": "immediate",
+  "cost": 18,
+  "brownie_discount": true,
+  "main_icons": "2 I 2 [I] -> 2 prosY",
+  "main_text": "鉄2個を支払い、鉄の収入値を2下げて、灰色の繁栄トラックを2進める。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 prosY",
+  "auto_text": "灰色の繁栄トラックを1進める。",
+  "industry": "鉱業",
+  "notes": "最下端タブは反射で左2つが見えないが、右（灰）タブは濃く、枠の縞も灰色なので鉱業と判断。繁栄ハートは青灰色で灰色トラックと判断。 / 産業タブは強い反射で橙・緑がほぼ見えない。灰タブのみ濃く見えるため鉱業と判断（上部の縞も灰色）。繁栄アイコンのハートは灰（薄紫がかった灰）でprosYと判断。",
+  "verify": []
+ },
+ {
+  "id": "p07-r2c4",
+  "name_en": "Penny Prune",
+  "name_ja": "ペニー・プルーン",
+  "type": "immediate",
+  "cost": 19,
+  "brownie_discount": false,
+  "main_icons": "2 [W] -> 1 prosO",
+  "main_text": "麦の収入値を2下げて、オレンジ色の繁栄トラックを1進める。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "3 bldOnW => 2 W 1 prosO",
+  "auto_text": "麦畑タイル上の建物駒が3個あるならば1回だけ、麦2個を得て、オレンジ色の繁栄トラックを1進める。",
+  "industry": "農業",
+  "notes": "オートメーション欄の建物駒の台座はオレンジ系の六角形に見えるためbldOnWとした（白台座のbldの可能性は低い）。白抜き矢印に∞は見えない。緑タブは反射気味だが淡色と判断。",
+  "verify": []
+ },
+ {
+  "id": "p07-r2c5",
+  "name_en": "William Wafer",
+  "name_ja": "ウィリアム・ウェファー",
+  "type": "immediate",
+  "cost": 8,
+  "brownie_discount": false,
+  "main_icons": "3 bld =>* 3 Wd",
+  "main_text": "地図ボード上の建物駒3個につき、木材3個を得る。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "VP3",
+  "auto_text": "勝利点3点を得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p07-r3c1",
+  "name_en": "Daphne Delight",
+  "name_ja": "ダフネ・ディライト",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "2 [Wd] =>* 1 Wd",
+  "main_text": "木材の収入値2につき、木材1個を得る。",
+  "tags": {
+   "ブラウニー": 2
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "オートメーション欄は空欄（アイコンなし）。産業タブ3つとも淡色、縁の縞も淡い水色で産業タグなしと判断。即時/パス時の区別は紫縁なし・時計なしのため immediate。 / 白抜き矢印の上に∞あり。オートメーション欄は空、産業タブはすべて淡色。",
+  "verify": []
+ },
+ {
+  "id": "p07-r3c2",
+  "name_en": "Linda Lemon Balm",
+  "name_ja": "リンダ・レモンバーム",
+  "type": "immediate",
+  "cost": 17,
+  "brownie_discount": false,
+  "main_icons": "1 hexW =>* 1 [G]",
+  "main_text": "地図ボード上の麦畑タイル1枚につき、ゴールドの収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 2
+  },
+  "auto_icons": "1 [W]",
+  "auto_text": "麦の収入値を1上げる。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p07-r3c3",
+  "name_en": "Bernard Blancmanger",
+  "name_ja": "バーナード・ブランマンジェ",
+  "type": "immediate",
+  "cost": 17,
+  "brownie_discount": false,
+  "main_icons": "2 foodAdv | 3 tShort => 1 foodAdv",
+  "main_text": "食料トラックを2進める。 | ショートケーキタグを3個所持しているならば1回だけ、食料トラックを1進める。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 [W]",
+  "auto_text": "麦の収入値を1上げる。",
+  "industry": "農業",
+  "notes": "反射で英語名の前半とコストが見づらい。英語名は和名から Bernard Blancmanger と推定（カード上の綴りは 'Blancmanger' 部分のみ確認）、コスト17は薄いが読める。 / コストと英語名の前半は反射で見えにくい（コスト17、英名はBernard Blancmangerと推定、カタカナ名バーナード・ブランマンジェは判読可）。",
+  "verify": [
+   "英語名の前半とコスト（17と推定）"
+  ]
+ },
+ {
+  "id": "p07-r3c4",
+  "name_en": "Willa Whippedcream",
+  "name_ja": "ウィラ・ホイップクリーム",
+  "type": "immediate",
+  "cost": 6,
+  "brownie_discount": false,
+  "main_icons": "3 Wd 1 I 1 [G]",
+  "main_text": "木材3個と鉄1個を得て、ゴールドの収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 I",
+  "auto_text": "鉄2個を得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p07-r3c5",
+  "name_en": "Grand Gummy Bear",
+  "name_ja": "グランド・グミーベア",
+  "type": "immediate",
+  "cost": 5,
+  "brownie_discount": true,
+  "main_icons": "4 I",
+  "main_text": "鉄4個を得る。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "2 I",
+  "auto_text": "鉄2個を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p08-r1c1",
+  "name_en": "Olive Oatcake",
+  "name_ja": "オリーブ・オートケーキ",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "4 Wd -> 1 placeBld | 1 tShort =>* 1 Wd",
+  "main_text": "木材4個を支払い、地図ボード上に建物駒を1個置く。 | 所持しているショートケーキタグ1個につき木材1個を得る。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材2個を得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p08-r1c2",
+  "name_en": "Biskey Biscuit",
+  "name_ja": "ビスキー・ビスケット",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "1 foodAdv 1 hex? | 1 tTiramisu => 1 hexW",
+  "main_text": "食料トラックを1進め、任意の地形タイルを1枚置く。 | ティラミスタグを1個所持しているならば1回だけ、麦畑タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hex?",
+  "auto_text": "任意の地形タイルを1枚置く。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p08-r1c3",
+  "name_en": "Xander Zest",
+  "name_ja": "ザンダー・ゼスト",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": true,
+  "main_icons": "3 R? -> 1 hex? 1 placeBld",
+  "main_text": "任意の基礎資源3個を支払い、任意の地形タイルを1枚置き、地図ボード上に建物駒を1個置く。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "2 R?",
+  "auto_text": "任意の基礎資源2個を得る。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p08-r1c4",
+  "name_en": "Rosa Raspberry",
+  "name_ja": "ローザ・ラズベリー",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "3 R? -> 2 hexS | 1 tTiramisu => 1 hex?",
+  "main_text": "任意の基礎資源3個を支払い、海タイルを2枚置く。 | ティラミスタグを1個所持しているならば1回だけ、任意の地形タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hexS",
+  "auto_text": "海タイルを1枚置く。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p08-r1c5",
+  "name_en": "Benedict Bitter",
+  "name_ja": "ベネディクト・ビター",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": true,
+  "main_icons": "2 [G] -> 3 placeRoad",
+  "main_text": "ゴールドの収入値を2下げて、地図ボード上に道駒を3個置く。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "地図ボード上に道駒を1個置く。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p08-r2c1",
+  "name_en": "Russell Raspberry Leaf",
+  "name_ja": "ラッセル・ラズベリーリーフ",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "1 hexW 1 placeRoad | 1 tTiramisu => 1 hexF",
+  "main_text": "麦畑タイルを1枚置き、地図ボード上に道駒を1個置く。 | ティラミスタグを1個所持しているならば1回だけ、森林タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "地図ボード上に道駒を1個置く。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p08-r2c2",
+  "name_en": "Neil Napoleon",
+  "name_ja": "ニール・ナポレオン",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": true,
+  "main_icons": "3 R? -> 1 hexS 1 placeBldS",
+  "main_text": "任意の基礎資源3個を支払い、海タイルを1枚置き、海タイルに建物駒を1個置く。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 hexS",
+  "auto_text": "海タイルを1枚置く。",
+  "industry": "オールマイティ",
+  "notes": "建物駒（ハンマー付き）の土台が水色なので placeBldS と判断。",
+  "verify": []
+ },
+ {
+  "id": "p08-r2c3",
+  "name_en": "Joanna Jam",
+  "name_ja": "ジョアンナ・ジャム",
+  "type": "pass",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "clock 1 auto =>* VP1",
+  "main_text": "パス時：オートメーション化したカード1枚につき勝利点1点を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "紫縁のパス時カード。最下端に産業タブは見当たらない。",
+  "verify": []
+ },
+ {
+  "id": "p08-r2c4",
+  "name_en": "Ronald Rum Cake",
+  "name_ja": "ロナルド・ラムケーキ",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "1 [I] 1 indAdv | 1 tShort 2 tTiramisu => 1 indAdv",
+  "main_text": "鉄の収入値を1上げ、工業トラックを1進める。 | ショートケーキタグ1個とティラミスタグ2個を所持しているならば1回だけ、工業トラックを1進める。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 [I]",
+  "auto_text": "鉄の収入値を1上げる。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p08-r2c5",
+  "name_en": "Frostina Frosting",
+  "name_ja": "フロスティーナ・フロスティング",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "4 W -> 1 placeBldW | 2 tShort =>* 1 [W]",
+  "main_text": "麦4個を支払い、麦畑タイルに建物駒を1個置く。 | 所持しているショートケーキタグ2個につき麦の収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [W]",
+  "auto_text": "麦の収入値を1上げる。",
+  "industry": "農業",
+  "notes": "1行目の建物駒（ハンマー付き）の土台がオレンジ色なので placeBldW と判断。2行目の白抜き矢印の∞は拡大で確認済み。 / 建物駒の台座はオレンジ系六角形でplaceBldWと判断。2行目の白抜き矢印は∞付きに見える（小さく、やや不確か）。",
+  "verify": []
+ },
+ {
+  "id": "p08-r3c1",
+  "name_en": "Quincy Quiche",
+  "name_ja": "クインシー・キッシュ",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "1 hexW 1 placeRoad",
+  "main_text": "麦畑タイルを1枚置き、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "5 bld => 1 [W] 1 hexW",
+  "auto_text": "地図ボード上の建物駒が5個あるならば1回だけ、麦の収入値を1上げ、麦畑タイルを1枚置く。",
+  "industry": "農業",
+  "notes": "オートメーション欄の建物駒の台座は白に見えるためbldとした。白抜き矢印に∞は見えない。",
+  "verify": []
+ },
+ {
+  "id": "p08-r3c2",
+  "name_en": "Clyde Cranberry Cliff",
+  "name_ja": "クライド・クランベリークリフ",
+  "type": "immediate",
+  "cost": 18,
+  "brownie_discount": false,
+  "main_icons": "2 pros?",
+  "main_text": "任意の繁栄トラックを2進める。",
+  "tags": {
+   "ショートケーキ": 1,
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "オートメーション欄は空欄。産業タブ3つとも淡色、縁の縞も淡い水色で産業タグなしと判断。繁栄アイコンは虹色ハート＝任意の繁栄トラック。 / 紫の縁取りなしのため即時カードとしたが、オートメーション欄は空、産業タブもすべて淡色。上部の縞は淡い水色（産業色なし）。",
+  "verify": []
+ },
+ {
+  "id": "p08-r3c3",
+  "name_en": "Thomas Tasha",
+  "name_ja": "トーマス・ターシャ",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "2 W 1 placeRoad",
+  "main_text": "麦2個を得て、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "4 hexW => 3 W",
+  "auto_text": "地図ボード上の麦畑タイルが4枚あるならば1回だけ、麦3個を得る。",
+  "industry": "農業",
+  "notes": "撮り直し写真で名前・コストを確定",
+  "verify": []
+ },
+ {
+  "id": "p08-r3c4",
+  "name_en": "Perry Pecan",
+  "name_ja": "ペリー・ペカン",
+  "type": "pass",
+  "cost": 17,
+  "brownie_discount": true,
+  "main_icons": "clock 1 city =>* VP1 | clock 1 tWagashi =>* VP1",
+  "main_text": "パス時：都市1つにつき勝利点1点を得る。 | パス時：所持している和菓子タグ1個につき勝利点1点を得る。",
+  "tags": {
+   "ブラウニー": 1,
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "紫縁のパス時カード。ブラウニー割引表記はゴールド部分が反射で薄いが『(ブラウニー×-1)』の形は確認。最下端の3タブは紫がかった淡色で産業タグなしと判断。 / ブラウニー割引表記の「-1ゴールド」部分が反射で薄いが、括弧とブラウニーアイコンは見えるため割引ありと判断。",
+  "verify": []
+ },
+ {
+  "id": "p08-r3c5",
+  "name_en": "Elliott Elderberry",
+  "name_ja": "エリオット・エルダーベリー",
+  "type": "immediate",
+  "cost": 18,
+  "brownie_discount": false,
+  "main_icons": "2 placeRoad | 1 tTiramisu => 1 placeRoad",
+  "main_text": "地図ボード上に道駒を2個置く。 | ティラミスタグを1個所持しているならば1回だけ、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "地図ボード上に道駒を1個置く。",
+  "industry": "林業",
+  "notes": "カード下端が写真の端で一部切れているが、中央（緑）タブが濃く、縁の縞も緑。 / 産業タブ下端が写真で切れているが、緑タブが濃く見え上部の縞も緑。",
+  "verify": []
+ },
+ {
+  "id": "p09-r1c1",
+  "name_en": "Henrietta Herb Heart",
+  "name_ja": "ヘンリエッタ・ハーブハート",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "1 [I] 1 hexM | 1 tShort => 1 hexS",
+  "main_text": "鉄の収入値を1上げ、鉱山タイルを1枚置く。｜所持しているショートケーキタグが1個以上ならば1回だけ、海タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hexM",
+  "auto_text": "鉱山タイルを1枚置く。",
+  "industry": "鉱業",
+  "notes": "六角形の色は灰紫色で鉱山（表）と判断。",
+  "verify": []
+ },
+ {
+  "id": "p09-r1c2",
+  "name_en": "Cora Cappuccino",
+  "name_ja": "コーラ・カプチーノ",
+  "type": "immediate",
+  "cost": 9,
+  "brownie_discount": false,
+  "main_icons": "2 I 1 indAdv",
+  "main_text": "鉄を2個得て、工業トラックを1進める。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* 1 G",
+  "auto_text": "所持しているマカロンタグ1個につきゴールド1個を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p09-r1c3",
+  "name_en": "Lady Raspberry Lips",
+  "name_ja": "レディ・ラズベリーリップス",
+  "type": "immediate",
+  "cost": 4,
+  "brownie_discount": false,
+  "main_icons": "1 tShort =>* 1 Wd",
+  "main_text": "所持しているショートケーキタグ1個につき木材1個を得る。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材を2個得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p09-r1c4",
+  "name_en": "Zelda Zabaglione",
+  "name_ja": "ゼルダ・ザバリオーネ",
+  "type": "pass",
+  "cost": 19,
+  "brownie_discount": true,
+  "main_icons": "clock 1 rabbit =>* VP1 | clock 1 tWagashi =>* VP1",
+  "main_text": "パス時：地図ボード上のクッキーラビット駒1個につき勝利点1を得る。｜パス時：所持している和菓子タグ1個につき勝利点1を得る。",
+  "tags": {
+   "ブラウニー": 1,
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "トロフィー内の数字1をVP1と表記。産業タブは3つとも淡色。",
+  "verify": []
+ },
+ {
+  "id": "p09-r1c5",
+  "name_en": "Amos Apple",
+  "name_ja": "アモス・アップル",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "1 [Wd] -> 1 prosG | 2 tShort 2 tTiramisu => 1 prosG",
+  "main_text": "木材の収入値を1下げて、緑色の繁栄トラックを1進める。｜ショートケーキタグ2個とティラミスタグ2個を所持しているならば1回だけ、緑色の繁栄トラックを1進める。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 prosG",
+  "auto_text": "緑色の繁栄トラックを1進める。",
+  "industry": "林業",
+  "notes": "繁栄トラックの「1」は「1マス進める」と解釈して文章化（アイコン自体は数字＋繁栄トラック）。",
+  "verify": []
+ },
+ {
+  "id": "p09-r2c1",
+  "name_en": "Della Dulce de Leche",
+  "name_ja": "デラ・ドゥルセデレチェ",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "2 foodAdv 1 indAdv",
+  "main_text": "食料トラックを2進め、工業トラックを1進める。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "6 hexW裏 => 2 W 1 foodAdv",
+  "auto_text": "地図ボード上の麦畑タイル（裏）が6枚以上ならば1回だけ、麦2個を得て食料トラックを1進める。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p09-r2c2",
+  "name_en": "Tessa Toffee",
+  "name_ja": "テッサ・トフィー",
+  "type": "immediate",
+  "cost": 4,
+  "brownie_discount": false,
+  "main_icons": "1 playedAgr =>* 1 G",
+  "main_text": "プレイした農業タグを持つ市民カード1枚につきゴールド1個を得る。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "3 bld => 1 [W] 1 [G]",
+  "auto_text": "地図ボード上の建物駒が3個以上ならば1回だけ、麦の収入値を1、ゴールドの収入値を1上げる。",
+  "industry": "農業",
+  "notes": "下段の建物駒は台座が白（地形色なし）なので bld と判断。",
+  "verify": []
+ },
+ {
+  "id": "p09-r2c3",
+  "name_en": "Polly Pavlova",
+  "name_ja": "ポリー・パヴロヴァ",
+  "type": "immediate",
+  "cost": 18,
+  "brownie_discount": false,
+  "main_icons": "5 I -> 1 placeBld 1 indAdv | 2 tShort 2 tTiramisu => 1 placeBld",
+  "main_text": "鉄5個を支払い、地図ボード上に建物駒を1個置き、工業トラックを1進める。｜ショートケーキタグ2個とティラミスタグ2個を所持しているならば1回だけ、地図ボード上に建物駒を1個置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 indAdv",
+  "auto_text": "工業トラックを1進める。",
+  "industry": "鉱業",
+  "notes": "建物駒アイコンの台座が灰色の六角形なので placeBldM と判断（地図ボード汎用の placeBld ではない）。",
+  "verify": [
+   "建物アイコンの土台が灰色（鉱山タイルに建物駒を置く）か無色（任意）か"
+  ]
+ },
+ {
+  "id": "p09-r2c4",
+  "name_en": "Opal Orange Peel",
+  "name_ja": "オパール・オレンジピール",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": true,
+  "main_icons": "1 [Wd] 2 [G] -> 2 prosG",
+  "main_text": "木材の収入値を1、ゴールドの収入値を2下げて、緑色の繁栄トラックを2進める。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 prosG",
+  "auto_text": "緑色の繁栄トラックを1進める。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p09-r2c5",
+  "name_en": "Priscilla Prune",
+  "name_ja": "プリシラ・プルーン",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "2 W 1 [W] 2 [G]",
+  "main_text": "麦を2個得て、麦の収入値を1、ゴールドの収入値を2上げる。",
+  "tags": {
+   "ショートケーキ": 2
+  },
+  "auto_icons": "2 W",
+  "auto_text": "麦を2個得る。",
+  "industry": "農業",
+  "notes": "ショートケーキタグの横に「×2」あり。",
+  "verify": []
+ },
+ {
+  "id": "p09-r3c1",
+  "name_en": "Greg Granola",
+  "name_ja": "グレッグ・グラノーラ",
+  "type": "immediate",
+  "cost": 13,
+  "brownie_discount": false,
+  "main_icons": "1 [I] -> 2 placeRoad",
+  "main_text": "鉄の収入値を1下げて、地図ボード上に道駒を2個置く。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "VP2",
+  "auto_text": "勝利点2を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p09-r3c2",
+  "name_en": "Charles Chewing Gum",
+  "name_ja": "チャールズ・チューインガム",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": true,
+  "main_icons": "1 playedMin =>* 1 [G]",
+  "main_text": "プレイした鉱業タグを持つ市民カード1枚につきゴールドの収入値を1上げる。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 playedMin =>* 1 G",
+  "auto_text": "プレイした鉱業タグを持つ市民カード1枚につきゴールド1個を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p09-r3c3",
+  "name_en": "Christina Cranberry",
+  "name_ja": "クリスティナ・クランベリー",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "1 D -> 3 placeRoad | 3 tShort => 2 hexF",
+  "main_text": "ダイヤ1個を支払い、地図ボード上に道駒を3個置く。｜ショートケーキタグを3個所持しているならば1回だけ、森林タイルを2枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "地図ボード上に道駒を1個置く。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p09-r3c4",
+  "name_en": "Karen Kahlua Cup",
+  "name_ja": "カレン・カルアカプ",
+  "type": "pass",
+  "cost": 18,
+  "brownie_discount": false,
+  "main_icons": "clock 2 bld =>* VP1",
+  "main_text": "パス時：地図ボード上の建物駒2個につき勝利点1を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "産業タブは3つとも淡色。建物駒の台座は白（地形色なし）。",
+  "verify": []
+ },
+ {
+  "id": "p09-r3c5",
+  "name_en": "Alex Amber",
+  "name_ja": "アレックス・アンバー",
+  "type": "immediate",
+  "cost": 7,
+  "brownie_discount": false,
+  "main_icons": "1 W ->* 2 G",
+  "main_text": "麦1個を任意の回数支払い、1回につきゴールド2個を得る。",
+  "tags": {
+   "ブラウニー": 1,
+   "マカロン": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "下段（オートメーション時能力）は空欄のため auto は null。産業タブは3つとも淡色。上部の縞模様は白/水色。 / オートメーション欄は空。産業タブは3つとも淡色（上部の縞も白っぽい）ため産業タグなしと判断。",
+  "verify": []
+ },
+ {
+  "id": "p10-r1c1",
+  "name_en": "Vanessa Vanilla",
+  "name_ja": "ヴァネッサ・ヴァニラ",
+  "type": "immediate",
+  "cost": 4,
+  "brownie_discount": false,
+  "main_icons": "1 tShort =>* 1 W",
+  "main_text": "所持しているショートケーキタグ1個につき麦1個を得る。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 W",
+  "auto_text": "麦を2個得る。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p10-r1c2",
+  "name_en": "Roger Rock Candy",
+  "name_ja": "ロジャー・ロックキャンディ",
+  "type": "immediate",
+  "cost": 8,
+  "brownie_discount": false,
+  "main_icons": "3 I 2 [G]",
+  "main_text": "鉄を3個得て、ゴールドの収入値を2上げる。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "4 hexM => 2 [G]",
+  "auto_text": "地図ボード上の鉱山タイルが4枚以上ならば1回だけ、ゴールドの収入値を2上げる。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p10-r1c3",
+  "name_en": "Sally Strawberry",
+  "name_ja": "サリー・ストロベリー",
+  "type": "immediate",
+  "cost": 9,
+  "brownie_discount": false,
+  "main_icons": "1 D -> 2 hex? | 2 tShort 2 tTiramisu => 2 hex?",
+  "main_text": "ダイヤ1個を支払い、任意の地形タイルを2枚置く。｜ショートケーキタグ2個とティラミスタグ2個を所持しているならば1回だけ、任意の地形タイルを2枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hex?",
+  "auto_text": "任意の地形タイルを1枚置く。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p10-r1c4",
+  "name_en": "Henrietta Honeydew",
+  "name_ja": "ヘレナ・ハニーデュー",
+  "type": "immediate",
+  "cost": 18,
+  "brownie_discount": true,
+  "main_icons": "2 W 1 [W] -> 2 prosO",
+  "main_text": "麦2個と麦の収入値1を支払い、オレンジ色の繁栄トラックを2進める。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 prosO",
+  "auto_text": "オレンジ色の繁栄トラックを1進める。",
+  "industry": "農業",
+  "notes": "カタカナ名はカード表記どおり「ヘレナ・ハニーデュー」（英語名 Henrietta と不一致）。 / カタカナ名は印刷どおり「ヘレナ・ハニーデュー」（英語名 Henrietta と不一致）。",
+  "verify": []
+ },
+ {
+  "id": "p10-r1c5",
+  "name_en": "Anthony Apricot",
+  "name_ja": "アンソニー・アプリコット",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "2 [W] 1 foodAdv",
+  "main_text": "麦の収入値を2上げ、食料トラックを1進める。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "6 bld => 1 [W] 1 foodAdv",
+  "auto_text": "地図ボード上の建物駒が6個以上ならば1回だけ、麦の収入値を1上げ、食料トラックを1進める。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p10-r2c1",
+  "name_en": "Sebastian Sponge",
+  "name_ja": "セバスチャン・スポンジ",
+  "type": "immediate",
+  "cost": 19,
+  "brownie_discount": true,
+  "main_icons": "3 [G] -> 2 prosY",
+  "main_text": "ゴールドの収入値を3下げて、灰色の繁栄トラックを2進める。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 prosY",
+  "auto_text": "灰色の繁栄トラックを1進める。",
+  "industry": "鉱業",
+  "notes": "繁栄トラックのハートは灰紫色で prosY（灰色）と判断。 / 繁栄アイコンのハートは薄紫〜灰色。灰色トラック(prosY)と判断。",
+  "verify": []
+ },
+ {
+  "id": "p10-r2c2",
+  "name_en": "Rhonda Rich",
+  "name_ja": "ロンダ・リッチ",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "1 D 2 I",
+  "main_text": "ダイヤを1個、鉄を2個得る。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "5 hexM裏 => 1 I 1 D",
+  "auto_text": "地図ボード上の鉱山タイル（裏）が5枚以上ならば1回だけ、鉄1個とダイヤ1個を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p10-r2c3",
+  "name_en": "Frank Fig Fest",
+  "name_ja": "フランク・フィグフェスタ",
+  "type": "immediate",
+  "cost": 13,
+  "brownie_discount": false,
+  "main_icons": "1 hexS =>* 1 [G] | 1 tShort =>* 1 G",
+  "main_text": "地図ボード上の海タイル1枚につきゴールドの収入値を1上げる。｜所持しているショートケーキタグ1個につきゴールド1個を得る。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 hexS =>* 1 G",
+  "auto_text": "地図ボード上の海タイル1枚につきゴールド1個を得る。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p10-r2c4",
+  "name_en": "Oz Over",
+  "name_ja": "オズ・オーバー",
+  "type": "immediate",
+  "cost": 10,
+  "brownie_discount": true,
+  "main_icons": "1 rabbit =>* 1 W",
+  "main_text": "地図ボード上のクッキーラビット駒1個につき麦1個を得る。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "2 W",
+  "auto_text": "麦を2個得る。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p10-r2c5",
+  "name_en": "Lola Licorice",
+  "name_ja": "ローラ・リコリス",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": true,
+  "main_icons": "2 I -> 1 prosY",
+  "main_text": "鉄2個を支払い、灰色の繁栄トラックを1進める。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 prosY",
+  "auto_text": "灰色の繁栄トラックを1進める。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p10-r3c1",
+  "name_en": "Stella Sweet",
+  "name_ja": "ステラ・スウィート",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "2 [G] -> 2 [Wd] | 2 tShort =>* 1 [W]",
+  "main_text": "ゴールドの収入値を2下げて、木材の収入値を2上げる。｜所持しているショートケーキタグ2個につき麦の収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [W]",
+  "auto_text": "麦の収入値を1上げる。",
+  "industry": "林業",
+  "notes": "2行目の白抜き矢印の∞は小さいが有りと判断。",
+  "verify": []
+ },
+ {
+  "id": "p10-r3c2",
+  "name_en": "Baron Butterscotch",
+  "name_ja": "バロン・バタースコッチ",
+  "type": "immediate",
+  "cost": 10,
+  "brownie_discount": false,
+  "main_icons": "1 W 1 Wd 1 hex? | 1 tShort 1 tTiramisu => 1 hex?",
+  "main_text": "麦1個と木材1個を得て、任意の地形タイルを1枚置く。｜ショートケーキタグとティラミスタグを1個ずつ所持しているならば1回だけ、任意の地形タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hex?",
+  "auto_text": "任意の地形タイルを1枚置く。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p10-r3c3",
+  "name_en": "Sir Sprinkles",
+  "name_ja": "サー・スプリンクルス",
+  "type": "immediate",
+  "cost": 9,
+  "brownie_discount": false,
+  "main_icons": "1 [I] 2 [G]",
+  "main_text": "鉄の収入値を1、ゴールドの収入値を2上げる。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "5 hexM裏 => 2 [I]",
+  "auto_text": "地図ボード上の鉱山タイル（裏）が5枚以上ならば1回だけ、鉄の収入値を2上げる。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p10-r3c4",
+  "name_en": "Evelyn Strawberry",
+  "name_ja": "イヴリン・ストリベリー",
+  "type": "immediate",
+  "cost": 21,
+  "brownie_discount": false,
+  "main_icons": "ibMin",
+  "main_text": "鉱業の産業ボーナスを得る。",
+  "tags": {
+   "ショートケーキ": 1,
+   "マカロン": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "産業ボーナスアイコンの上段帯は一様に灰色のため ibMin と判断（多色なら ib?）。コストの数字とゴールドアイコンが反射で淡く見えるが21と読める。カタカナ名は拡大確認でカード表記どおり「イヴリン・ストリベリー」（ストロベリーではない）。下段は空欄でauto null。産業タブは3つとも淡色。 / 産業ボーナスアイコンの上部帯が単色の灰色に見えるため ibMin とした（凡例の ib? は橙/緑/灰の3色帯）。写真の反射で上部の色が飛び気味なので ib? の可能性も残る。数字なし。コスト21は反射で薄いが読める。オートメーション欄は空、産業タブ3つとも淡色で産業タグなし。カタカナ名は印刷どおり「ストリベリー」。",
+  "verify": [
+   "産業ボーナスが鉱業か任意か"
+  ]
+ },
+ {
+  "id": "p10-r3c5",
+  "name_en": "Harry Hazelnut",
+  "name_ja": "ハリー・ヘーゼルナッツ",
+  "type": "immediate",
+  "cost": 13,
+  "brownie_discount": true,
+  "main_icons": "1 D -> 3 foodAdv",
+  "main_text": "ダイヤ1個を支払い、食料トラックを3進める。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 foodAdv",
+  "auto_text": "食料トラックを1進める。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p11-r1c1",
+  "name_en": "Jasper Juniper",
+  "name_ja": "ジャスパー・ジュニパー",
+  "type": "pass",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "clock 2 playedMin =>* VP1 | clock 1 tWagashi =>* VP1",
+  "main_text": "パス時：プレイした鉱業タグを持つ市民カード2枚につき勝利点1を得る。｜パス時：所持している和菓子タグ1個につき勝利点1を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "カードアイコンの縞は灰（写真ではやや紫がかって見える）→playedMinと判断。勝利点アイコンの中の数字は1。産業タブは3つとも淡色。 / カードアイコンの縞は青紫〜灰色に見えるため playedMin と判断。",
+  "verify": []
+ },
+ {
+  "id": "p11-r1c2",
+  "name_en": "Sam Spicy",
+  "name_ja": "サム・スパイシー",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "1 I 1 [G] 1 placeRoad | 1 tTiramisu => 1 placeRoad",
+  "main_text": "鉄1個を得て、ゴールドの収入値を1上げ、地図ボード上に道駒を1個置く。｜所持しているティラミスタグが1個以上あるならば1回だけ、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "地図ボード上に道駒を1個置く。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p11-r1c3",
+  "name_en": "Simon Sangria",
+  "name_ja": "サイモン・サングリア",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "2 [G] 1 indAdv | 1 tShort 2 tTiramisu => 1 indAdv",
+  "main_text": "ゴールドの収入値を2上げ、工業トラックを1進める。｜ショートケーキタグ1個とティラミスタグ2個を所持しているならば1回だけ、工業トラックを1進める。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p11-r1c4",
+  "name_en": "Tina Tropic",
+  "name_ja": "ティナ・トロピック",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "CP2 =>* 1 Wd | 2 tTiramisu => CP1",
+  "main_text": "都市点2点につき木材1個を得る。｜ティラミスタグを2個所持しているならば1回だけ、都市点1を得る。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材2個を得る。",
+  "industry": "林業",
+  "notes": "1行目左は月桂樹付き都市アイコンに数字2（CP2）。2行目右は月桂樹付き都市アイコンに数字1（CP1）。 / 1行目の左は都市の月桂樹に数字2（CP2）。条件側にあり意味は『都市点2点につき』の可能性。",
+  "verify": []
+ },
+ {
+  "id": "p11-r1c5",
+  "name_en": "Loren Lychee",
+  "name_ja": "ローレン・ライチ",
+  "type": "immediate",
+  "cost": 18,
+  "brownie_discount": false,
+  "main_icons": "4 Wd -> CP2",
+  "main_text": "木材4個を支払って都市点2を得る。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* VP1",
+  "auto_text": "所持しているマカロンタグ1個につき勝利点1を得る。",
+  "industry": "林業",
+  "notes": "main の「4」は赤字。",
+  "verify": []
+ },
+ {
+  "id": "p11-r2c1",
+  "name_en": "Elliott Espresso",
+  "name_ja": "エリオット・エスプレッソ",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "1 D -> 3 indAdv",
+  "main_text": "ダイヤ1個を支払って工業トラックを3進める。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "3 bldOnM => 2 I 1 indAdv",
+  "auto_text": "鉱山タイル上の建物駒が3個以上あるならば1回だけ、鉄2個を得て工業トラックを1進める。",
+  "industry": "鉱業",
+  "notes": "オート条件の建物駒は台座が灰色の六角形→bldOnMと判断（白台座の bld ではない）。カタカナ名は写真では「エリオット・エスプレッソ」と読めるが末尾の小書き文字は判読やや不確か。 / オートメーションの建物駒の台座は灰紫色で鉱山と判断。",
+  "verify": []
+ },
+ {
+  "id": "p11-r2c2",
+  "name_en": "Nina Nutmeg",
+  "name_ja": "ニーナ・ナツメグ",
+  "type": "immediate",
+  "cost": 25,
+  "brownie_discount": false,
+  "main_icons": "1 D -> 1 tWagashi =>* 1 indAdv",
+  "main_text": "ダイヤ1個を支払い、所持している和菓子タグ1個につき工業トラックを1進める。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 indAdv",
+  "auto_text": "工業トラックを1進める。",
+  "industry": "鉱業",
+  "notes": "アイコン列は『1D →(赤) 1和菓子 ⇒∞(白) 1工業トラック進む』。赤矢印の右に条件が続く珍しい構造なので文章化は解釈を含む。 / 連鎖矢印＝コスト1回支払い後、条件の回数分得る（ユーザー確認済み）",
+  "verify": []
+ },
+ {
+  "id": "p11-r2c3",
+  "name_en": "Hana Harmony",
+  "name_ja": "ハナ・ハーモニー",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "1 [Wd] -> 2 [G] | 2 tShort =>* 1 [I]",
+  "main_text": "木材の収入値を1下げてゴールドの収入値を2上げる。｜所持しているショートケーキタグ2個につき鉄の収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p11-r2c4",
+  "name_en": "Captain Crunch",
+  "name_ja": "キャプテン・クランチ",
+  "type": "immediate",
+  "cost": 10,
+  "brownie_discount": true,
+  "main_icons": "2 I 1 [I] 1 [G]",
+  "main_text": "鉄2個を得て、鉄の収入値を1上げ、ゴールドの収入値を1上げる。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 [I]",
+  "auto_text": "鉄の収入値を1上げる。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p11-r2c5",
+  "name_en": "Lawrence Lemon Lake",
+  "name_ja": "ロレンス・レモンレイク",
+  "type": "immediate",
+  "cost": 8,
+  "brownie_discount": false,
+  "main_icons": "CP1 =>* 1 G",
+  "main_text": "都市点1点につきゴールド1を得る。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* 1 G",
+  "auto_text": "所持しているマカロンタグ1個につきゴールド1を得る。",
+  "industry": "林業",
+  "notes": "main左は月桂樹付き都市アイコン（中に1）。 / 中央の緑タブに光の反射があるが濃い緑と判断。",
+  "verify": []
+ },
+ {
+  "id": "p11-r3c1",
+  "name_en": "Molly Mint",
+  "name_ja": "モリー・ミント",
+  "type": "immediate",
+  "cost": 7,
+  "brownie_discount": false,
+  "main_icons": "2 I 3 [G]",
+  "main_text": "鉄2個を得て、ゴールドの収入値を3上げる。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "4 hexM => 2 [G]",
+  "auto_text": "地図ボード上の鉱山タイルが4枚以上あるならば1回だけ、ゴールドの収入値を2上げる。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p11-r3c2",
+  "name_en": "Peter Pavlova",
+  "name_ja": "ピーター・パヴロバ",
+  "type": "immediate",
+  "cost": 6,
+  "brownie_discount": false,
+  "main_icons": "3 W 1 [W]",
+  "main_text": "麦3個を得て、麦の収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 W",
+  "auto_text": "麦2個を得る。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p11-r3c3",
+  "name_en": "Gary Granola",
+  "name_ja": "ゲイリー・グラノーラ",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "3 [G] 1 hexM",
+  "main_text": "ゴールドの収入値を3上げ、鉱山タイルを1枚置く。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "2 bldOnM => 1 hexM 1 placeRoad",
+  "auto_text": "鉱山タイル上の建物駒が2個以上あるならば1回だけ、鉱山タイルを1枚置き、地図ボード上に道駒を1個置く。",
+  "industry": "鉱業",
+  "notes": "建物駒は灰色六角台座→bldOnM。鉱山タイルは表（全面塗り、やや紫がかった灰色）。",
+  "verify": []
+ },
+ {
+  "id": "p11-r3c4",
+  "name_en": "Isabel Icing",
+  "name_ja": "イザベル・アイシング",
+  "type": "immediate",
+  "cost": 7,
+  "brownie_discount": false,
+  "main_icons": "1 playedMin =>* 1 I",
+  "main_text": "プレイした鉱業タグを持つ市民カード1枚につき鉄1個を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "2 I",
+  "auto_text": "鉄2個を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p11-r3c5",
+  "name_en": "Emma Espresso",
+  "name_ja": "エマ・エスプレッソ",
+  "type": "immediate",
+  "cost": 11,
+  "brownie_discount": false,
+  "main_icons": "2 [I] 1 [W]",
+  "main_text": "鉄の収入値を2上げ、麦の収入値を1上げる。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "4 hexM裏 => 1 [I] 1 [W]",
+  "auto_text": "地図ボード上の鉱山タイル（裏）が4枚以上あるならば1回だけ、鉄の収入値を1上げ、麦の収入値を1上げる。",
+  "industry": "鉱業",
+  "notes": "オートの六角は下半分が白い→裏。",
+  "verify": []
+ },
+ {
+  "id": "p12-r1c1",
+  "name_en": "Francis Fig Newton",
+  "name_ja": "フランシス・フィグニュートン",
+  "type": "immediate",
+  "cost": 18,
+  "brownie_discount": false,
+  "main_icons": "2 [W] -> 1 placeBldW | 1 tShort =>* 1 [G]",
+  "main_text": "麦の収入値を2下げて麦畑タイルに建物駒を1個置く。｜所持しているショートケーキタグ1個につきゴールドの収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "農業",
+  "notes": "建物駒（ハンマー付き）の台座は薄いオレンジ→placeBldWと判断。白台座のplaceBldの可能性も少しある（同写真のPatrickの白台座と比べると色付き）。",
+  "verify": []
+ },
+ {
+  "id": "p12-r1c2",
+  "name_en": "Nelly Nectar",
+  "name_ja": "ネリー・ネクター",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "2 [G] 1 hexF",
+  "main_text": "ゴールドの収入値を2上げ、森林タイルを1枚置く。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* 1 G",
+  "auto_text": "所持しているマカロンタグ1個につきゴールド1を得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p12-r1c3",
+  "name_en": "Billy Buttermilk",
+  "name_ja": "ビリー・バターミルク",
+  "type": "immediate",
+  "cost": 20,
+  "brownie_discount": true,
+  "main_icons": "6 W 1 [G] -> 3 prosO",
+  "main_text": "麦6個とゴールドの収入値1を支払って、オレンジ色の繁栄トラックを3進める。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 prosO",
+  "auto_text": "オレンジ色の繁栄トラックを1進める。",
+  "industry": "農業",
+  "notes": "左側の数字6と1は赤字。繁栄トラックの『進める』は凡例上は単にアイコン（prosO）。",
+  "verify": []
+ },
+ {
+  "id": "p12-r1c4",
+  "name_en": "Jocelyne Joy",
+  "name_ja": "ジョスリン・ジョイ",
+  "type": "immediate",
+  "cost": 4,
+  "brownie_discount": false,
+  "main_icons": "2 hand -> draw3",
+  "main_text": "手札の市民カード2枚を支払って市民デッキから3枚引く。",
+  "tags": {
+   "ブラウニー": 1,
+   "マカロン": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "即時カードだがオートメーション欄は空。産業タブは3つとも淡色。 / 産業タブは3つとも淡色で産業タグなしと判断。上端の縞も淡い水色。オートメーション欄は空。",
+  "verify": []
+ },
+ {
+  "id": "p12-r1c5",
+  "name_en": "Quincy Quench",
+  "name_ja": "クインシー・クエンチ",
+  "type": "immediate",
+  "cost": 18,
+  "brownie_discount": true,
+  "main_icons": "1 placeRoad 1 placeRabbit",
+  "main_text": "地図ボード上に道駒を1個置き、クッキーラビット駒を1個置く。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 rabbit =>* 1 G",
+  "auto_text": "地図ボード上のクッキーラビット駒1個につきゴールド1を得る。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p12-r2c1",
+  "name_en": "Patty Praline",
+  "name_ja": "パティ・プラリネ",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": true,
+  "main_icons": "1 [Wd] 1 [G] 1 placeRoad",
+  "main_text": "木材の収入値を1上げ、ゴールドの収入値を1上げ、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p12-r2c2",
+  "name_en": "Nicholas Nectarine",
+  "name_ja": "ニコラス・ネクタリン",
+  "type": "pass",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "clock 2 [Wd] =>* VP1",
+  "main_text": "パス時：木材の収入値2につき勝利点1を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "勝利点アイコンの中は1。産業タブは淡色。",
+  "verify": []
+ },
+ {
+  "id": "p12-r2c3",
+  "name_en": "Nora Night",
+  "name_ja": "ノラ・ナイト",
+  "type": "immediate",
+  "cost": 19,
+  "brownie_discount": false,
+  "main_icons": "1 prosO 1 prosG 1 prosY",
+  "main_text": "オレンジ色・緑色・灰色の繁栄トラックをそれぞれ1進める。",
+  "tags": {
+   "和菓子": 2
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "和菓子タグに×2。オートメーション欄は空。3つ目のハートは紫がかった灰色→灰色(prosY)と判断。産業タブは3つとも淡色。 / 3つ目のハートは紫がかった青灰色で灰色トラック（prosY）と判断。産業タブは3つとも淡色。上端の縞も淡い水色。オートメーション欄は空。",
+  "verify": []
+ },
+ {
+  "id": "p12-r2c4",
+  "name_en": "Patrick Pistachio",
+  "name_ja": "パトリック・ピスタチオ",
+  "type": "immediate",
+  "cost": 18,
+  "brownie_discount": false,
+  "main_icons": "5 Wd -> 1 hexF 1 placeBld | 1 tShort 1 tTiramisu => 1 placeRoad",
+  "main_text": "木材5個を支払って、森林タイルを1枚置き、地図ボード上に建物駒を1個置く。｜ショートケーキタグとティラミスタグを1個ずつ所持しているならば1回だけ、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hexF",
+  "auto_text": "森林タイルを1枚置く。",
+  "industry": "林業",
+  "notes": "建物駒（ハンマー付き）の台座は白→placeBld。 / 1行目の建物駒の台座は白っぽく、地形色ではないため placeBld と判断（placeBldF の可能性は低い）。",
+  "verify": []
+ },
+ {
+  "id": "p12-r2c5",
+  "name_en": "Mike Marblemint",
+  "name_ja": "マイク・マーブルミント",
+  "type": "immediate",
+  "cost": 7,
+  "brownie_discount": false,
+  "main_icons": "1 I 1 placeRoad | 1 tShort => 1 placeRoad",
+  "main_text": "鉄1個を得て、地図ボード上に道駒を1個置く。｜ショートケーキタグを1個以上所持しているならば1回だけ、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "2 I",
+  "auto_text": "鉄2個を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p12-r3c1",
+  "name_en": "Una Ube",
+  "name_ja": "ウーナ・ウベ",
+  "type": "immediate",
+  "cost": 20,
+  "brownie_discount": false,
+  "main_icons": "2 Wd -> 2 tWagashi =>* 1 prosG",
+  "main_text": "木材2個を支払い、所持している和菓子タグ2個につき緑色の繁栄トラックを1進める。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 prosG",
+  "auto_text": "緑色の繁栄トラックを1進める。",
+  "industry": "林業",
+  "notes": "赤矢印の右に条件（2和菓子 ⇒∞）が続く構造。文章化は解釈を含む。 / 連鎖矢印＝コスト1回支払い後、条件の回数分得る（ユーザー確認済み）",
+  "verify": []
+ },
+ {
+  "id": "p12-r3c2",
+  "name_en": "Brenda Bramble Bear",
+  "name_ja": "ブレンダ・ブランブルベア",
+  "type": "immediate",
+  "cost": 19,
+  "brownie_discount": false,
+  "main_icons": "1 [W] 2 [G] -> 1 prosO | 1 tShort 3 tTiramisu => 2 prosO",
+  "main_text": "麦の収入値を1、ゴールドの収入値を2下げて、オレンジ色の繁栄トラックを1進める。｜ショートケーキタグ1個とティラミスタグ3個を所持しているならば1回だけ、オレンジ色の繁栄トラックを2進める。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "2 W",
+  "auto_text": "麦2個を得る。",
+  "industry": "農業",
+  "notes": "コスト19の数字は他より薄いピンク色に印刷されているが19と判読。 / コストの19は他より淡いピンク色に印刷されているが数字は19。",
+  "verify": []
+ },
+ {
+  "id": "p13-r1c1",
+  "name_en": "Ingrid Irish Cream",
+  "name_ja": "イングリッド・アイリッシュクリーム",
+  "type": "immediate",
+  "cost": 7,
+  "brownie_discount": false,
+  "main_icons": "1 [Wd] 1 [G]",
+  "main_text": "木材の収入値を1上げ、ゴールドの収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [Wd]",
+  "auto_text": "木材の収入値を1上げる。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p13-r1c2",
+  "name_en": "Victor Velvet Cake",
+  "name_ja": "ヴィクター・ベルベットケーキ",
+  "type": "immediate",
+  "cost": 6,
+  "brownie_discount": false,
+  "main_icons": "3 Wd 1 [Wd]",
+  "main_text": "木材3個を得て、木材の収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [Wd]",
+  "auto_text": "木材の収入値を1上げる。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p13-r1c3",
+  "name_en": "Kara Kirsch",
+  "name_ja": "カラ・キルシュ",
+  "type": "pass",
+  "cost": 18,
+  "brownie_discount": false,
+  "main_icons": "clock 2 tWagashi =>* VP3",
+  "main_text": "パス時：所持している和菓子タグ2個につき勝利点3点を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "産業タブ3つとも淡色（紫系）＝産業タグなしと判断",
+  "verify": []
+ },
+ {
+  "id": "p13-r1c4",
+  "name_en": "Irene Ice Cream",
+  "name_ja": "アイリーン・アイスクリーム",
+  "type": "immediate",
+  "cost": 14,
+  "brownie_discount": false,
+  "main_icons": "1 indAdv 1 [I] 1 [G]",
+  "main_text": "工業トラックを1進め、鉄の収入値を1上げ、ゴールドの収入値を1上げる。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "2 bld => 1 [G] 1 indAdv",
+  "auto_text": "地図ボード上の建物駒が2個あるならば1回だけ、ゴールドの収入値を1上げ、工業トラックを1進める。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p13-r1c5",
+  "name_en": "Issa Matcha",
+  "name_ja": "イッサ・マッチャ",
+  "type": "immediate",
+  "cost": 4,
+  "brownie_discount": false,
+  "main_icons": "1 playedFor =>* 1 Wd",
+  "main_text": "プレイした林業タグを持つ市民カード1枚につき木材1個を得る。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材2個を得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p13-r2c1",
+  "name_en": "Yara Yogurt Swirl",
+  "name_ja": "ヤラ・ヨーグルトスワール",
+  "type": "immediate",
+  "cost": 26,
+  "brownie_discount": false,
+  "main_icons": "3 I -> 2 tWagashi =>* 1 prosY",
+  "main_text": "鉄3個を1回支払い、所持している和菓子タグ2個につき灰色の繁栄トラックを1進める。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "2 I",
+  "auto_text": "鉄2個を得る。",
+  "industry": "鉱業",
+  "notes": "枠内は「赤3 鉄 → 2 和菓子 ⇒∞ 1 灰色ハート」の1行。赤矢印の後に条件側（和菓子2）が続く構造で、鉄3の支払いと∞白矢印の関係が文面上やや曖昧。繁栄アイコンのハートは灰紫色＝prosYと判断。『進める』は1の解釈 / コスト側の数字3は赤字。繁栄トラックのハートは灰〜青紫色なので prosY（灰色）と判断。 / 連鎖矢印＝コスト1回支払い後、条件の回数分得る（ユーザー確認済み）",
+  "verify": []
+ },
+ {
+  "id": "p13-r2c2",
+  "name_en": "Jerry Gingernuts",
+  "name_ja": "ジェリー・ジンジャーナッツ",
+  "type": "immediate",
+  "cost": 10,
+  "brownie_discount": false,
+  "main_icons": "2 [I] 1 [Wd]",
+  "main_text": "鉄の収入値を2上げ、木材の収入値を1上げる。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "4 bld => 2 [Wd]",
+  "auto_text": "地図ボード上の建物駒が4個あるならば1回だけ、木材の収入値を2上げる。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p13-r2c3",
+  "name_en": "Don Dolce",
+  "name_ja": "ドン・ドルチェ",
+  "type": "immediate",
+  "cost": 13,
+  "brownie_discount": false,
+  "main_icons": "2 Wd | 1 tShort =>* 1 [G]",
+  "main_text": "木材2個を得る。｜所持しているショートケーキタグ1個につきゴールドの収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材2個を得る。",
+  "industry": "林業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p13-r2c4",
+  "name_en": "Ernest Elderberry",
+  "name_ja": "アーネスト・エルダーベリー",
+  "type": "pass",
+  "cost": 16,
+  "brownie_discount": true,
+  "main_icons": "clock 1 playedFor =>* VP1",
+  "main_text": "パス時：プレイした林業タグを持つ市民カード1枚につき勝利点1点を得る。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "勝利点アイコン内の数字は1",
+  "verify": []
+ },
+ {
+  "id": "p13-r2c5",
+  "name_en": "Laura Lavender Latte",
+  "name_ja": "ローラ・ラベンダーラテ",
+  "type": "immediate",
+  "cost": 10,
+  "brownie_discount": false,
+  "main_icons": "1 [G] 1 D",
+  "main_text": "ゴールドの収入値を1上げ、ダイヤ1個を得る。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "6 hexM => 1 [G] 1 D",
+  "auto_text": "地図ボード上の鉱山タイルが6枚あるならば1回だけ、ゴールドの収入値を1上げ、ダイヤ1個を得る。",
+  "industry": "鉱業",
+  "notes": "オート欄の六角形は灰（やや紫がかった）の塗りつぶし＝鉱山・表と判断。",
+  "verify": []
+ },
+ {
+  "id": "p13-r3c1",
+  "name_en": "Vanilla Vortex",
+  "name_ja": "ヴァニラ・ヴォルテックス",
+  "type": "immediate",
+  "cost": 8,
+  "brownie_discount": false,
+  "main_icons": "2 R? 2 [G]",
+  "main_text": "任意の基礎資源2個を得て、ゴールドの収入値を2上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "2 R?",
+  "auto_text": "任意の基礎資源2個を得る。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p13-r3c2",
+  "name_en": "Lolo Rum",
+  "name_ja": "ロロ・ラム",
+  "type": "immediate",
+  "cost": 7,
+  "brownie_discount": true,
+  "main_icons": "3 I 1 [I]",
+  "main_text": "鉄3個を得て、鉄の収入値を1上げる。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "2 I",
+  "auto_text": "鉄2個を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p13-r3c3",
+  "name_en": "Tara Tangerine",
+  "name_ja": "タラ・タンジェリン",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "1 D 1 indAdv | 3 tTiramisu => 1 indAdv",
+  "main_text": "ダイヤ1個を得て、工業トラックを1進める。｜所持しているティラミスタグが3個あるならば1回だけ、工業トラックを1進める。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 indAdv",
+  "auto_text": "工業トラックを1進める。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p13-r3c4",
+  "name_en": "Leila Limelight",
+  "name_ja": "リーラ・ライムライト",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": true,
+  "main_icons": "2 I 1 Wd 1 indAdv",
+  "main_text": "鉄2個、木材1個を得て、工業トラックを1進める。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材2個を得る。",
+  "industry": "鉱業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p13-r3c5",
+  "name_en": "Elizabeth Eclair",
+  "name_ja": "エリザベス・エクレア",
+  "type": "immediate",
+  "cost": 6,
+  "brownie_discount": true,
+  "main_icons": "3 W 1 Wd 1 [G]",
+  "main_text": "麦3個、木材1個を得て、ゴールドの収入値を1上げる。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材2個を得る。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p14-r1c1",
+  "name_en": "Bart Brioche",
+  "name_ja": "バート・ブリオッシュ",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "1 W 1 foodAdv",
+  "main_text": "麦1個を得て、食料トラックを1進める。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "6 hexW => 1 W 1 foodAdv",
+  "auto_text": "地図ボード上の麦畑タイルが6枚あるならば1回だけ、麦1個を得て、食料トラックを1進める。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p14-r1c2",
+  "name_en": "Diana Dragonfruit",
+  "name_ja": "ディアナ・ドラゴンフルーツ",
+  "type": "immediate",
+  "cost": 16,
+  "brownie_discount": false,
+  "main_icons": "1 hexS 1 placeRoad | 1 tShort 1 tTiramisu => 1 placeRoad",
+  "main_text": "海タイルを1枚置き、地図ボード上に道駒を1個置く。｜所持しているショートケーキタグ1個とティラミスタグ1個を満たしているならば1回だけ、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 hexS",
+  "auto_text": "海タイルを1枚置く。",
+  "industry": "オールマイティ",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p14-r1c3",
+  "name_en": "Winifred Melon",
+  "name_ja": "ウィニフレッド・メロン",
+  "type": "immediate",
+  "cost": 18,
+  "brownie_discount": false,
+  "main_icons": "3 Wd -> 1 placeBld | 1 tShort => 1 placeRoad",
+  "main_text": "木材3個を1回支払い、地図ボード上に建物駒を1個置く。｜所持しているショートケーキタグが1個あるならば1回だけ、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "2 Wd",
+  "auto_text": "木材2個を得る。",
+  "industry": "林業",
+  "notes": "建物駒の台座は白（地形色なし）＝placeBldと判断 / コスト側の数字3は赤字。建物駒の台座は白（色付き地形ではない）ので placeBld と判断。",
+  "verify": []
+ },
+ {
+  "id": "p14-r1c4",
+  "name_en": "Jonathan Jelly",
+  "name_ja": "ジョナサン・ジュレ",
+  "type": "immediate",
+  "cost": 12,
+  "brownie_discount": false,
+  "main_icons": "2 [W] 1 [Wd] 1 [G]",
+  "main_text": "麦の収入値を2上げ、木材の収入値を1上げ、ゴールドの収入値を1上げる。",
+  "tags": {
+   "ティラミス": 1
+  },
+  "auto_icons": "5 hexW裏 => 1 [Wd] 1 [G]",
+  "auto_text": "地図ボード上の麦畑タイル（裏）が5枚あるならば1回だけ、木材の収入値を1上げ、ゴールドの収入値を1上げる。",
+  "industry": "農業",
+  "notes": "オート条件の六角は下半分が白い＝裏面と判断 / オート欄の六角形はオレンジ枠で下半分が白＝麦畑・裏と判断。",
+  "verify": []
+ },
+ {
+  "id": "p14-r1c5",
+  "name_en": "Rosie Rhubarb",
+  "name_ja": "ロージー・ルバーブ",
+  "type": "pass",
+  "cost": 18,
+  "brownie_discount": true,
+  "main_icons": "clock 2 [W] =>* VP1",
+  "main_text": "パス時：麦の収入値2につき勝利点1点を得る。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": null,
+  "auto_text": null,
+  "industry": null,
+  "notes": "条件側の枠付き麦（収入）2。『麦の収入値2につき』は凡例からの読み",
+  "verify": []
+ },
+ {
+  "id": "p14-r2c1",
+  "name_en": "Fiona Freeze",
+  "name_ja": "フィオナ・フリーズ",
+  "type": "immediate",
+  "cost": 19,
+  "brownie_discount": false,
+  "main_icons": "4 W -> 1 placeBldW 1 placeRabbit",
+  "main_text": "麦4個を1回支払い、麦畑タイルに建物駒を1個置き、クッキーラビット駒を1個置く。",
+  "tags": {
+   "和菓子": 1
+  },
+  "auto_icons": "1 hex?",
+  "auto_text": "任意の地形タイルを1枚置く。",
+  "industry": "農業",
+  "notes": "建物駒の台座が薄いオレンジ（ハンマー付き）→placeBldWと判断したが、地図ボード上のplaceBld（淡ピンク台座）の可能性あり / コスト側の数字4は赤字。建物駒の台座が淡いオレンジ/ピーチ色（凡例の麦畑より淡い）。白台座の placeBld の可能性もあり。",
+  "verify": []
+ },
+ {
+  "id": "p14-r2c2",
+  "name_en": "Walter Wildberry",
+  "name_ja": "ウォルター・ワイルドベリー",
+  "type": "immediate",
+  "cost": 17,
+  "brownie_discount": false,
+  "main_icons": "4 Wd -> 1 hexF 2 placeRoad | 1 tShort => 1 hexF",
+  "main_text": "木材4個を1回支払い、森林タイルを1枚置き、地図ボード上に道駒を2個置く。｜所持しているショートケーキタグが1個あるならば1回だけ、森林タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "地図ボード上に道駒を1個置く。",
+  "industry": "林業",
+  "notes": "コスト側の数字4は赤字。緑タブは反射で白っぽいが濃い緑と判断。",
+  "verify": []
+ },
+ {
+  "id": "p14-r2c3",
+  "name_en": "Maya Meringue",
+  "name_ja": "マヤ・メレンゲ",
+  "type": "immediate",
+  "cost": 15,
+  "brownie_discount": false,
+  "main_icons": "1 [Wd] 1 placeRoad | 1 tShort =>* 1 Wd",
+  "main_text": "木材の収入値を1上げ、地図ボード上に道駒を1個置く。｜所持しているショートケーキタグ1個につき木材1個を得る。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "地図ボード上に道駒を1個置く。",
+  "industry": "林業",
+  "notes": "緑タブに反射があるが濃色と判断",
+  "verify": []
+ },
+ {
+  "id": "p14-r2c4",
+  "name_en": "Beth Brownie",
+  "name_ja": "ベス・ブラウニー",
+  "type": "immediate",
+  "cost": 17,
+  "brownie_discount": true,
+  "main_icons": "3 [G] -> 2 hexF 1 placeRoad",
+  "main_text": "ゴールドの収入値を3下げて、森林タイルを2枚置き、地図ボード上に道駒を1個置く。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "地図ボード上に道駒を1個置く。",
+  "industry": "林業",
+  "notes": "コスト側の数字3は赤字。",
+  "verify": []
+ },
+ {
+  "id": "p14-r2c5",
+  "name_en": "Glen Grace",
+  "name_ja": "グレン・グレイス",
+  "type": "immediate",
+  "cost": 11,
+  "brownie_discount": false,
+  "main_icons": "2 placeRoad | 2 tShort =>* 1 [W]",
+  "main_text": "地図ボード上に道駒を2個置く。｜所持しているショートケーキタグ2個につき麦の収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [W]",
+  "auto_text": "麦の収入値を1上げる。",
+  "industry": "農業",
+  "notes": "2行目の白矢印の∞は薄いが確認済み",
+  "verify": []
+ },
+ {
+  "id": "p14-r3c1",
+  "name_en": "Harold Hazel",
+  "name_ja": "ハロルド・ヘーゼル",
+  "type": "immediate",
+  "cost": 20,
+  "brownie_discount": false,
+  "main_icons": "1 hex? 1 placeRabbit | 2 tShort =>* 1 [W]",
+  "main_text": "任意の地形タイルを1枚置き、クッキーラビット駒を1個置く。｜所持しているショートケーキタグ2個につき麦の収入値を1上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 rabbit =>* 1 G",
+  "auto_text": "地図ボード上のクッキーラビット駒1個につきゴールド1個を得る。",
+  "industry": "農業",
+  "notes": null,
+  "verify": []
+ },
+ {
+  "id": "p14-r3c2",
+  "name_en": "Vivian Velvet",
+  "name_ja": "ヴィヴィアン・ヴェルヴェット",
+  "type": "immediate",
+  "cost": 20,
+  "brownie_discount": true,
+  "main_icons": "5 R? -> 1 hex? 1 placeRoad 1 placeBld",
+  "main_text": "任意の基礎資源5個を1回支払い、任意の地形タイルを1枚置き、地図ボード上に道駒を1個置き、地図ボード上に建物駒を1個置く。",
+  "tags": {
+   "ブラウニー": 1
+  },
+  "auto_icons": "1 hex?",
+  "auto_text": "任意の地形タイルを1枚置く。",
+  "industry": "オールマイティ",
+  "notes": "コストの数字が反射でほぼ見えない。1桁目は2、2桁目は上部が丸い（0の可能性が高い）→20と推定。枠内は点線で2行に分かれているが、1行目が『5 ? →』で終わり2行目に得るものが続くため1つの効果として記載（点線を独立効果とみなすなら '5 R? -> | 1 hex? 1 placeRoad 1 placeBld'）。建物駒の台座は白＝placeBld / コストの数字が反射でほぼ見えない。1桁目は2、2桁目は上部が丸い形（0が最有力、6/8/9の可能性）→20とした。1行目末尾の赤矢印の右側は空で、点線の下の2行目が得るもの（2行で1つの効果と解釈）。コスト側の5は赤字。",
+  "verify": [
+   "cost（20と推定）"
+  ]
+ },
+ {
+  "id": "p14-r3c3",
+  "name_en": "Yolanda Yogurt Yarn",
+  "name_ja": "ユリア・ヨーグルトヤーン",
+  "type": "immediate",
+  "cost": 18,
+  "brownie_discount": false,
+  "main_icons": "5 R? -> 2 placeRoad 1 placeBld | 1 tShort => 1 hex?",
+  "main_text": "任意の基礎資源5個を1回支払い、地図ボード上に道駒を2個置き、地図ボード上に建物駒を1個置く。｜所持しているショートケーキタグが1個あるならば1回だけ、任意の地形タイルを1枚置く。",
+  "tags": {
+   "タルト": 1
+  },
+  "auto_icons": "1 placeRoad",
+  "auto_text": "地図ボード上に道駒を1個置く。",
+  "industry": "オールマイティ",
+  "notes": "建物駒の台座は白＝placeBld / コスト側の数字5は赤字。",
+  "verify": []
+ },
+ {
+  "id": "p14-r3c4",
+  "name_en": "Patricia Peachpuff",
+  "name_ja": "パトリシア・ピーチパフ",
+  "type": "immediate",
+  "cost": 10,
+  "brownie_discount": false,
+  "main_icons": "1 city =>* 2 Wd",
+  "main_text": "都市1つにつき木材2個を得る。",
+  "tags": {
+   "マカロン": 1
+  },
+  "auto_icons": "1 tMacaron =>* VP1",
+  "auto_text": "所持しているマカロンタグ1個につき勝利点1点を得る。",
+  "industry": "林業",
+  "notes": "コスト数字が退色して薄いが10と読める / コストの数字は印刷がかすれて淡いが10と読める。",
+  "verify": []
+ },
+ {
+  "id": "p14-r3c5",
+  "name_en": "Edgar Eclairs",
+  "name_ja": "エドガー・エクレアーズ",
+  "type": "immediate",
+  "cost": 6,
+  "brownie_discount": false,
+  "main_icons": "3 W 2 [G]",
+  "main_text": "麦3個を得て、ゴールドの収入値を2上げる。",
+  "tags": {
+   "ショートケーキ": 1
+  },
+  "auto_icons": "1 [G]",
+  "auto_text": "ゴールドの収入値を1上げる。",
+  "industry": "農業",
+  "notes": "英語名のみ太字ゴシック体（他カードは筆記体）。",
+  "verify": []
+ }
+]

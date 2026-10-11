@@ -1,0 +1,1772 @@
+/* 盤面ごとの配置 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.hint {
+  color: var(--cocoa-soft);
+  font-size: 12px;
+  margin: 2px 0 6px;
+}
+.empty {
+  color: var(--cocoa-soft);
+  font-size: 12px;
+  padding: 8px;
+}
+.amount {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ---- メインボード ---- */
+.mainboard {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.9fr) minmax(330px, 1.5fr) minmax(220px, 0.9fr);
+  gap: 8px;
+  height: 100%;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.pros {
+  display: grid;
+  grid-template-columns: 74px 1fr 12px;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tc) 18%, transparent);
+  font-size: 11px;
+}
+.pros-label {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pros-track {
+  display: flex;
+  gap: 2px;
+}
+.sq {
+  flex: 1;
+  min-width: 14px;
+  height: 22px;
+  border-radius: 5px;
+  background: var(--sugar);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  position: relative;
+  color: var(--cocoa-soft);
+}
+.sq.seg1 {
+  background: color-mix(in srgb, var(--tc) 20%, var(--sugar));
+}
+.sq.seg2 {
+  background: color-mix(in srgb, var(--tc) 42%, var(--sugar));
+}
+.sq.end {
+  background: var(--tc);
+  color: #fff;
+}
+.sq .markers {
+  position: absolute;
+  inset: auto 1px 1px 1px;
+  display: flex;
+  gap: 1px;
+  justify-content: center;
+}
+.sq .markers i,
+.milestone b i,
+.smarker {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+.claimed {
+  font-size: 12px;
+}
+.rounds {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  align-items: center;
+}
+.rounds::before {
+  content: 'ラウンド';
+  font-size: 11px;
+  color: var(--cocoa-soft);
+  margin-right: 2px;
+}
+.rounds span {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--sugar);
+  border: 1px solid var(--line);
+  font-weight: 700;
+}
+.rounds span.on {
+  background: var(--cocoa);
+  color: var(--cream);
+}
+
+.areas {
+  display: flex;
+  gap: 4px;
+}
+.areas.special .area {
+  flex: 1;
+}
+.areas-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, auto);
+  gap: 4px;
+}
+.area {
+  background: var(--sugar);
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  padding: 3px 5px;
+  font-size: 10.5px;
+  line-height: 1.25;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.area.basic {
+  border-color: color-mix(in srgb, var(--wheat) 60%, transparent);
+}
+.area.advanced {
+  border-color: color-mix(in srgb, var(--forest) 60%, transparent);
+}
+.area.special {
+  border-color: color-mix(in srgb, var(--special-deep) 55%, transparent);
+}
+.area.hidden {
+  opacity: 0.55;
+  border-style: dashed;
+}
+.area-head b {
+  font-size: 12px;
+  margin-right: 3px;
+}
+.slots {
+  display: flex;
+  gap: 3px;
+  margin-top: auto;
+}
+.slot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--crust);
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  color: var(--cocoa-soft);
+}
+
+.frees {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+.free {
+  background: var(--sugar);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 3px 6px;
+  font-size: 10.5px;
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+}
+.free.drop {
+  border-style: dashed;
+}
+.free.hint {
+  color: var(--cocoa-soft);
+  background: transparent;
+}
+.skills {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  margin-top: 4px;
+}
+.skillpile {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  align-items: flex-start;
+  background: var(--sugar);
+  border-radius: 7px;
+  border: 1.5px solid var(--line);
+  padding: 2px 4px;
+  font-size: 9.5px;
+  line-height: 1.2;
+  user-select: none;
+  touch-action: none;
+  min-height: 28px;
+}
+.skillpile.instant {
+  border-left: 4px solid var(--wheat);
+}
+.skillpile.pass {
+  border-left: 4px solid var(--special-deep);
+}
+.skillpile.flip {
+  border-left: 4px solid var(--sea);
+}
+.skillpile.perm {
+  border-left: 4px solid var(--forest);
+}
+
+/* ---- 右上 ---- */
+.sideboard h2 {
+  font-size: 11.5px;
+  color: var(--cocoa-soft);
+  margin: 6px 0 3px;
+}
+.sideboard h2:first-child {
+  margin-top: 0;
+}
+.supports {
+  display: flex;
+  gap: 3px;
+}
+.support {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  background: var(--sugar);
+  border-radius: 8px;
+  padding: 3px 2px;
+  border: 1.5px solid var(--line);
+  min-width: 0;
+}
+.stile {
+  font-size: 9px;
+  line-height: 1.15;
+  text-align: center;
+  min-height: 30px;
+  width: 100%;
+  border-radius: 5px;
+  background: var(--biscuit);
+  padding: 1px 2px;
+}
+.stile.pass {
+  background: color-mix(in srgb, var(--special) 35%, var(--sugar));
+}
+.smarker {
+  width: 14px;
+  height: 14px;
+  border: 1.5px dashed var(--crust);
+}
+.imitation .area {
+  flex: 1;
+}
+.copy-hint {
+  margin-top: 4px;
+  font-weight: 700;
+  color: var(--me);
+}
+.milestones {
+  display: grid;
+  gap: 3px;
+}
+.milestone {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 10.5px;
+  background: var(--sugar);
+  border-radius: 7px;
+  padding: 2px 6px;
+  border: 1.5px solid var(--line);
+}
+.milestone.taken {
+  opacity: 0.6;
+}
+.final {
+  font-size: 10.5px;
+  background: var(--sugar);
+  border-radius: 7px;
+  padding: 2px 6px;
+  margin-bottom: 3px;
+}
+
+/* ---- 下半分 ---- */
+.lower {
+  position: relative;
+}
+.viewing-banner {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -2px);
+  z-index: 5;
+  background: var(--bar);
+  color: var(--bar-ink);
+  border-radius: 0 0 12px 12px;
+  padding: 2px 6px 4px 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.mapboard {
+  padding: 0;
+  overflow: hidden;
+}
+.mapsvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+.mapsvg .road {
+  stroke: var(--cocoa);
+  stroke-width: 0.17;
+  stroke-linecap: round;
+}
+svg .lit-svg {
+  vector-effect: non-scaling-stroke;
+}
+
+.personal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+}
+.charline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.charline b {
+  font-size: 13px;
+  margin-right: 4px;
+}
+.ability {
+  font-size: 10px;
+  border-radius: 999px;
+  padding: 1px 8px;
+  background: var(--sugar);
+  border: 1px solid var(--line);
+}
+.resline {
+  display: flex;
+  gap: 4px;
+}
+.res {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--sugar);
+  border-radius: 8px;
+  padding: 1px 5px;
+}
+.res b {
+  font-size: 13px;
+}
+.res small {
+  color: var(--cocoa-soft);
+}
+.pieces {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}
+.piecestack,
+.shop,
+.clockpiece {
+  background: var(--sugar);
+  border-radius: 8px;
+  padding: 2px 5px;
+  border: 1.5px solid var(--line);
+  user-select: none;
+  touch-action: none;
+  font-size: 10.5px;
+}
+.piecestack {
+  display: grid;
+}
+.pname {
+  font-weight: 700;
+}
+.pips {
+  display: flex;
+  gap: 2px;
+}
+.pips i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--me);
+}
+.pips i.used {
+  background: transparent;
+  border: 1px solid var(--line);
+}
+.shops {
+  grid-column: span 2;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.shop.used,
+.clockpiece.used {
+  opacity: 0.4;
+}
+.rows {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}
+.rowdrop {
+  border: 2px dashed var(--crust);
+  border-radius: 8px;
+  padding: 2px 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.rowdrop.agr {
+  background: color-mix(in srgb, var(--wheat) 22%, transparent);
+}
+.rowdrop.for {
+  background: color-mix(in srgb, var(--forest) 22%, transparent);
+}
+.rowdrop.min {
+  background: color-mix(in srgb, var(--mine) 26%, transparent);
+}
+.tableau,
+.ownskills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+  min-height: 26px;
+  border: 2px dashed var(--line);
+  border-radius: 8px;
+  padding: 2px 4px;
+}
+.tableau small,
+.ownskills small {
+  color: var(--cocoa-soft);
+}
+.tabcard,
+.ownskill {
+  background: var(--sugar);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  border: 1px solid var(--line);
+  user-select: none;
+  touch-action: none;
+}
+.tabcard.pass {
+  background: color-mix(in srgb, var(--special) 25%, var(--sugar));
+}
+.ownskill.flipped {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.industry {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+}
+/* 工業トラック：9マスを等幅の列に置き、マスの間は一定幅（--igap）の列にする。
+   研究所駒・工業点アイコンはマスの外側の帯（上段は上、下段は下）に、境目の列に揃えて置く */
+.itrack {
+  --igap: 6px;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr) var(--igap)) minmax(0, 1fr);
+  grid-template-rows: auto;
+  row-gap: 2px;
+}
+.itrack.top {
+  grid-template-rows: 18px 34px;
+}
+.itrack.bottom {
+  grid-template-rows: 34px 18px;
+}
+.isq {
+  color: #2a1a12;
+  min-width: 0;
+  height: 34px;
+  box-sizing: border-box;
+  border: 1.5px solid #000;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1px;
+  position: relative;
+}
+.isq.O {
+  background: #f1d9b0;
+}
+.isq.G {
+  background: #b9dfd6;
+}
+:root[data-theme='dark'] .isq.O,
+:root[data-theme='dark'] .isq.G {
+  color: #2a1a12;
+}
+.isq small {
+  font-size: 8px;
+  line-height: 1.05;
+  text-align: center;
+  overflow: hidden;
+}
+.imarker {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid;
+  background: var(--sugar);
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 800;
+  position: absolute;
+  bottom: 1px;
+}
+.imarker.loco {
+  border-radius: 4px;
+  left: 1px;
+}
+.igap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+.igap-in {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  align-items: center;
+  white-space: nowrap;
+}
+.iwall {
+  justify-self: center;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--crust);
+}
+.lab {
+  font-size: 9px;
+  padding: 1px 2px;
+  border-radius: 4px;
+  background: #fffaf2;
+  border: 1px solid var(--crust);
+  user-select: none;
+  touch-action: none;
+  color: #2a1a12;
+}
+.lab.off {
+  opacity: 0.6;
+}
+.ipicon {
+  font-size: 9px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--mine);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+.loco-wait {
+  color: var(--cocoa-soft);
+}
+.food .rabbits,
+.food .ftrack {
+  display: grid;
+  grid-template-columns: repeat(13, 1fr);
+  gap: 2px;
+}
+.fcol {
+  display: grid;
+  place-items: center;
+}
+.rab {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #c98a4b;
+  border: 1.5px solid #7a4d22;
+  user-select: none;
+  touch-action: none;
+}
+.rab.gone,
+.rab.none {
+  background: transparent;
+  border-color: transparent;
+}
+.fsq {
+  height: 20px;
+  border-radius: 5px;
+  background: var(--sugar);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  position: relative;
+  font-size: 9px;
+}
+.fsq i {
+  position: absolute;
+  top: -2px;
+  right: 1px;
+  font-size: 8px;
+  color: var(--wheat-deep);
+  font-style: normal;
+}
+.fmark {
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  opacity: 0.85;
+}
+
+/* ---- 手札の帯 ---- */
+.mine-supply {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mine-supply .stackpile {
+  flex-direction: row;
+  display: flex;
+  gap: 4px;
+}
+.tilechip {
+  width: 18px;
+  height: 16px;
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+.tilechip.W {
+  background: var(--wheat);
+}
+.tilechip.F {
+  background: var(--forest);
+}
+.tilechip.M {
+  background: var(--mine);
+}
+.tilechip.S {
+  background: var(--sea);
+}
+.tilechip.X {
+  background: var(--special);
+}
+.roadchip {
+  width: 22px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--cocoa);
+  margin: 5px 0;
+}
+.deck {
+  font-size: 11px;
+  color: var(--cocoa-soft);
+  writing-mode: vertical-rl;
+}
+.dropzone.discard {
+  min-width: 56px;
+}
+
+/* ---- 小窓・演出 ---- */
+.skip-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  cursor: pointer;
+}
+.showcase {
+  position: fixed;
+  left: 50%;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  background: var(--sugar);
+  border: 3px solid var(--me);
+  padding: 10px 22px;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 800;
+  z-index: 86;
+  pointer-events: none;
+  animation: notice var(--showcase) ease-out forwards;
+}
+.modal.wide {
+  max-width: min(1100px, 96vw);
+}
+.chargrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+}
+.charcard {
+  background: var(--biscuit);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 11.5px;
+  border: 1.5px solid var(--line);
+}
+.charcard.taken {
+  opacity: 0.4;
+}
+.charcard h3 {
+  font-size: 14px;
+}
+.charcard .txt {
+  margin-top: 4px;
+}
+.charcard .txt b {
+  display: block;
+  font-size: 10.5px;
+  color: var(--cocoa-soft);
+}
+.setting {
+  display: block;
+  padding: 4px 0;
+}
+.modal h3 {
+  font-size: 13px;
+  margin: 10px 0 2px;
+}
+
+/* ---- ロビー・リザルト・リプレイ ---- */
+.lobby {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 20px;
+  overflow: auto;
+  height: 100%;
+}
+.lobby h1 {
+  font-size: 40px;
+  letter-spacing: 0.02em;
+}
+.lobby .lead {
+  color: var(--cocoa-soft);
+}
+.lobby-card {
+  background: var(--biscuit);
+  border: 2px solid var(--crust);
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+.lobby-card h2 {
+  font-size: 17px;
+}
+.field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.field input,
+.field select,
+.replay-bar select {
+  font: inherit;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1.5px solid var(--crust);
+  background: var(--sugar);
+  color: var(--cocoa);
+}
+.names {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+fieldset {
+  border: 1.5px solid var(--crust);
+  border-radius: 12px;
+}
+.result {
+  height: 100%;
+  overflow: auto;
+  padding: 24px;
+  background: var(--bar);
+  color: var(--bar-ink);
+}
+.result h1 {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 12px;
+}
+.result-grid {
+  display: grid;
+  gap: 2px 12px;
+  max-width: 900px;
+  margin: 0 auto;
+  font-size: 13px;
+}
+.result-grid .ival,
+.result-grid b {
+  text-align: right;
+}
+.result-grid .total,
+.result-grid .total-label {
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  padding-top: 4px;
+  font-size: 16px;
+}
+.ranks {
+  display: grid;
+  gap: 8px;
+  max-width: 560px;
+  margin: 18px auto 0;
+}
+.rank {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  border: 3px solid;
+  border-radius: 14px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.rank.r1 {
+  font-size: 22px;
+}
+.result .hint {
+  color: rgba(255, 255, 255, 0.7);
+}
+.result .btn {
+  background: transparent;
+  color: var(--bar-ink);
+}
+.result .btn.primary {
+  background: var(--p0);
+}
+.replay {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+}
+.replay-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  background: var(--biscuit-deep);
+  flex-wrap: wrap;
+}
+.replay-bar input[type='range'] {
+  flex: 1;
+  min-width: 160px;
+}
+.replay-body {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 6px;
+  padding: 6px;
+  min-height: 0;
+}
+
+/* ---- 狭い画面 ---- */
+.game.narrow .narrow-pane {
+  grid-column: 2;
+  grid-row: 2;
+}
+.game.narrow .band {
+  grid-column: 2;
+  grid-row: 3;
+  flex-wrap: wrap;
+}
+.game.narrow .handbar {
+  height: 100%;
+  grid-template-columns: 90px minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+}
+.game.narrow .handbar .supply {
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+}
+.narrow-stack {
+  display: grid;
+  gap: 4px;
+}
+.narrow-stack .mainboard {
+  grid-template-columns: 1fr;
+}
+.narrow-mine {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 4px;
+  height: 100%;
+}
+.narrow-mine .mapboard {
+  grid-row: span 2;
+  min-height: 240px;
+}
+.people {
+  display: grid;
+  gap: 6px;
+}
+.people .opponents {
+  flex-direction: column;
+  align-items: stretch;
+  background: none;
+}
+.people .logpanel {
+  position: static;
+  width: auto;
+  max-height: none;
+}
+.game.narrow .topbar {
+  font-size: 11px;
+  gap: 6px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.game.narrow .topbar .order {
+  display: none;
+}
+.mycolor {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--bar-ink);
+}
+
+/* メインボードを 1280×720 の上半分に収める */
+.area-head {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.area {
+  padding: 2px 4px;
+  gap: 1px;
+}
+.slot {
+  width: 16px;
+  height: 16px;
+  font-size: 9px;
+}
+.areas-grid {
+  gap: 3px;
+}
+.skillpile {
+  min-height: 24px;
+  font-size: 9px;
+}
+
+
+.hand {
+  overflow: hidden;
+}
+.result .dot {
+  border: 1.5px solid var(--bar-ink);
+  vertical-align: -1px;
+}
+.result {
+  --p3: #c9c2d1;
+}
+
+.with-src {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.marker-src {
+  color: #fff;
+  font-size: 10.5px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  user-select: none;
+  touch-action: none;
+}
+
+/* ---- アイコン表記（原作と同じ基準：赤＝支払い、黒＝得る） ---- */
+.glyph {
+  display: block;
+  flex: none;
+}
+.icons {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1px 3px;
+  line-height: 1;
+}
+.itok {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+.itok .n {
+  font-size: 11px;
+  font-weight: 800;
+  margin-right: 1px;
+  color: var(--cocoa);
+}
+.itok .n.cost {
+  color: #d23b2a;
+}
+.isep {
+  font-weight: 800;
+  color: var(--cocoa-soft);
+  font-size: 11px;
+}
+.area-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  -webkit-line-clamp: unset;
+}
+.round-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--biscuit-deep);
+}
+.copy-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 800;
+}
+.pros {
+  grid-template-columns: 26px 1fr 12px;
+}
+.pros-label {
+  display: grid;
+  place-items: center;
+}
+.sq {
+  height: 24px;
+}
+.sq .icons {
+  gap: 0;
+}
+.sq .icons .n {
+  font-size: 9px;
+}
+.sq.end .itok .n {
+  color: #fff;
+}
+.free {
+  justify-content: center;
+}
+.free.hint {
+  opacity: 0.65;
+}
+.skillpile {
+  align-items: center;
+}
+.skillpile .count {
+  font-size: 10px;
+  color: var(--cocoa-soft);
+}
+.skillpile .icons .n {
+  font-size: 9.5px;
+}
+.stile {
+  display: grid;
+  place-items: center;
+  padding: 2px 1px;
+}
+.stile .icons {
+  justify-content: center;
+}
+.stile .icons .n {
+  font-size: 9px;
+}
+.milestone,
+.final {
+  align-items: center;
+}
+.final {
+  display: flex;
+  justify-content: space-between;
+}
+.neutral {
+  font-size: 10px;
+  font-weight: 800;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--mine);
+  color: #fff;
+}
+.ability {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.res .inc {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cocoa-soft);
+}
+.piecestack {
+  gap: 2px;
+}
+.prow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.shop {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.shop.agr {
+  background: color-mix(in srgb, var(--wheat) 20%, var(--sugar));
+}
+.shop.for {
+  background: color-mix(in srgb, var(--forest) 20%, var(--sugar));
+}
+.shop.min {
+  background: color-mix(in srgb, var(--mine) 24%, var(--sugar));
+}
+.clockpiece {
+  display: grid;
+  place-items: center;
+}
+.rowdrop {
+  align-items: center;
+  gap: 4px;
+}
+.rowdrop .cap {
+  font-weight: 800;
+  margin-left: auto;
+}
+.isq .icons {
+  justify-content: center;
+}
+.isq .icons .n {
+  font-size: 8.5px;
+}
+.ipicon {
+  width: auto;
+  height: auto;
+  border-radius: 6px;
+  padding: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  color: var(--cocoa);
+}
+.lab {
+  display: grid;
+  place-items: center;
+  padding: 1px;
+}
+.fsq {
+  height: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.fnum {
+  font-size: 9px;
+  color: var(--cocoa-soft);
+}
+.fsq .icons {
+  gap: 0;
+}
+.fsq .icons .n {
+  font-size: 8px;
+}
+.rab {
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+.rab .icons {
+  transform: translateY(-12px);
+  background: var(--sugar);
+  border-radius: 4px;
+}
+.stackpile {
+  flex-direction: row;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.stackpile b,
+.dropzone b,
+.deck b {
+  font-size: 12px;
+}
+.stackpile.special {
+  flex-direction: column;
+  gap: 1px;
+}
+.deck {
+  writing-mode: horizontal-tb;
+  display: grid;
+  place-items: center;
+}
+.dropzone.discard {
+  display: grid;
+  place-items: center;
+  gap: 1px;
+}
+.opp .icons .n {
+  font-size: 12px;
+}
+.opp .scores {
+  padding-left: 6px;
+  border-left: 1px solid var(--line);
+}
+
+/* カード。高さは全207枚の表面が切れずに入る値（実測で最大 97px）に余裕を持たせた 100px */
+.card {
+  width: 104px;
+  height: 100px;
+  padding: 3px 5px;
+  gap: 1px;
+}
+.chead {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.card .cost {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: var(--cocoa);
+}
+.card .cost b {
+  font-size: 12px;
+}
+.card .name {
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.cmain {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.card .tags {
+  margin-top: 0;
+  display: flex;
+  gap: 1px;
+}
+.cauto {
+  display: flex;
+  align-items: center;
+  border-radius: 5px;
+  padding: 1px 3px;
+  min-height: 16px;
+  overflow: hidden;
+}
+.cauto .icons {
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 4px;
+  padding: 0 2px;
+}
+.skillpile {
+  position: relative;
+  min-height: 26px;
+  padding: 2px 14px 2px 3px;
+  overflow: hidden;
+}
+.skillpile .icons {
+  flex-wrap: nowrap;
+  gap: 0 1px;
+}
+.skillpile .count {
+  position: absolute;
+  right: 2px;
+  top: 1px;
+  font-size: 9px;
+}
+.skillpile.adv {
+  padding-right: 3px;
+}
+.resline {
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.res {
+  padding: 1px 4px;
+  gap: 1px;
+}
+.res b {
+  font-size: 12px;
+}
+.itok .n {
+  white-space: nowrap;
+}
+.zoom .icons {
+  margin: 4px 0;
+}
+
+/* ---- 見えていなかった情報（建物駒置き場・時計塔の条件・タグ・地図の集計など） ---- */
+.lower {
+  grid-template-columns: 340px minmax(0, 1fr) 360px;
+}
+.bgrid {
+  display: grid;
+  gap: 2px;
+  background: var(--sugar);
+  border-radius: 8px;
+  padding: 3px;
+}
+.brow {
+  display: grid;
+  grid-template-columns: 52px repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  align-items: stretch;
+}
+.bcost {
+  display: grid;
+  place-items: center;
+  background: var(--biscuit);
+  border-radius: 5px;
+}
+.bcell {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 3px;
+  border-radius: 5px;
+  position: relative;
+  min-height: 22px;
+  user-select: none;
+  touch-action: none;
+}
+.bcell.tent {
+  background: color-mix(in srgb, var(--wheat) 22%, transparent);
+}
+.bcell.house {
+  background: color-mix(in srgb, var(--forest) 22%, transparent);
+}
+.bcell.bldg {
+  background: color-mix(in srgb, var(--mine) 26%, transparent);
+}
+.bcell.empty {
+  opacity: 0.45;
+}
+.bcell .icons .n {
+  font-size: 9px;
+}
+.plus1 {
+  position: absolute;
+  right: 1px;
+  top: 0;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 800;
+  color: #2f7d4a;
+}
+.clockreq {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  font-size: 10.5px;
+}
+.req {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--sugar);
+  border: 1.5px solid var(--line);
+}
+.req.ok {
+  border-color: #3f9a5a;
+  background: color-mix(in srgb, #3f9a5a 16%, var(--sugar));
+}
+.req .alt {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+.tagsum {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.tagn {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 12px;
+}
+.tagn.zero {
+  opacity: 0.4;
+}
+.autocard {
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 4px;
+  padding: 0 2px;
+  border: 1px solid var(--line);
+}
+.rowdrop {
+  flex-wrap: wrap;
+}
+.ability.used {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 12px;
+}
+.maparea {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.mapstats {
+  position: absolute;
+  left: 6px;
+  top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 2;
+  pointer-events: auto;
+}
+.mapstats > span {
+  background: color-mix(in srgb, var(--sugar) 88%, transparent);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+.cityline polygon {
+  stroke: var(--me);
+  stroke-width: 0.12;
+  stroke-dasharray: 0.25 0.15;
+}
+.sq {
+  position: relative;
+}
+.sq .rate {
+  position: absolute;
+  top: -1px;
+  left: 1px;
+  font-size: 7.5px;
+  font-style: normal;
+  font-weight: 800;
+  color: var(--cocoa-soft);
+  line-height: 1;
+}
+.sq.end .rate {
+  color: #fff;
+}
+.closed {
+  font-weight: 500;
+  font-size: 10px;
+  margin-left: 4px;
+}
+.istats {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 11px;
+}
+.lab {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1px;
+}
+.lab .icons {
+  flex-wrap: nowrap;
+}
+.lab .icons .n {
+  font-size: 8px;
+}
+.tabcard {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.tabcard .tags {
+  display: inline-flex;
+  gap: 0;
+}
+/* 割引後の値：緑の下線（元の値は拡大表示） */
+.discounted {
+  text-decoration: underline 2px #2f9a5a;
+  text-underline-offset: 2px;
+}
+.was {
+  font-size: 11.5px;
+  color: var(--cocoa-soft);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* ---- 準備のドラフト（rules v1.1 §10.5） ---- */
+.modal.draft {
+  width: min(1100px, 96vw);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.draft-order {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: pick;
+}
+.draft-order li {
+  counter-increment: pick;
+  font-size: 11px;
+  padding: 2px 8px 2px 6px;
+  border-radius: 999px;
+  border: 2px solid var(--pc);
+  background: var(--biscuit);
+  color: var(--cocoa);
+}
+.draft-order li::before {
+  content: counter(pick) '. ';
+  color: var(--cocoa-soft);
+}
+.draft-order li.done {
+  opacity: 0.45;
+}
+.draft-order li.now {
+  background: var(--pc);
+  color: #fff;
+  font-weight: 800;
+}
+.draft-order li.now::before {
+  color: #fff;
+}
+.draft-picks {
+  display: grid;
+  gap: 3px;
+}
+.draft-pl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+.draft-pl.now {
+  background: var(--biscuit);
+}
+.draft-pl .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.draft-pl .chip {
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px dashed var(--line);
+  color: var(--cocoa-soft);
+}
+.draft-pl .chip.got {
+  border-style: solid;
+  color: var(--cocoa);
+  background: var(--sugar);
+}
+.draft-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 2px solid var(--crust);
+  padding-bottom: 6px;
+}
+.draft-tabs .btn.on {
+  background: var(--cocoa);
+  color: var(--cream);
+}
+.draft-tabs .btn:disabled {
+  opacity: 0.5;
+}
+.draft-body {
+  min-height: 0;
+  overflow: auto;
+}
+.draft-body .sideboard h2 {
+  font-size: 13px;
+}
+
+/* ---- 準備：キャラクターを選ぶ前にキャラボードを確認する ---- */
+.charcard {
+  position: relative;
+}
+.charpeek {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 11px;
+  padding: 2px 8px;
+}
+.charpreview {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 75;
+  max-height: 96vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--biscuit);
+  border: 3px solid var(--cocoa);
+  border-radius: 14px;
+  box-shadow: 0 14px 40px rgba(30, 18, 12, 0.45);
+  overflow: hidden;
+}
+.charpreview-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--sugar);
+  border-bottom: 2px solid var(--crust);
+}
+.charpreview-head .spacer {
+  flex: 1;
+}
+.charpreview-body {
+  padding: 8px 10px;
+  overflow: auto;
+}
+.charpreview-body .personal {
+  width: 300px;
+  zoom: 1.2;
+}
+
+/* ---- オンライン対戦 ---- */
+.online-error {
+  background: #fde4e4;
+  color: #7a1f1f;
+  border: 1.5px solid #e08a8a;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.online-error.floating {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 95;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  max-width: 90vw;
+}
+.seats {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px;
+  display: grid;
+  gap: 6px;
+}
+.seats li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.seats .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.seat-state {
+  color: var(--cocoa-soft);
+  font-size: 12px;
+  min-width: 4em;
+}
+.confirm-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.seat-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-weight: 700;
+}
+.seat-name input,
+.seat-edit input {
+  font: inherit;
+  padding: 4px 8px;
+  border: 1px solid var(--cocoa-soft);
+  border-radius: 6px;
+  width: 12em;
+}
+.seat-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

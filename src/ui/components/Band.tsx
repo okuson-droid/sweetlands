@@ -1,0 +1,178 @@
+// 帯（ui_design §7）・宣言パネル（§5.6）・解決中／次の一覧（§9）・安全網（§5.7）
+import { useMemo, useState } from 'react';
+import { describe } from '../../game/engine';
+import type { GameState, Task } from '../../game/types';
+import type { Affordances, Move } from '../gestures';
+import { useInteraction, useTarget } from '../interaction';
+import { Glyph } from '../icons/Glyph';
+
+const PHASE_LABEL: Record<string, string> = { setup: '準備', start: '開始フェイズ', income: '収入フェイズ', action: 'アクションフェイズ', cleanup: 'クリーンナップ', end: 'ゲーム終了' };
+
+export function phaseLabel(s: GameState): string {
+  return PHASE_LABEL[s.phase] ?? s.phase;
+}
+
+/** 帯の文（§7.1） */
+export function bandText(s: GameState, viewer: number, copying: boolean): { src: string | null; say: string; mine: boolean } {
+  const pd = s.pending;
+  if (s.finished) return { src: null, say: 'ゲーム終了。最終得点を計算します', mine: false };
+  if (!pd) return { src: null, say: '', mine: false };
+  const who = s.players[pd.player].name;
+  const src = pd.resume.src ?? null;
+  const mine = pd.player === viewer;
+  if (!mine) {
+    if (pd.step === 'turn') return { src: null, say: `${who}さんの手番です`, mine };
+    return { src: null, say: `${who}さんの入力待ち${src ? `（${src}の効果）` : ''}`, mine };
+  }
+  if (copying) return { src: '特殊アクションL', say: 'コピーするアクションエリアを選んでください', mine };
+  if (pd.step === 'turn')
+    return s.turnMainDone
+      ? { src: null, say: 'フリーアクションを行うか、手番を終えてください', mine }
+      : { src: null, say: '行動を選んでください：アクションエリアにディスクを置く／カードをプレイする／フリップ／パス', mine };
+  if (pd.step === 'setupChar') return { src: '準備', say: 'キャラクターを選んでください', mine };
+  if (pd.step === 'setupMap') return { src: '準備', say: '地図ボードと面を選んでください', mine };
+  if (pd.step === 'setupPick') return { src: '準備のドラフト', say: 'キャラクター・地図ボード・ラウンド支援駒のうち、まだ選んでいないものから1つを選んでください', mine };
+  if (pd.step === 'support') return { src: '準備', say: 'ラウンド支援駒を置くスペースへ駒を動かしてください', mine };
+  if (pd.step === 'passMove') return { src: 'パス', say: '次のラウンドの支援スペースへ駒を動かしてください', mine };
+  if (pd.step === 'keep') return { src: 'クリーンナップ', say: '次のラウンドに残す手札を1枚、持ち越し枠へ動かしてください', mine };
+  if (pd.step === 'handCost') return { src: '手札コスト', say: pd.prompt.replace('手札コスト：', '').replace('捨てるカードを選んでください', '捨てるカードを捨て札置き場へ動かしてください'), mine };
+  const say = pd.prompt
+    .replace(/^.+?：/, '')
+    .replace('捨てる手札を選んでください', '捨てる手札を捨て札置き場へ動かしてください');
+  return { src, say, mine };
+}
+
+function StackLine({ i, label }: { i: number; label: string }) {
+  const t = useTarget(`effect:${i}`, { k: 'other' });
+  return (
+    <span className={`line ${t.lit ? 'lit' : ''}`} {...t.props}>
+      {label}
+    </span>
+  );
+}
+
+function taskLabel(t: Task): string | null {
+  if (t.eff.k === 'special') return null;
+  const d = describe([t.eff]);
+  return t.src ? `${t.src}：${d}` : d;
+}
+
+function EffectStack({ s }: { s: GameState }) {
+  const pd = s.pending!;
+  const next = s.queue.map(taskLabel).filter((x): x is string => !!x).slice(0, 4);
+  const ordering = pd.step === 'orderEffects';
+  if (!ordering && next.length === 0 && (pd.step === 'turn' || !pd.resume.src)) return null;
+  return (
+    <div className={`stack ${ordering ? 'clickable' : ''}`} aria-live="polite">
+      <div className="now">解決中：{pd.resume.src ?? '手番'}{ordering ? '（先に解決する効果を選んでください）' : ''}</div>
+      {ordering && pd.options.map((o, i) => <StackLine key={o.id} i={i} label={o.label} />)}
+      {next.length > 0 && <div className="next">次：{next.join('／')}</div>}
+    </div>
+  );
+}
+
+function SplitPanel({ moves, mode, n }: { moves: { move: Move; split?: Record<string, number> }[]; mode: 'gain' | 'pay'; n: number }) {
+  const c = useInteraction();
+  const [v, setV] = useState<Record<string, number>>(() => ({ ...(moves[0].split ?? {}) }));
+  const match = moves.find((m) => ['wheat', 'wood', 'iron'].every((k) => (m.split?.[k] ?? 0) === (v[k] ?? 0)));
+  const total = (v.wheat ?? 0) + (v.wood ?? 0) + (v.iron ?? 0);
+  const step = (k: string, d: number) => setV((x) => ({ ...x, [k]: Math.max(0, (x[k] ?? 0) + d) }));
+  return (
+    <div className="declare">
+      <span>{mode === 'gain' ? `得る内訳（合計${n}）` : `払う内訳（合計${n}）`}</span>
+      {(['wheat', 'wood', 'iron'] as const).map((k) => (
+        <span key={k} className="stepper">
+          <button aria-label={`${k}を減らす`} onClick={() => step(k, -1)}>
+            −
+          </button>
+          <Glyph g={k} size={18} />
+          <b>{v[k] ?? 0}</b>
+          <button aria-label={`${k}を増やす`} onClick={() => step(k, 1)}>
+            ＋
+          </button>
+        </span>
+      ))}
+      <button className="btn primary" disabled={!match} onClick={() => match && c.run(match.move)}>
+        {match ? '決定' : total !== n ? `合計を${n}にしてください` : '持っている数を超えています'}
+      </button>
+    </div>
+  );
+}
+
+function Declare({ aff }: { aff: Affordances }) {
+  const c = useInteraction();
+  const d = aff.declare!;
+  if (d.kind === 'basicGain' || d.kind === 'basicPay') {
+    const sp = d.moves[0].split!;
+    const n = (sp.wheat ?? 0) + (sp.wood ?? 0) + (sp.iron ?? 0);
+    return <SplitPanel key={`${d.kind}-${n}-${d.moves.map((m) => m.move.ids[0]).join()}-${c.state.events.length}-${c.state.log.length}`} moves={d.moves} mode={d.kind === 'basicGain' ? 'gain' : 'pay'} n={n} />;
+  }
+  return (
+    <div className="declare">
+      {d.moves.map(({ move, split }) => (
+        <button key={move.ids.join()} className="btn" onClick={() => c.run(move)}>
+          {d.kind === 'woodSplit' ? `麦${split!.wheat}・木材${split!.wood}` : move.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function Band(props: { s: GameState; viewer: number; canUndo: boolean; undo: () => void; pulse: boolean; onResize?: (dy: number) => void }) {
+  const { s, viewer, canUndo, undo, pulse } = props;
+  const c = useInteraction();
+  const text = bandText(s, viewer, !!c.copyKey);
+  const aff = c.aff;
+  const order = ['stop', 'skip', 'pay', 'pass', 'endTurn'];
+  const buttons = useMemo(() => [...aff.buttons].sort((a, b) => order.indexOf(a.role) - order.indexOf(b.role)), [aff]);
+  return (
+    <div
+      className={`band ${text.mine ? 'mine' : ''} ${pulse ? 'pulse' : ''}`}
+      onPointerDown={(e) => {
+        if (e.target !== e.currentTarget || !props.onResize) return;
+        const y0 = e.clientY;
+        const mv = (ev: PointerEvent) => props.onResize!(ev.clientY - y0);
+        const up = () => {
+          window.removeEventListener('pointermove', mv);
+          window.removeEventListener('pointerup', up);
+        };
+        window.addEventListener('pointermove', mv);
+        window.addEventListener('pointerup', up);
+      }}
+    >
+      <div className="say" aria-live="polite">
+        {text.src && <span className="src">【{text.src}】</span>}
+        {text.say}
+      </div>
+      {s.pending && c.active && <EffectStack s={s} />}
+      <div className="actions">
+        {c.active && aff.declare && <Declare aff={aff} />}
+        {c.active && aff.fallback.length > 0 && (
+          <div className="fallback" aria-label="その他の操作">
+            {aff.fallback.map((o) => (
+              <button key={o.id} className="btn" onClick={() => c.run({ ids: [o.id], label: o.label })}>
+                {o.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {c.copyKey && (
+          <button className="btn" onClick={c.cancelCopy}>
+            コピーをやめる
+          </button>
+        )}
+        {canUndo && text.mine && (
+          <button className="btn" onClick={undo} title="Ctrl+Z">
+            取り消し
+          </button>
+        )}
+        {c.active &&
+          buttons.map((b) => (
+            <button key={b.role + b.move.ids.join()} className={`btn ${b.role === 'endTurn' ? 'primary' : ''}`} onClick={() => c.run(b.move)}>
+              {b.move.label}
+            </button>
+          ))}
+      </div>
+    </div>
+  );
+}

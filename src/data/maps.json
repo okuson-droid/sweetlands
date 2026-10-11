@@ -1,0 +1,2246 @@
+{
+ "A": {
+  "hexes": [
+   {
+    "row": 0,
+    "col": 0,
+    "terrain": "W",
+    "icon": "rab"
+   },
+   {
+    "row": 0,
+    "col": 2,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 4,
+    "terrain": "W",
+    "icon": "skill"
+   },
+   {
+    "row": 0,
+    "col": 6,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 0,
+    "col": 8,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 10,
+    "terrain": "F",
+    "icon": "cp2"
+   },
+   {
+    "row": 0,
+    "col": 12,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 14,
+    "terrain": "M",
+    "icon": "ip2"
+   },
+   {
+    "row": 1,
+    "col": 1,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 3,
+    "terrain": "W",
+    "icon": "terr"
+   },
+   {
+    "row": 1,
+    "col": 5,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 7,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 9,
+    "terrain": "X",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 11,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 1,
+    "col": 13,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 0,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 2,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 4,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 6,
+    "terrain": "F",
+    "icon": "road"
+   },
+   {
+    "row": 2,
+    "col": 8,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 10,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 12,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 1,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 3,
+    "col": 3,
+    "terrain": "W",
+    "icon": "ib"
+   },
+   {
+    "row": 3,
+    "col": 5,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 7,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 9,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 3,
+    "col": 11,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 3,
+    "col": 13,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 2,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 4,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 6,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 8,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 10,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 12,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 14,
+    "terrain": "M",
+    "icon": "ib"
+   },
+   {
+    "row": 5,
+    "col": 1,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 3,
+    "terrain": "W",
+    "icon": "road"
+   },
+   {
+    "row": 5,
+    "col": 5,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 7,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 9,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 11,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 13,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 0,
+    "terrain": "S",
+    "icon": "pros"
+   },
+   {
+    "row": 6,
+    "col": 2,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 4,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 6,
+    "col": 6,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 8,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 10,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 12,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 6,
+    "col": 14,
+    "terrain": "M",
+    "icon": null
+   }
+  ],
+  "virtual": {
+   "港1（上辺左）": {
+    "pos": [
+     -1,
+     1
+    ],
+    "adjacentHexes": [
+     "r0c0",
+     "r0c2"
+    ]
+   },
+   "港2（上辺中央）": {
+    "pos": [
+     -1,
+     9
+    ],
+    "adjacentHexes": [
+     "r0c8",
+     "r0c10"
+    ]
+   },
+   "港3（右辺）": {
+    "pos": [
+     1,
+     15
+    ],
+    "adjacentHexes": [
+     "r1c13",
+     "r0c14"
+    ]
+   },
+   "港4（左辺）": {
+    "pos": [
+     5,
+     -1
+    ],
+    "adjacentHexes": [
+     "r5c1",
+     "r6c0"
+    ]
+   },
+   "追加ドローエリア1（右辺）": {
+    "pos": [
+     2,
+     14
+    ],
+    "adjacentHexes": [
+     "r2c12",
+     "r1c13",
+     "r3c13"
+    ]
+   },
+   "追加ドローエリア2（左辺）": {
+    "pos": [
+     4,
+     0
+    ],
+    "adjacentHexes": [
+     "r4c2",
+     "r3c1",
+     "r5c1"
+    ]
+   }
+  }
+ },
+ "B1": {
+  "hexes": [
+   {
+    "row": 0,
+    "col": 0,
+    "terrain": "M",
+    "icon": "ip2"
+   },
+   {
+    "row": 0,
+    "col": 2,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 4,
+    "terrain": "W",
+    "icon": "skill"
+   },
+   {
+    "row": 0,
+    "col": 6,
+    "terrain": "W",
+    "icon": "rab"
+   },
+   {
+    "row": 0,
+    "col": 8,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 10,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 0,
+    "col": 12,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 14,
+    "terrain": "F",
+    "icon": "cp2"
+   },
+   {
+    "row": 1,
+    "col": 1,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 1,
+    "col": 3,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 5,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 7,
+    "terrain": "W",
+    "icon": "terr"
+   },
+   {
+    "row": 1,
+    "col": 9,
+    "terrain": "X",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 11,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 1,
+    "col": 13,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 0,
+    "terrain": "M",
+    "icon": "ib"
+   },
+   {
+    "row": 2,
+    "col": 2,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 4,
+    "terrain": "W",
+    "icon": "ib"
+   },
+   {
+    "row": 2,
+    "col": 6,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 8,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 10,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 2,
+    "col": 12,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 1,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 3,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 3,
+    "col": 5,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 7,
+    "terrain": "W",
+    "icon": "road"
+   },
+   {
+    "row": 3,
+    "col": 9,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 11,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 13,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 4,
+    "col": 2,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 4,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 6,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 8,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 10,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 12,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 14,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 1,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 3,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 5,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 7,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 9,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 11,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 13,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 0,
+    "terrain": "M",
+    "icon": "pros"
+   },
+   {
+    "row": 6,
+    "col": 2,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 4,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 6,
+    "col": 6,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 8,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 10,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 12,
+    "terrain": "F",
+    "icon": "road"
+   },
+   {
+    "row": 6,
+    "col": 14,
+    "terrain": "F",
+    "icon": null
+   }
+  ],
+  "virtual": {
+   "港1（上辺左）": {
+    "pos": [
+     -1,
+     1
+    ],
+    "adjacentHexes": [
+     "r0c0",
+     "r0c2"
+    ]
+   },
+   "港2（上辺中央）": {
+    "pos": [
+     -1,
+     9
+    ],
+    "adjacentHexes": [
+     "r0c8",
+     "r0c10"
+    ]
+   },
+   "港3（右辺）": {
+    "pos": [
+     1,
+     15
+    ],
+    "adjacentHexes": [
+     "r1c13",
+     "r0c14"
+    ]
+   },
+   "港4（左辺）": {
+    "pos": [
+     5,
+     -1
+    ],
+    "adjacentHexes": [
+     "r5c1",
+     "r6c0"
+    ]
+   },
+   "追加ドローエリア1（右辺）": {
+    "pos": [
+     2,
+     14
+    ],
+    "adjacentHexes": [
+     "r2c12",
+     "r1c13",
+     "r3c13"
+    ]
+   },
+   "追加ドローエリア2（左辺）": {
+    "pos": [
+     4,
+     0
+    ],
+    "adjacentHexes": [
+     "r4c2",
+     "r3c1",
+     "r5c1"
+    ]
+   }
+  }
+ },
+ "B2": {
+  "hexes": [
+   {
+    "row": 0,
+    "col": 0,
+    "terrain": "F",
+    "icon": "cp2"
+   },
+   {
+    "row": 0,
+    "col": 2,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 4,
+    "terrain": "M",
+    "icon": "skill"
+   },
+   {
+    "row": 0,
+    "col": 6,
+    "terrain": "M",
+    "icon": "ip2"
+   },
+   {
+    "row": 0,
+    "col": 8,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 10,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 0,
+    "col": 12,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 14,
+    "terrain": "W",
+    "icon": "rab"
+   },
+   {
+    "row": 1,
+    "col": 1,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 1,
+    "col": 3,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 1,
+    "col": 5,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 7,
+    "terrain": "M",
+    "icon": "ib"
+   },
+   {
+    "row": 1,
+    "col": 9,
+    "terrain": "X",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 11,
+    "terrain": "W",
+    "icon": "terr"
+   },
+   {
+    "row": 1,
+    "col": 13,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 0,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 2,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 4,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 6,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 8,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 10,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 12,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 1,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 3,
+    "col": 3,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 5,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 3,
+    "col": 7,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 9,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 3,
+    "col": 11,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 13,
+    "terrain": "W",
+    "icon": "ib"
+   },
+   {
+    "row": 4,
+    "col": 2,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 4,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 6,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 8,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 10,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 12,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 14,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 1,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 3,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 5,
+    "col": 5,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 7,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 9,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 11,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 13,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 0,
+    "terrain": "F",
+    "icon": "pros"
+   },
+   {
+    "row": 6,
+    "col": 2,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 4,
+    "terrain": "F",
+    "icon": "road"
+   },
+   {
+    "row": 6,
+    "col": 6,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 8,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 10,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 12,
+    "terrain": "W",
+    "icon": "road"
+   },
+   {
+    "row": 6,
+    "col": 14,
+    "terrain": "W",
+    "icon": null
+   }
+  ],
+  "virtual": {
+   "港1（上辺左）": {
+    "pos": [
+     -1,
+     1
+    ],
+    "adjacentHexes": [
+     "r0c0",
+     "r0c2"
+    ]
+   },
+   "港2（上辺中央）": {
+    "pos": [
+     -1,
+     9
+    ],
+    "adjacentHexes": [
+     "r0c8",
+     "r0c10"
+    ]
+   },
+   "港3（右辺）": {
+    "pos": [
+     1,
+     15
+    ],
+    "adjacentHexes": [
+     "r1c13",
+     "r0c14"
+    ]
+   },
+   "港4（左辺）": {
+    "pos": [
+     5,
+     -1
+    ],
+    "adjacentHexes": [
+     "r5c1",
+     "r6c0"
+    ]
+   },
+   "追加ドローエリア1（右辺）": {
+    "pos": [
+     2,
+     14
+    ],
+    "adjacentHexes": [
+     "r2c12",
+     "r1c13",
+     "r3c13"
+    ]
+   },
+   "追加ドローエリア2（左辺）": {
+    "pos": [
+     4,
+     0
+    ],
+    "adjacentHexes": [
+     "r4c2",
+     "r3c1",
+     "r5c1"
+    ]
+   }
+  }
+ },
+ "B3": {
+  "hexes": [
+   {
+    "row": 0,
+    "col": 0,
+    "terrain": "W",
+    "icon": "rab"
+   },
+   {
+    "row": 0,
+    "col": 2,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 4,
+    "terrain": "F",
+    "icon": "skill"
+   },
+   {
+    "row": 0,
+    "col": 6,
+    "terrain": "F",
+    "icon": "cp2"
+   },
+   {
+    "row": 0,
+    "col": 8,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 10,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 0,
+    "col": 12,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 14,
+    "terrain": "M",
+    "icon": "ip2"
+   },
+   {
+    "row": 1,
+    "col": 1,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 3,
+    "terrain": "W",
+    "icon": "terr"
+   },
+   {
+    "row": 1,
+    "col": 5,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 7,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 1,
+    "col": 9,
+    "terrain": "X",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 11,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 1,
+    "col": 13,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 0,
+    "terrain": "W",
+    "icon": "ib"
+   },
+   {
+    "row": 2,
+    "col": 2,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 4,
+    "terrain": "F",
+    "icon": "road"
+   },
+   {
+    "row": 2,
+    "col": 6,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 8,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 2,
+    "col": 10,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 12,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 1,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 3,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 5,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 7,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 9,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 11,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 3,
+    "col": 13,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 2,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 4,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 4,
+    "col": 6,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 8,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 10,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 12,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 14,
+    "terrain": "M",
+    "icon": "ib"
+   },
+   {
+    "row": 5,
+    "col": 1,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 3,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 5,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 7,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 9,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 11,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 13,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 0,
+    "terrain": "W",
+    "icon": "pros"
+   },
+   {
+    "row": 6,
+    "col": 2,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 4,
+    "terrain": "W",
+    "icon": "road"
+   },
+   {
+    "row": 6,
+    "col": 6,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 8,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 10,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 12,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 6,
+    "col": 14,
+    "terrain": "M",
+    "icon": null
+   }
+  ],
+  "virtual": {
+   "港1（上辺左）": {
+    "pos": [
+     -1,
+     1
+    ],
+    "adjacentHexes": [
+     "r0c0",
+     "r0c2"
+    ]
+   },
+   "港2（上辺中央）": {
+    "pos": [
+     -1,
+     9
+    ],
+    "adjacentHexes": [
+     "r0c8",
+     "r0c10"
+    ]
+   },
+   "港3（右辺）": {
+    "pos": [
+     1,
+     15
+    ],
+    "adjacentHexes": [
+     "r1c13",
+     "r0c14"
+    ]
+   },
+   "港4（左辺）": {
+    "pos": [
+     5,
+     -1
+    ],
+    "adjacentHexes": [
+     "r5c1",
+     "r6c0"
+    ]
+   },
+   "追加ドローエリア1（右辺）": {
+    "pos": [
+     2,
+     14
+    ],
+    "adjacentHexes": [
+     "r2c12",
+     "r1c13",
+     "r3c13"
+    ]
+   },
+   "追加ドローエリア2（左辺）": {
+    "pos": [
+     4,
+     0
+    ],
+    "adjacentHexes": [
+     "r4c2",
+     "r3c1",
+     "r5c1"
+    ]
+   }
+  }
+ },
+ "B4": {
+  "hexes": [
+   {
+    "row": 0,
+    "col": 0,
+    "terrain": "M",
+    "icon": "ip2"
+   },
+   {
+    "row": 0,
+    "col": 2,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 4,
+    "terrain": "W",
+    "icon": "skill"
+   },
+   {
+    "row": 0,
+    "col": 6,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 8,
+    "terrain": "W",
+    "icon": "rab"
+   },
+   {
+    "row": 0,
+    "col": 10,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 0,
+    "col": 12,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 14,
+    "terrain": "F",
+    "icon": "cp2"
+   },
+   {
+    "row": 1,
+    "col": 1,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 1,
+    "col": 3,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 5,
+    "terrain": "W",
+    "icon": "terr"
+   },
+   {
+    "row": 1,
+    "col": 7,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 9,
+    "terrain": "X",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 11,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 13,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 0,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 2,
+    "terrain": "M",
+    "icon": "ib"
+   },
+   {
+    "row": 2,
+    "col": 4,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 6,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 8,
+    "terrain": "W",
+    "icon": "ib"
+   },
+   {
+    "row": 2,
+    "col": 10,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 12,
+    "terrain": "F",
+    "icon": "road"
+   },
+   {
+    "row": 3,
+    "col": 1,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 3,
+    "col": 3,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 5,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 3,
+    "col": 7,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 9,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 11,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 13,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 2,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 4,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 6,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 8,
+    "terrain": "W",
+    "icon": "road"
+   },
+   {
+    "row": 4,
+    "col": 10,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 12,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 14,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 5,
+    "col": 1,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 3,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 5,
+    "col": 5,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 7,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 9,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 11,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 13,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 0,
+    "terrain": "S",
+    "icon": "pros"
+   },
+   {
+    "row": 6,
+    "col": 2,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 4,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 6,
+    "col": 6,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 8,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 10,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 12,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 14,
+    "terrain": "F",
+    "icon": null
+   }
+  ],
+  "virtual": {
+   "港1（上辺左）": {
+    "pos": [
+     -1,
+     1
+    ],
+    "adjacentHexes": [
+     "r0c0",
+     "r0c2"
+    ]
+   },
+   "港2（上辺中央）": {
+    "pos": [
+     -1,
+     9
+    ],
+    "adjacentHexes": [
+     "r0c8",
+     "r0c10"
+    ]
+   },
+   "港3（右辺）": {
+    "pos": [
+     1,
+     15
+    ],
+    "adjacentHexes": [
+     "r1c13",
+     "r0c14"
+    ]
+   },
+   "港4（左辺）": {
+    "pos": [
+     5,
+     -1
+    ],
+    "adjacentHexes": [
+     "r5c1",
+     "r6c0"
+    ]
+   },
+   "追加ドローエリア1（右辺）": {
+    "pos": [
+     2,
+     14
+    ],
+    "adjacentHexes": [
+     "r2c12",
+     "r1c13",
+     "r3c13"
+    ]
+   },
+   "追加ドローエリア2（左辺）": {
+    "pos": [
+     4,
+     0
+    ],
+    "adjacentHexes": [
+     "r4c2",
+     "r3c1",
+     "r5c1"
+    ]
+   }
+  }
+ },
+ "B5": {
+  "hexes": [
+   {
+    "row": 0,
+    "col": 0,
+    "terrain": "F",
+    "icon": "cp2"
+   },
+   {
+    "row": 0,
+    "col": 2,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 4,
+    "terrain": "F",
+    "icon": "skill"
+   },
+   {
+    "row": 0,
+    "col": 6,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 0,
+    "col": 8,
+    "terrain": "M",
+    "icon": "ip2"
+   },
+   {
+    "row": 0,
+    "col": 10,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 12,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 0,
+    "col": 14,
+    "terrain": "W",
+    "icon": "rab"
+   },
+   {
+    "row": 1,
+    "col": 1,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 1,
+    "col": 3,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 5,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 7,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 9,
+    "terrain": "X",
+    "icon": null
+   },
+   {
+    "row": 1,
+    "col": 11,
+    "terrain": "W",
+    "icon": "terr"
+   },
+   {
+    "row": 1,
+    "col": 13,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 0,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 2,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 4,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 6,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 2,
+    "col": 8,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 10,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 2,
+    "col": 12,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 1,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 3,
+    "col": 3,
+    "terrain": "F",
+    "icon": "ib"
+   },
+   {
+    "row": 3,
+    "col": 5,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 7,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 9,
+    "terrain": "M",
+    "icon": "ib"
+   },
+   {
+    "row": 3,
+    "col": 11,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 3,
+    "col": 13,
+    "terrain": "W",
+    "icon": "ib"
+   },
+   {
+    "row": 4,
+    "col": 2,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 4,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 6,
+    "terrain": "M",
+    "icon": "ind"
+   },
+   {
+    "row": 4,
+    "col": 8,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 10,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 12,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 4,
+    "col": 14,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 1,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 3,
+    "terrain": "F",
+    "icon": "road"
+   },
+   {
+    "row": 5,
+    "col": 5,
+    "terrain": "F",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 7,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 9,
+    "terrain": "M",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 11,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 5,
+    "col": 13,
+    "terrain": "W",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 0,
+    "terrain": "S",
+    "icon": "pros"
+   },
+   {
+    "row": 6,
+    "col": 2,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 4,
+    "terrain": "S",
+    "icon": "g5"
+   },
+   {
+    "row": 6,
+    "col": 6,
+    "terrain": "S",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 8,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 10,
+    "terrain": "C",
+    "icon": null
+   },
+   {
+    "row": 6,
+    "col": 12,
+    "terrain": "W",
+    "icon": "road"
+   },
+   {
+    "row": 6,
+    "col": 14,
+    "terrain": "W",
+    "icon": null
+   }
+  ],
+  "virtual": {
+   "港1（上辺左）": {
+    "pos": [
+     -1,
+     1
+    ],
+    "adjacentHexes": [
+     "r0c0",
+     "r0c2"
+    ]
+   },
+   "港2（上辺中央）": {
+    "pos": [
+     -1,
+     9
+    ],
+    "adjacentHexes": [
+     "r0c8",
+     "r0c10"
+    ]
+   },
+   "港3（右辺）": {
+    "pos": [
+     1,
+     15
+    ],
+    "adjacentHexes": [
+     "r1c13",
+     "r0c14"
+    ]
+   },
+   "港4（左辺）": {
+    "pos": [
+     5,
+     -1
+    ],
+    "adjacentHexes": [
+     "r5c1",
+     "r6c0"
+    ]
+   },
+   "追加ドローエリア1（右辺）": {
+    "pos": [
+     2,
+     14
+    ],
+    "adjacentHexes": [
+     "r2c12",
+     "r1c13",
+     "r3c13"
+    ]
+   },
+   "追加ドローエリア2（左辺）": {
+    "pos": [
+     4,
+     0
+    ],
+    "adjacentHexes": [
+     "r4c2",
+     "r3c1",
+     "r5c1"
+    ]
+   }
+  }
+ }
+}

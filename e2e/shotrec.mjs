@@ -1,0 +1,13 @@
+import { chromium } from '@playwright/test';
+import fs from 'node:fs';
+const [, , rec, out, w = '1280', h = '720', extra = ''] = process.argv;
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: +w, height: +h }, hasTouch: +w < 1000, colorScheme: process.env.DARK ? 'dark' : 'light' });
+await p.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
+const record = fs.readFileSync(rec, 'utf8');
+await p.addInitScript((r) => localStorage.setItem('sweetlands.local.v1', r), record);
+await p.goto(`file://${process.cwd()}/dist/index.html?noanim=1${extra}`);
+await p.click('text=続きから遊ぶ');
+await p.waitForTimeout(+process.env.WAIT || 1600);
+await p.screenshot({ path: out });
+await b.close();

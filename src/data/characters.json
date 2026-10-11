@@ -1,0 +1,464 @@
+[
+ {
+  "name": "アリス・ティーローズ",
+  "startResources": {
+   "gold": 2,
+   "wheat": 7,
+   "wood": 8,
+   "iron": 7,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 15,
+   "wheat": 0,
+   "wood": 1,
+   "iron": 0
+  },
+  "boardType": "α",
+  "clockTowerCondition": "森林タイル5枚｜家駒4個｜林業タグの市民カード2枚／任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ダイヤ2個",
+   "ワンダーアイコン1個",
+   "ダイヤ2個"
+  ],
+  "row4Bonus": [
+   "スキルタイル1枚",
+   "道駒1個と地形タイル1枚を置く",
+   "市民カードを1枚引く"
+  ],
+  "printedAutomation": [
+   "任意の地形タイルを1枚置く",
+   "木材1個と麦1個を得る",
+   "3ゴールドを得る"
+  ]
+ },
+ {
+  "name": "ロータス・チェー",
+  "startResources": {
+   "gold": 6,
+   "wheat": 8,
+   "wood": 7,
+   "iron": 7,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 12,
+   "wheat": 0,
+   "wood": 1,
+   "iron": 0
+  },
+  "boardType": "α",
+  "clockTowerCondition": "森林タイル5枚｜家駒4個｜林業タグの市民カード2枚／任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ダイヤ2個",
+   "ワンダーアイコン1個",
+   "ダイヤ2個"
+  ],
+  "row4Bonus": [
+   "スキルタイル1枚",
+   "道駒1個と地形タイル1枚を置く",
+   "市民カードを1枚引く"
+  ],
+  "printedAutomation": [
+   "任意の地形タイルを1枚置く",
+   "木材1個と麦1個を得る",
+   "3ゴールドを得る"
+  ]
+ },
+ {
+  "name": "エリ・マカロン",
+  "startResources": {
+   "gold": 0,
+   "wheat": 5,
+   "wood": 5,
+   "iron": 4,
+   "diamond": 3
+  },
+  "startIncome": {
+   "gold": 18,
+   "wheat": 2,
+   "wood": 2,
+   "iron": 2
+  },
+  "boardType": "β",
+  "clockTowerCondition": "麦畑タイル6枚｜テント駒2個｜農業タグの市民カード2枚／任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ダイヤ2個",
+   "ダイヤ2個",
+   "ワンダーアイコン1個"
+  ],
+  "row4Bonus": [
+   "食料トラックを1歩進める",
+   "スキルタイル1枚",
+   "アクションディスク1枚"
+  ],
+  "printedAutomation": [
+   "任意の地形タイルを1枚置く",
+   "4ゴールドを得る",
+   "鉄1個と木材1個を得る"
+  ]
+ },
+ {
+  "name": "エルサ・スカイル",
+  "startResources": {
+   "gold": 5,
+   "wheat": 8,
+   "wood": 7,
+   "iron": 6,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 13,
+   "wheat": 1,
+   "wood": 0,
+   "iron": 0
+  },
+  "boardType": "β",
+  "clockTowerCondition": "任意の地形タイル9枚｜家駒4個｜任意の市民カード5枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ダイヤ2個",
+   "ダイヤ2個",
+   "ワンダーアイコン1個"
+  ],
+  "row4Bonus": [
+   "食料トラックを1歩進める",
+   "スキルタイル1枚",
+   "アクションディスク1枚"
+  ],
+  "printedAutomation": [
+   "任意の地形タイルを1枚置く",
+   "4ゴールドを得る",
+   "鉄1個と木材1個を得る"
+  ]
+ },
+ {
+  "name": "ナタ・パステル",
+  "startResources": {
+   "gold": 2,
+   "wheat": 7,
+   "wood": 8,
+   "iron": 7,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 16,
+   "wheat": 0,
+   "wood": 0,
+   "iron": 1
+  },
+  "boardType": "γ",
+  "clockTowerCondition": "鉱山タイル4枚｜研究所駒2個｜鉱業タグの市民カード2枚／任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ワンダーアイコン1個",
+   "ダイヤ2個",
+   "ダイヤ2個"
+  ],
+  "row4Bonus": [
+   "市民カードを1枚引く",
+   "スキルタイル1枚",
+   "工業トラックを1歩進める"
+  ],
+  "printedAutomation": [
+   "麦の収入値を1上げる",
+   "木材1個と鉄1個を得る",
+   "ゴールドの収入値を2上げる"
+  ]
+ },
+ {
+  "name": "ビスキュイ・バステト",
+  "startResources": {
+   "gold": 4,
+   "wheat": 7,
+   "wood": 7,
+   "iron": 8,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 14,
+   "wheat": 0,
+   "wood": 1,
+   "iron": 0
+  },
+  "boardType": "γ",
+  "clockTowerCondition": "鉱山タイル4枚｜ビル駒2個｜鉱業タグの市民カード2枚／任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ワンダーアイコン1個",
+   "ダイヤ2個",
+   "ダイヤ2個"
+  ],
+  "row4Bonus": [
+   "市民カードを1枚引く",
+   "スキルタイル1枚",
+   "工業トラックを1歩進める"
+  ],
+  "printedAutomation": [
+   "麦の収入値を1上げる",
+   "木材1個と鉄1個を得る",
+   "ゴールドの収入値を2上げる"
+  ]
+ },
+ {
+  "name": "グレーテル・シュトーレン",
+  "startResources": {
+   "gold": 2,
+   "wheat": 7,
+   "wood": 7,
+   "iron": 7,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 16,
+   "wheat": 0,
+   "wood": 0,
+   "iron": 1
+  },
+  "boardType": "δ",
+  "clockTowerCondition": "麦畑タイル6枚｜テント駒3個｜農業タグの市民カード2枚／任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ダイヤ2個",
+   "ダイヤ2個",
+   "ワンダーアイコン1個"
+  ],
+  "row4Bonus": [
+   "スキルタイル1枚",
+   "道駒を2個置く",
+   "ゴールドの収入値を3上げる"
+  ],
+  "printedAutomation": [
+   "麦1個と木材1個を得る",
+   "道駒を1個置く",
+   "鉄1個を得て、ゴールドの収入値を1上げる"
+  ]
+ },
+ {
+  "name": "サクラ・モチ",
+  "startResources": {
+   "gold": 1,
+   "wheat": 8,
+   "wood": 8,
+   "iron": 6,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 18,
+   "wheat": 0,
+   "wood": 0,
+   "iron": 1
+  },
+  "boardType": "δ",
+  "clockTowerCondition": "任意の地形タイル8枚｜家駒4個｜任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ダイヤ2個",
+   "ダイヤ2個",
+   "ワンダーアイコン1個"
+  ],
+  "row4Bonus": [
+   "スキルタイル1枚",
+   "道駒を2個置く",
+   "ゴールドの収入値を3上げる"
+  ],
+  "printedAutomation": [
+   "麦1個と木材1個を得る",
+   "道駒を1個置く",
+   "鉄1個を得て、ゴールドの収入値を1上げる"
+  ]
+ },
+ {
+  "name": "ソルビー・ショコラ",
+  "startResources": {
+   "gold": 7,
+   "wheat": 8,
+   "wood": 7,
+   "iron": 7,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 11,
+   "wheat": 0,
+   "wood": 1,
+   "iron": 0
+  },
+  "boardType": "ε",
+  "clockTowerCondition": "麦畑タイル7枚｜テント駒2個｜農業タグの市民カード2枚／任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ダイヤ2個",
+   "ワンダーアイコン1個",
+   "ダイヤ2個"
+  ],
+  "row4Bonus": [
+   "食料トラックを1歩進める",
+   "スキルタイル1枚",
+   "市民カードを1枚引く"
+  ],
+  "printedAutomation": [
+   "ゴールドの収入値を4上げる",
+   "木材の収入値を1上げる",
+   "鉄1個と麦1個を得る"
+  ]
+ },
+ {
+  "name": "リッカ・ベリー",
+  "startResources": {
+   "gold": 5,
+   "wheat": 8,
+   "wood": 8,
+   "iron": 6,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 12,
+   "wheat": 1,
+   "wood": 0,
+   "iron": 0
+  },
+  "boardType": "ε",
+  "clockTowerCondition": "麦畑タイル6枚｜テント駒2個｜農業タグの市民カード2枚／任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ダイヤ2個",
+   "ワンダーアイコン1個",
+   "ダイヤ2個"
+  ],
+  "row4Bonus": [
+   "食料トラックを1歩進める",
+   "スキルタイル1枚",
+   "市民カードを1枚引く"
+  ],
+  "printedAutomation": [
+   "ゴールドの収入値を4上げる",
+   "木材の収入値を1上げる",
+   "鉄1個と麦1個を得る"
+  ]
+ },
+ {
+  "name": "カルメン・メロ",
+  "startResources": {
+   "gold": 3,
+   "wheat": 7,
+   "wood": 8,
+   "iron": 7,
+   "diamond": 3
+  },
+  "startIncome": {
+   "gold": 14,
+   "wheat": 0,
+   "wood": 0,
+   "iron": 1
+  },
+  "boardType": "ζ",
+  "clockTowerCondition": "任意の地形タイル8枚｜家駒4個｜オールマイティ産業タグの市民カード2枚／任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ワンダーアイコン1個",
+   "ダイヤ2個",
+   "ダイヤ2個"
+  ],
+  "row4Bonus": [
+   "ゴールドの収入値を3上げる",
+   "アクションディスク1枚",
+   "スキルタイル1枚"
+  ],
+  "printedAutomation": [
+   "麦1個と鉄1個を得る",
+   "道駒を1個置く",
+   "ゴールドの収入値を2上げる"
+  ]
+ },
+ {
+  "name": "セナ・デライト",
+  "startResources": {
+   "gold": 3,
+   "wheat": 7,
+   "wood": 7,
+   "iron": 8,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 16,
+   "wheat": 1,
+   "wood": 0,
+   "iron": 0
+  },
+  "boardType": "ζ",
+  "clockTowerCondition": "任意の地形タイル8枚｜家駒4個｜任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ワンダーアイコン1個",
+   "ダイヤ2個",
+   "ダイヤ2個"
+  ],
+  "row4Bonus": [
+   "ゴールドの収入値を3上げる",
+   "アクションディスク1枚",
+   "スキルタイル1枚"
+  ],
+  "printedAutomation": [
+   "麦1個と鉄1個を得る",
+   "道駒を1個置く",
+   "ゴールドの収入値を2上げる"
+  ]
+ },
+ {
+  "name": "コーラル・ライラ",
+  "startResources": {
+   "gold": 6,
+   "wheat": 7,
+   "wood": 7,
+   "iron": 7,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 12,
+   "wheat": 0,
+   "wood": 0,
+   "iron": 0
+  },
+  "boardType": "η",
+  "clockTowerCondition": "食料トラック4歩｜家駒4個｜工業点アイコンを1点ぶん以上通過｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ワンダーアイコン1個",
+   "ダイヤ2個",
+   "ダイヤ2個"
+  ],
+  "row4Bonus": [
+   "道駒1個と地形タイル1枚を置く",
+   "スキルタイル1枚",
+   "工業トラックを1歩進める"
+  ],
+  "printedAutomation": [
+   "麦1個を得て、ゴールドの収入値を1上げる",
+   "1工業点を得る",
+   "鉄の収入値を1上げる"
+  ]
+ },
+ {
+  "name": "ジャスミン・メイ",
+  "startResources": {
+   "gold": 5,
+   "wheat": 6,
+   "wood": 6,
+   "iron": 6,
+   "diamond": 2
+  },
+  "startIncome": {
+   "gold": 10,
+   "wheat": 0,
+   "wood": 0,
+   "iron": 0
+  },
+  "boardType": "η",
+  "clockTowerCondition": "食料トラック3歩｜家駒3個｜工業点アイコンを1点ぶん以上通過／任意の市民カード4枚｜ワンダーアイコン1個の解放",
+  "row3Bonus": [
+   "ワンダーアイコン1個",
+   "ダイヤ2個",
+   "ダイヤ2個"
+  ],
+  "row4Bonus": [
+   "道駒1個と地形タイル1枚を置く",
+   "スキルタイル1枚",
+   "工業トラックを1歩進める"
+  ],
+  "printedAutomation": [
+   "麦1個を得て、ゴールドの収入値を1上げる",
+   "1工業点を得る",
+   "鉄の収入値を1上げる"
+  ]
+ }
+]

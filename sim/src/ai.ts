@@ -92,6 +92,8 @@ export class Agent {
     if (opts.length === 1) return opts[0].id;
     const st = s.pending!.step;
     if (deep && DEEP_STEPS.has(st)) return this.argmax(opts, (o) => this.ev(this.resolveToTurn(step(s, o.id)))).id;
+    // スキルタイル（上級を含む）は、パス時の効果が価値の多くを占めるため、手番に戻るまで進めて passGain の項まで含めて比べる
+    if (st === 'skill') return this.argmax(opts, (o) => this.fullEval(this.resolve(step(s, o.id)))).id;
     return this.argmax(opts, (o) => this.ev(step(s, o.id))).id;
   }
 

@@ -1,6 +1,7 @@
 // SweetLands_rules.md（2026-10-10版）の条項ごとのテスト
 import { describe, expect, it } from 'vitest';
 import { applyMove, clockReady, createGame, getOptions, viewFor, withEffects } from '../src/game/engine';
+import { PRINTED_AUTO } from '../src/game/boards';
 import { CARDS } from '../src/game/cards';
 import { hexEdges } from '../src/game/geometry';
 import { cities, connectedPorts, passedIp } from '../src/game/queries';
@@ -312,6 +313,13 @@ describe('時計塔駒の配置条件（§12.2）', () => {
 
   it('エリ・マカロン：テント駒の指定は種類を問わない扱いにしない', () => {
     expect(ready('エリ・マカロン', ['house', 'bldg']).clockReady()).toBe(false);
+  });
+});
+
+describe('キャラボード η の印刷されたオートメーション時能力', () => {
+  // 林業（緑）の列は1都市点（ユーザー確認 2026-10-12：以前は1工業点としていた）
+  it('コーラル・ライラとジャスミン・メイのボード（η）の林業の列は1都市点', () => {
+    expect(PRINTED_AUTO.η.for).toEqual([{ k: 'score', kind: 'cp', n: 1 }]);
   });
 });
 

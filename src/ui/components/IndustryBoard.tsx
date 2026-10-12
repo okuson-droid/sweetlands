@@ -127,14 +127,26 @@ function Rabbit({ p, i }: { p: PlayerState; i: number }) {
   const next = i === p.rabbitsTaken;
   const src = useSource('piece:rabbit', 'クッキーラビット駒', { k: 'hex', hex: '', holding: 'rabbit' });
   const present = i >= p.rabbitsTaken;
-  if (!present) return <span className="rab gone" />;
-  if (!next)
+  const bonus = RABBIT_BONUS[i];
+  // 置き場に印刷されたボーナスは、駒を取ったあとも（取る直前の駒でも）見えるように常に出す
+  const icon = bonus && <Icons toks={effToks(bonus)} size={10} />;
+  if (!present)
     return (
-      <span className="rab" title={RABBIT_BONUS[i] ? describe(RABBIT_BONUS[i]) : undefined}>
-        {RABBIT_BONUS[i] && <Icons toks={effToks(RABBIT_BONUS[i])} size={10} />}
+      <span className="rab gone" title={bonus ? `獲得済み：${describe(bonus)}` : undefined}>
+        {icon}
       </span>
     );
-  return <span className={`rab ${src.lit ? 'lit' : ''} ${src.held ? 'held' : ''}`} {...src.props} tabIndex={0} title={RABBIT_BONUS[i] ? `取ると：${describe(RABBIT_BONUS[i])}` : 'クッキーラビット駒'} />;
+  if (!next)
+    return (
+      <span className="rab" title={bonus ? describe(bonus) : undefined}>
+        {icon}
+      </span>
+    );
+  return (
+    <span className={`rab ${src.lit ? 'lit' : ''} ${src.held ? 'held' : ''}`} {...src.props} tabIndex={0} title={bonus ? `取ると：${describe(bonus)}` : 'クッキーラビット駒'}>
+      {icon}
+    </span>
+  );
 }
 
 export function IndustryBoard({ s, p }: { s: GameState; p: PlayerState }) {

@@ -38,6 +38,7 @@ export function bandText(s: GameState, viewer: number, copying: boolean): { src:
   if (pd.step === 'passMove') return { src: 'パス', say: '次のラウンドの支援スペースへ駒を動かしてください', mine };
   if (pd.step === 'keep') return { src: 'クリーンナップ', say: '次のラウンドに残す手札を1枚、持ち越し枠へ動かしてください', mine };
   if (pd.step === 'handCost') return { src: '手札コスト', say: pd.prompt.replace('手札コスト：', '').replace('捨てるカードを選んでください', '捨てるカードを捨て札置き場へ動かしてください'), mine };
+  if (pd.step === 'payHand') return { src, say: pd.prompt.replace(/^.+?：/, '').replace('捨てる手札を選んでください', '捨てる手札をクリックするか、捨て札置き場へ動かしてください'), mine };
   const say = pd.prompt
     .replace(/^.+?：/, '')
     .replace('捨てる手札を選んでください', '捨てる手札を捨て札置き場へ動かしてください');

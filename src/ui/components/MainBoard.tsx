@@ -196,13 +196,13 @@ export function MainBoard({ s, flashKeys, freeSlot, prosExtra }: { s: GameState;
 export function FreeActions() {
   return (
     <div className="frees">
-      <FreeCell slot="fa1" title="手札1＋基礎3 → 地形1か道1" dest />
+      <FreeCell slot="fa1" title="手札1＋基礎3 → 地形1か道1（クリックしてから手札を選ぶ）" dest={false} />
       <FreeCell slot="fa2" title="15G → カード1枚" dest={false} />
       <FreeCell slot="fa3" title="4G → 任意の基礎1" dest={false} />
       <FreeHint slot="fa4" title="マイルストーンを獲得する（右のマイルストーンタイルをクリック）" />
       <FreeCell slot="fa5" title="基礎1 → 1G" dest={false} />
       <FreeCell slot="fa6" title="基礎3 → 任意の基礎1" dest={false} />
-      <FreeCell slot="fa7" title="ディスク1か手札1 → 任意の基礎2" dest />
+      <FreeCell slot="fa7" title="ディスク1（ここへ動かす）か手札1（クリックしてから手札を選ぶ） → 任意の基礎2" dest />
       <FreeHint slot="fa8" title="時計塔駒を置く（個人ボードの時計塔駒を地図へ動かす）" />
     </div>
   );

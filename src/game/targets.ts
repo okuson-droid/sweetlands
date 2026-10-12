@@ -13,7 +13,7 @@ export type Target =
   | { k: 'cardToRow'; card: string; row: Row; from: 'hand' | 'tableau' } // カード → 産業列
   | { k: 'cardToHand'; card: string; from: 'search' | 'draft' } // 小窓 → 手札
   | { k: 'cardToKeep'; card: string } // 手札 → 持ち越し枠
-  | { k: 'cardToFree'; slot: 'fa1' | 'fa7h' | 'sakura' } // 手札 → フリーアクションのマス（カードは後の payHand で先回り回答）
+  | { k: 'cardToFree'; slot: 'fa1' | 'fa7h' | 'sakura' } // 手札を使うフリーアクション（マスか能力をクリックし、カードは後の payHand で選ぶ）
   | { k: 'discToFree' } // 手元のディスク → ❼
   | { k: 'diamondToDisc' } // ダイヤ → ディスクの上（グレーテル）
   | { k: 'tileToHex'; hex: string; kind: 'W' | 'F' | 'M' | 'S' | 'X' }

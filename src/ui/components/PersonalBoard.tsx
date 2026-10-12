@@ -2,7 +2,7 @@
 import { ADV_SKILLS, CHAR_BOARD, GRID_IRON, GRID_WOOD, PRINTED_AUTO, SHOP_COST, SKILLS, gridBonus } from '../../game/boards';
 import { CARDS } from '../../game/cards';
 import { CHARACTERS } from '../../game/characters';
-import { buildingCount, passedIp, playedCount, rowCapacity, tagCounts, terrainCount } from '../../game/queries';
+import { buildingCount, passedIp, playedCount, rowCapacity, tagCounts, tally, terrainCount } from '../../game/queries';
 import type { ClockReq } from '../../game/characters';
 import { TAGS, type Tag } from '../../game/types';
 import type { Tok } from '../icons/EffIcons';
@@ -292,6 +292,43 @@ export function TableauBar({ p, openForce, hint = false }: { p: PlayerState; ope
   );
 }
 
+const TERRAIN_NAME = { W: '麦畑', F: '森林', M: '鉱山', S: '海', special: '特殊地形' } as const;
+const INDUSTRY_NAME = { agr: '農業', for: '林業', min: '鉱業', all: 'オールマイティ', none: '産業タグなし' } as const;
+
+/** 集計：置いた地形タイル（地形ごと）・道駒・プレイしたカード（産業タグごと。オートメーション化したものを含む） */
+function TallyLine({ p }: { p: PlayerState }) {
+  const t = tally(p);
+  const tiles = (['W', 'F', 'M', 'S', 'special'] as const).filter((k) => k !== 'special' || t.tiles.special > 0);
+  const rows = (['agr', 'for', 'min', 'all', 'none'] as const).filter((k) => (k !== 'all' && k !== 'none') || t.cards[k] > 0);
+  return (
+    <div className="tally" aria-label="集計">
+      <span className="tgroup" title={`置いた地形タイル：${tiles.map((k) => `${TERRAIN_NAME[k]}${t.tiles[k]}枚`).join('・')}`}>
+        {tiles.map((k) => (
+          <span key={k} className="titem">
+            <Glyph g={{ k: 'hex', kind: k === 'special' ? 'X' : k }} size={13} />
+            <b>{t.tiles[k]}</b>
+          </span>
+        ))}
+      </span>
+      <span className="tgroup" title={`置いた道駒：${t.roads}本`}>
+        <span className="titem">
+          <Glyph g="road" size={13} />
+          <b>{t.roads}</b>
+        </span>
+      </span>
+      <span className="tgroup" title={`プレイしたカード（オートメーション化したものを含む）：${rows.map((k) => `${INDUSTRY_NAME[k]}${t.cards[k]}枚`).join('・')}、計${t.cardsTotal}枚`}>
+        {rows.map((k) => (
+          <span key={k} className="titem">
+            <Glyph g={{ k: 'played', row: k === 'none' ? undefined : k }} size={13} />
+            <b>{t.cards[k]}</b>
+          </span>
+        ))}
+        <span className="titem total">計{t.cardsTotal}</span>
+      </span>
+    </div>
+  );
+}
+
 export function PersonalBoard({ s, p, withTableau = true }: { s: GameState; p: PlayerState; withTableau?: boolean }) {
   const ch = p.character ? CHARACTERS[p.character] : null;
   const skillsDrop = useTarget('skills', { k: 'other' });
@@ -328,6 +365,7 @@ export function PersonalBoard({ s, p, withTableau = true }: { s: GameState; p: P
           </span>
         )}
       </div>
+      <TallyLine p={p} />
       <ClockConditions p={p} />
       <div className="resline">
         {(['gold', 'wheat', 'wood', 'iron'] as ResKind[]).map((r) => (

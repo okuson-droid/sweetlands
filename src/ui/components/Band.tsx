@@ -121,8 +121,8 @@ function Declare({ aff }: { aff: Affordances }) {
   );
 }
 
-export function Band(props: { s: GameState; viewer: number; canUndo: boolean; undo: () => void; pulse: boolean; onResize?: (dy: number) => void }) {
-  const { s, viewer, canUndo, undo, pulse } = props;
+export function Band(props: { s: GameState; viewer: number; canUndo: boolean; undo: () => void; undoCount: number; undoAll: () => void; pulse: boolean; onResize?: (dy: number) => void }) {
+  const { s, viewer, canUndo, undo, undoCount, undoAll, pulse } = props;
   const c = useInteraction();
   const text = bandText(s, viewer, !!c.copyKey);
   const aff = c.aff;
@@ -167,6 +167,11 @@ export function Band(props: { s: GameState; viewer: number; canUndo: boolean; un
         {canUndo && text.mine && (
           <button className="btn" onClick={undo} title="Ctrl+Z">
             取り消し
+          </button>
+        )}
+        {canUndo && text.mine && undoCount >= 2 && (
+          <button className="btn" onClick={undoAll} title={`取り消せる${undoCount}手をまとめて取り消し、手番の最初に戻る（山札を引いたあとなど、取り消せない手より前には戻らない）`}>
+            手番の最初に戻る
           </button>
         )}
         {c.active &&

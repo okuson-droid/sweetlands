@@ -4,7 +4,7 @@ import { applyMove, clockReady, createGame, getOptions, viewFor, withEffects } f
 import { PRINTED_AUTO } from '../src/game/boards';
 import { CARDS } from '../src/game/cards';
 import { hexEdges } from '../src/game/geometry';
-import { cities, connectedPorts, passedIp } from '../src/game/queries';
+import { cities, connectedPorts, passedIp, tally } from '../src/game/queries';
 import { finalScores, prosVp } from '../src/game/scoring';
 import type { GameState } from '../src/game/types';
 import { choose, has, setupGame } from './helpers';
@@ -320,6 +320,29 @@ describe('キャラボード η の印刷されたオートメーション時能
   // 林業（緑）の列は1都市点（ユーザー確認 2026-10-12：以前は1工業点としていた）
   it('コーラル・ライラとジャスミン・メイのボード（η）の林業の列は1都市点', () => {
     expect(PRINTED_AUTO.η.for).toEqual([{ k: 'score', kind: 'cp', n: 1 }]);
+  });
+});
+
+describe('画面の集計（tally）', () => {
+  it('地形タイルを地形ごと、道駒を本数、プレイしたカードを産業タグごとに数える', () => {
+    const s = setupGame(2);
+    const p = s.players[0];
+    const keys = Object.keys(p.hexes).filter((k) => ['W', 'F', 'M', 'S'].includes(p.hexes[k].terrain));
+    const byKind = (kind: string) => keys.filter((k) => p.hexes[k].terrain === kind);
+    for (const k of byKind('W').slice(0, 2)) p.hexes[k].tile = { kind: 'W', flipped: false };
+    for (const k of byKind('F').slice(0, 1)) p.hexes[k].tile = { kind: 'F', flipped: false };
+    p.roads = ['a', 'b', 'c'] as typeof p.roads;
+    const ids = Object.keys(CARDS);
+    const agr = ids.filter((id) => CARDS[id].industry === 'agr').slice(0, 2);
+    const all = ids.filter((id) => CARDS[id].industry === 'all').slice(0, 1);
+    p.played = [...agr, ...all];
+    const minAuto = ids.filter((id) => CARDS[id].industry === 'min').slice(0, 1);
+    p.automated.min = minAuto;
+    const t = tally(p);
+    expect(t.tiles).toMatchObject({ W: 2, F: 1, M: 0, S: 0 });
+    expect(t.roads).toBe(3);
+    expect(t.cards).toMatchObject({ agr: 2, for: 0, min: 1, all: 1 });
+    expect(t.cardsTotal).toBe(4);
   });
 });
 

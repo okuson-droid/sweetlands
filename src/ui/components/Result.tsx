@@ -4,7 +4,7 @@ import { finalScores } from '../../game/scoring';
 import type { GameState } from '../../game/types';
 import { cssMs, playerColor, prefersReducedMotion } from '../theme';
 
-export function Result({ s, onReplay, onLobby, onExport }: { s: GameState; onReplay: () => void; onLobby: () => void; onExport?: () => void }) {
+export function Result({ s, onReplay, onLobby, onExport }: { s: GameState; onReplay: (at: 'start' | 'end') => void; onLobby: () => void; onExport?: () => void }) {
   const rows = useMemo(() => finalScores(s), [s]);
   const items = rows[0].items.length;
   const [shown, setShown] = useState(prefersReducedMotion() ? items : 0);
@@ -53,7 +53,10 @@ export function Result({ s, onReplay, onLobby, onExport }: { s: GameState; onRep
       )}
       <div className="modal-actions" style={{ justifyContent: 'center' }}>
         {!done && <button className="btn">飛ばす</button>}
-        <button className="btn" onClick={onReplay}>
+        <button className="btn" onClick={() => onReplay('end')}>
+          最終盤面を見る
+        </button>
+        <button className="btn" onClick={() => onReplay('start')}>
           リプレイを見る
         </button>
         {onExport && (

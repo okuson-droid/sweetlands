@@ -27,9 +27,9 @@ export interface ViewSettings {
 }
 
 interface LogLine {
-  group: number;
+  group: number; // その行を出した手の番号（手の列の長さ）。取り消しで手の列が縮んだら、それより後の行を消す
   text: string;
-  undone: boolean;
+  player: number | null; // 出来事の主体の席（ラウンドの区切りなど主体のない行は null）
 }
 
 const UPPER_KEYS = ['area:', 'pros:', 'free:', 'skillpile:', 'milestone:', 'support:', 'advskill:', 'marker:support'];
@@ -72,16 +72,16 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
   // ログ（§10）
   const [log, setLog] = useState<LogLine[]>([]);
   useEffect(() => {
+    const g = session.record.moves.length;
     if (session.lastWasUndo) {
-      setLog((l) => {
-        const g = Math.max(-1, ...l.filter((x) => !x.undone).map((x) => x.group));
-        return l.map((x) => (x.group === g ? { ...x, undone: true } : x));
-      });
+      // 取り消した手の行はログから消す（1手の取り消しでも、手番の最初に戻したときでも）
+      setLog((l) => l.filter((x) => x.group <= g));
       return;
     }
-    const g = session.record.moves.length;
-    const lines = s.events.map((e) => eventText(s, redact(e, viewer))).filter((x): x is string => !!x);
-    if (lines.length) setLog((l) => [...l, ...lines.map((text) => ({ group: g, text, undone: false }))]);
+    const lines = s.events
+      .map((e) => ({ text: eventText(s, redact(e, viewer)), player: 'p' in e ? e.p : null }))
+      .filter((x): x is { text: string; player: number | null } => !!x.text);
+    if (lines.length) setLog((l) => [...l, ...lines.map((x) => ({ group: g, ...x }))]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s]);
 
@@ -268,17 +268,28 @@ function SettingsPanel({ session, settings, setSettings, close }: { session: Gam
   );
 }
 
-function LogPanel({ log, close }: { log: LogLine[]; close: () => void }) {
+function LogPanel({ s, log, close }: { s: GameState; log: LogLine[]; close: () => void }) {
+  // 表示するプレイヤー（null はすべて）。主体のない行（ラウンドの区切りなど）は絞り込み中も出す
+  const [who, setWho] = useState<number | null>(null);
+  const shown = who === null ? log : log.filter((l) => l.player === who || l.player === null);
   return (
     <aside className="logpanel" aria-label="ログ">
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div className="loghead">
         <b>ログ（新しい順）</b>
+        <select value={who ?? ''} onChange={(e) => setWho(e.target.value === '' ? null : Number(e.target.value))} aria-label="表示するプレイヤー">
+          <option value="">全員</option>
+          {s.players.map((p) => (
+            <option key={p.seat} value={p.seat}>
+              {p.name}
+            </option>
+          ))}
+        </select>
         <button className="btn" onClick={close}>
           閉じる
         </button>
       </div>
-      {[...log].reverse().map((l, i) => (
-        <div key={i} className={l.undone ? 'undone' : ''}>
+      {[...shown].reverse().map((l, i) => (
+        <div key={i} className="logline" style={l.player !== null ? { borderLeftColor: playerColor(l.player) } : undefined}>
           {l.text}
         </div>
       ))}
@@ -373,14 +384,14 @@ function NarrowLayout(props: LayoutProps) {
                 setTab('mine');
               }}
             />
-            <LogPanel log={props.log} close={() => setTab('mine')} />
+            <LogPanel s={s} log={props.log} close={() => setTab('mine')} />
           </div>
         )}
       </div>
-      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} pulse={pulse} />
+      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} />
       <CandidateWindow s={live} viewer={viewer} />
       <SetupWindow s={live} viewer={viewer} />
-      {panel === 'log' && <LogPanel log={props.log} close={() => setPanel(null)} />}
+      {panel === 'log' && <LogPanel s={s} log={props.log} close={() => setPanel(null)} />}
       {panel === 'settings' && <SettingsPanel session={session} settings={props.settings} setSettings={props.setSettings} close={() => setPanel(null)} />}
     </div>
   );
@@ -456,7 +467,7 @@ function WideLayout(props: LayoutProps) {
     <div className="game wide" style={style}>
       <TopBar s={s} viewer={viewer} onLog={() => setPanel(panel === 'log' ? null : 'log')} onPeople={() => setViewing(viewer)} onSettings={() => setPanel('settings')} onExit={props.onExit} />
       <Opponents s={s} viewer={viewer} viewing={viewing} setViewing={setViewing} />
-      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} pulse={pulse} onResize={() => undefined} />
+      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} onResize={() => undefined} />
       <div className="wide-body">
         <section className="wide-shared" aria-label="共有ボード">
           <div className="board wide-main">
@@ -531,7 +542,7 @@ function WideLayout(props: LayoutProps) {
       </div>
       <CandidateWindow s={live} viewer={viewer} />
       <SetupWindow s={live} viewer={viewer} />
-      {panel === 'log' && props.settings.log && <LogPanel log={props.log} close={() => setPanel(null)} />}
+      {panel === 'log' && props.settings.log && <LogPanel s={s} log={props.log} close={() => setPanel(null)} />}
       {panel === 'settings' && <SettingsPanel session={session} settings={props.settings} setSettings={props.setSettings} close={() => setPanel(null)} />}
     </div>
   );

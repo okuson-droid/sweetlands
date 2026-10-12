@@ -1847,3 +1847,29 @@ fieldset {
 .rab.gone .icons {
   opacity: 0.45;
 }
+
+/* 集計（置いた地形タイル・道駒・プレイしたカード） */
+.tally {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+  font-size: 11px;
+  margin: 2px 0 4px;
+}
+.tally .tgroup {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  background: var(--sugar);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.tally .titem {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.tally .titem.total {
+  color: var(--cocoa-soft);
+}

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { GameRecord } from '../game/history';
 import type { GameDoc, Room } from '../net/room';
 import { useOnlineGame } from '../net/useOnlineGame';
-import { NewGameForm, ResultScreen } from './App';
+import { NewGameForm, ReplayScreen, ResultScreen } from './App';
 import { Game } from './Game';
 import { playerColor } from './theme';
 
@@ -32,6 +32,8 @@ export function OnlineScreen({ room, onBack }: { room: Room; onBack: () => void 
   const [error, setError] = useState<string | null>(null);
   const [inGame, setInGame] = useState(true);
   const [result, setResult] = useState<GameRecord | null>(null);
+  // リザルトから開いたリプレイ（最初から／最終盤面から）
+  const [replayAt, setReplayAt] = useState<'start' | 'end' | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [myName, setMyName] = useState(loadName);
   useEffect(() => room.subscribe(setDoc, setError), [room]);
@@ -72,11 +74,12 @@ export function OnlineScreen({ room, onBack }: { room: Room; onBack: () => void 
   const leave = () => act(() => room.transact((d) => (d.status !== 'lobby' ? null : { ...d, seats: d.seats.map((x) => (x === uid ? null : x)), version: d.version + 1 })));
   const start = () => act(() => room.transact((d) => (d.status !== 'lobby' || d.creator !== uid || d.seats.some((x) => x === null) ? null : { ...d, status: 'playing', version: d.version + 1 })));
 
+  if (result && replayAt) return <ReplayScreen record={result} at={replayAt} onBack={() => setReplayAt(null)} />;
   if (result)
     return (
       <ResultScreen
         record={result}
-        onReplay={() => undefined}
+        onReplay={setReplayAt}
         onLobby={() => {
           setResult(null);
           setInGame(false);

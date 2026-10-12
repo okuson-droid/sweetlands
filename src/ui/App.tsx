@@ -20,7 +20,7 @@ import { OnlineScreen } from './Online';
 
 const SAVE_KEY = 'sweetlands.local.v1';
 
-type ScreenState = { k: 'online' } | { k: 'lobby' } | { k: 'game'; config: GameConfig; seed: number; moves: string[] } | { k: 'result'; record: GameRecord } | { k: 'replay'; record: GameRecord };
+type ScreenState = { k: 'online' } | { k: 'lobby' } | { k: 'game'; config: GameConfig; seed: number; moves: string[] } | { k: 'result'; record: GameRecord } | { k: 'replay'; record: GameRecord; at: 'start' | 'end' };
 
 function loadSaved(): GameRecord | null {
   try {
@@ -83,8 +83,9 @@ function Screen({ screen, setScreen, online }: { screen: ScreenState; setScreen:
   if (screen.k === 'lobby' || screen.k === 'online') return <Lobby start={(config, seed, moves = []) => setScreen({ k: 'game', config, seed, moves })} online={online} openOnline={() => setScreen({ k: 'online' })} />;
   if (screen.k === 'game')
     return <LocalGame key={screen.seed} config={screen.config} seed={screen.seed} moves={screen.moves} onExit={() => setScreen({ k: 'lobby' })} onFinished={(record) => setScreen({ k: 'result', record })} />;
-  if (screen.k === 'result') return <ResultScreen record={screen.record} onReplay={() => setScreen({ k: 'replay', record: screen.record })} onLobby={() => setScreen({ k: 'lobby' })} />;
-  return <ReplayScreen record={screen.record} onBack={() => setScreen({ k: 'result', record: screen.record })} />;
+  if (screen.k === 'result')
+    return <ResultScreen record={screen.record} onReplay={(at) => setScreen({ k: 'replay', record: screen.record, at })} onLobby={() => setScreen({ k: 'lobby' })} />;
+  return <ReplayScreen record={screen.record} at={screen.at} onBack={() => setScreen({ k: 'result', record: screen.record })} />;
 }
 
 function LocalGame({ config, seed, moves, onExit, onFinished }: { config: GameConfig; seed: number; moves: string[]; onExit: () => void; onFinished: (r: GameRecord) => void }) {
@@ -101,13 +102,14 @@ function LocalGame({ config, seed, moves, onExit, onFinished }: { config: GameCo
   return <Game session={session} hotseat onExit={onExit} onFinished={finished} />;
 }
 
-export function ResultScreen({ record, onReplay, onLobby }: { record: GameRecord; onReplay: () => void; onLobby: () => void }) {
+/** リザルト。onReplay の at は、リプレイを最初から見る（start）か、最終盤面から見る（end）か */
+export function ResultScreen({ record, onReplay, onLobby }: { record: GameRecord; onReplay: (at: 'start' | 'end') => void; onLobby: () => void }) {
   const s = useMemo(() => replay(record), [record]);
   return <Result s={s} onReplay={onReplay} onLobby={onLobby} onExport={() => downloadRecord(record)} />;
 }
 
-function ReplayScreen({ record, onBack }: { record: GameRecord; onBack: () => void }) {
-  const [n, setN] = useState(record.moves.length);
+export function ReplayScreen({ record, at, onBack }: { record: GameRecord; at: 'start' | 'end'; onBack: () => void }) {
+  const [n, setN] = useState(at === 'start' ? 0 : record.moves.length);
   const [seat, setSeat] = useState(0);
   const s = useMemo(() => replay(record, n), [record, n]);
   const empty = useMemo(() => buildAffordances({ ...s, pending: null }), [s]);

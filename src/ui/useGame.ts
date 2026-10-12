@@ -20,6 +20,8 @@ export interface GameSession {
   lastWasUndo: boolean;
   perform: (m: Move) => void;
   undo: () => void;
+  /** 取り消せる手をまとめて取り消す（手番の最初、またはその後のチェックポイントまで戻る） */
+  undoAll: () => void;
   auto: AutoSettings;
   setAuto: (a: AutoSettings) => void;
 }
@@ -106,6 +108,14 @@ export function useGame(config: GameConfig, seed: number, initialMoves: string[]
     });
   }, []);
 
+  const undoAll = useCallback(() => {
+    prefill.current = null;
+    setInner((cur) => {
+      if (cur.moves.length <= cur.cpIndex) return cur;
+      return { ...cur, state: cur.cpState, prev: null, moves: cur.moves.slice(0, cur.cpIndex), lastWasUndo: true };
+    });
+  }, []);
+
   // 先回りの回答と自動化（合法手から機械的に選ぶだけ。ルールは変えない）
   useEffect(() => {
     const s = inner.state;
@@ -136,6 +146,7 @@ export function useGame(config: GameConfig, seed: number, initialMoves: string[]
     lastWasUndo: inner.lastWasUndo,
     perform,
     undo,
+    undoAll,
     auto,
     setAuto,
   };

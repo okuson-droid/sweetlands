@@ -4,7 +4,7 @@ import { finalScores } from '../../game/scoring';
 import type { GameState } from '../../game/types';
 import { cssMs, playerColor, prefersReducedMotion } from '../theme';
 
-export function Result({ s, onReplay, onLobby }: { s: GameState; onReplay: (at: 'start' | 'end') => void; onLobby: () => void }) {
+export function Result({ s, onReplay, onLobby, onExport }: { s: GameState; onReplay: (at: 'start' | 'end') => void; onLobby: () => void; onExport?: () => void }) {
   const rows = useMemo(() => finalScores(s), [s]);
   const items = rows[0].items.length;
   const [shown, setShown] = useState(prefersReducedMotion() ? items : 0);
@@ -59,6 +59,11 @@ export function Result({ s, onReplay, onLobby }: { s: GameState; onReplay: (at: 
         <button className="btn" onClick={() => onReplay('start')}>
           リプレイを見る
         </button>
+        {onExport && (
+          <button className="btn" onClick={onExport}>
+            記録を書き出す
+          </button>
+        )}
         <button className="btn primary" onClick={onLobby}>
           ロビーに戻る
         </button>

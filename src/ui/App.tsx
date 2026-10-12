@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { replay, type GameRecord } from '../game/history';
 import type { GameConfig } from '../game/types';
 import { Game } from './Game';
+import { downloadRecord } from './recordFile';
 import { Result } from './components/Result';
 import { useGame } from './useGame';
 import { InteractionProvider } from './interaction';
@@ -104,7 +105,7 @@ function LocalGame({ config, seed, moves, onExit, onFinished }: { config: GameCo
 /** リザルト。onReplay の at は、リプレイを最初から見る（start）か、最終盤面から見る（end）か */
 export function ResultScreen({ record, onReplay, onLobby }: { record: GameRecord; onReplay: (at: 'start' | 'end') => void; onLobby: () => void }) {
   const s = useMemo(() => replay(record), [record]);
-  return <Result s={s} onReplay={onReplay} onLobby={onLobby} />;
+  return <Result s={s} onReplay={onReplay} onLobby={onLobby} onExport={() => downloadRecord(record)} />;
 }
 
 export function ReplayScreen({ record, at, onBack }: { record: GameRecord; at: 'start' | 'end'; onBack: () => void }) {

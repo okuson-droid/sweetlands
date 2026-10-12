@@ -21,6 +21,7 @@ export function bandText(s: GameState, viewer: number, copying: boolean): { src:
   const src = pd.resume.src ?? null;
   const mine = pd.player === viewer;
   if (!mine) {
+    if (pd.waiting) return { src: 'ドラフト', say: `${pd.waiting.map((x) => s.players[x].name).join('さん・')}さんが選んでいます（全員同時）`, mine };
     if (pd.step === 'turn') return { src: null, say: `${who}さんの手番です`, mine };
     return { src: null, say: `${who}さんの入力待ち${src ? `（${src}の効果）` : ''}`, mine };
   }
@@ -32,6 +33,7 @@ export function bandText(s: GameState, viewer: number, copying: boolean): { src:
   if (pd.step === 'setupChar') return { src: '準備', say: 'キャラクターを選んでください', mine };
   if (pd.step === 'setupMap') return { src: '準備', say: '地図ボードと面を選んでください', mine };
   if (pd.step === 'setupPick') return { src: '準備のドラフト', say: 'キャラクター・地図ボード・ラウンド支援駒のうち、まだ選んでいないものから1つを選んでください', mine };
+  if (pd.step === 'draftPick') return { src: 'ドラフト', say: '手札に加えるカードを1枚選んでください（全員同時に選びます）', mine };
   if (pd.step === 'support') return { src: '準備', say: 'ラウンド支援駒を置くスペースへ駒を動かしてください', mine };
   if (pd.step === 'passMove') return { src: 'パス', say: '次のラウンドの支援スペースへ駒を動かしてください', mine };
   if (pd.step === 'keep') return { src: 'クリーンナップ', say: '次のラウンドに残す手札を1枚、持ち越し枠へ動かしてください', mine };

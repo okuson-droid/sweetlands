@@ -101,12 +101,13 @@ export function finalScores(s: GameState): ScoreBreakdown[] {
     PROS_TRACKS.forEach((tr, i) => items.push({ label: `繁栄（${tr.label}）`, vp: prosVp(p, i) }));
     items.push({ label: '都市点×2', vp: p.score.cp * 2 });
     const rabbits = Object.values(p.hexes).filter((h) => h.rabbit).length;
-    if (p.taken.tent >= 5) items.push({ label: 'テント駒5個：クッキーラビット駒×2', vp: rabbits * 2 });
-    if (p.taken.house >= 5) items.push({ label: '家駒5個：都市点×1', vp: p.score.cp });
-    if (p.taken.bldg >= 5) items.push({ label: 'ビル駒5個：工業点×1', vp: p.score.ip });
+    // 表は行ごとに全員の値を並べるため、条件を満たさない人の行も 0 点として必ず入れ、行の並びと見出しを全員でそろえる
+    items.push({ label: 'テント駒5個：クッキーラビット駒×2', vp: p.taken.tent >= 5 ? rabbits * 2 : 0 });
+    items.push({ label: '家駒5個：都市点×1', vp: p.taken.house >= 5 ? p.score.cp : 0 });
+    items.push({ label: 'ビル駒5個：工業点×1', vp: p.taken.bldg >= 5 ? p.score.ip : 0 });
     items.push({ label: 'ゴールド5につき1', vp: Math.floor(p.res.gold / 5) });
     items.push({ label: 'ダイヤ', vp: p.diamond });
-    items.push({ label: `接続している港（${connectedPorts(p)}）`, vp: PORT_VP[connectedPorts(p)] });
+    items.push({ label: '接続している港', vp: PORT_VP[connectedPorts(p)] });
     items.push({ label: 'マイルストーン', vp: 10 * s.milestones.filter((m) => m.takenBy === p.seat).length });
     return { seat: p.seat, name: p.name, items, total: 0, rabbits, rank: 0 };
   });

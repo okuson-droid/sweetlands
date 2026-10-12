@@ -312,6 +312,61 @@ function AdvSkill({ id }: { id: number }) {
   );
 }
 
+const SKILL_KIND = { instant: '即時', pass: 'パス時', flip: 'フリップ', perm: '永続' } as const;
+
+/** 準備の小窓で見せる、この卓のマイルストーン・最終得点計算・上級スキルタイル（文で読める形。操作の対象にはしない） */
+export function PublicTiles({ s }: { s: GameState }) {
+  return (
+    <div className="publictiles">
+      <section>
+        <h3>マイルストーン（先に達成した人が10勝利点）</h3>
+        <ul>
+          {s.milestones.map((m) => {
+            const key = `${m.id}${m.side}`;
+            return (
+              <li key={key}>
+                <Icons toks={milestoneToks(key)} size={14} />
+                <span>{MILESTONE_LABEL[key]}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+      <section>
+        <h3>最終得点計算（1位15勝利点・2位7勝利点）</h3>
+        <ul>
+          {s.finalTiles.map((id) => {
+            const f = FINAL_TILES.find((x) => x.id === id)!;
+            return (
+              <li key={id}>
+                <Icons toks={finalToks(id)} size={14} />
+                <span>
+                  {f.label}（仮想プレイヤー {f.neutral}）
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+      {s.advSkills.length > 0 && (
+        <section>
+          <h3>上級スキルタイル</h3>
+          <ul>
+            {s.advSkills.map((id) => (
+              <li key={id}>
+                <Icons toks={skillToks(id, true)} size={14} />
+                <span>
+                  {SKILL_KIND[ADV_SKILLS[id - 1].kind]}：{ADV_SKILLS[id - 1].label}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+}
+
 /** ラウンド支援ボード（横長レイアウトでは Fold の中に入れる） */
 export function SupportBoard({ s }: { s: GameState }) {
   return (

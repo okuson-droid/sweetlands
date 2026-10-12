@@ -5,25 +5,40 @@ import { CARDS } from '../../game/cards';
 import type { GameState } from '../../game/types';
 import { useInteraction, useTarget } from '../interaction';
 import { SourceCard } from './Card';
-import { SupportBoard } from './MainBoard';
+import { PublicTiles, SupportBoard } from './MainBoard';
+import { MapBoard } from './MapBoard';
 import { PersonalBoard } from './PersonalBoard';
-import { characterPreview } from '../../game/engine';
+import { characterPreview, mapPreview } from '../../game/engine';
 import { playerColor } from '../theme';
 
 export function CandidateWindow({ s, viewer }: { s: GameState; viewer: number }) {
   const pd = s.pending;
-  if (!pd || pd.player !== viewer || (pd.step !== 'search' && pd.step !== 'draftPick')) return null;
-  const from = pd.step === 'search' ? 'search' : 'draft';
+  if (!pd || (pd.step !== 'search' && pd.step !== 'draftPick')) return null;
+  const mine = pd.player === viewer;
+  const draft = pd.step === 'draftPick';
+  if (!mine && !draft) return null;
+  // ドラフトで取ったカードはドラフトの終わりまで手札に入らないため、ここに出す（他人の分は出さない）
+  const picked = draft ? s.draftPicked[viewer] ?? [] : [];
   return (
     <div className="window" role="dialog" aria-label="候補のカード">
-      <h2>{pd.step === 'search' ? '市民デッキから手札に加えるカード' : 'ドラフト：手札に加えるカード'}</h2>
-      <p className="hint">カードを手札へ動かすか、クリックしてください。</p>
-      <div className="cards">
-        {pd.options.map((o) => {
-          const id = String(o.data!.card);
-          return <SourceCard key={id} src={`${from}:${id}`} id={id} why={{ k: 'other' }} />;
-        })}
-      </div>
+      <h2>{!draft ? '市民デッキから手札に加えるカード' : mine ? 'ドラフト：手札に加えるカード' : 'ドラフト：ほかの人が選び終わるのを待っています'}</h2>
+      {mine && <p className="hint">カードを手札へ動かすか、クリックしてください。{draft && '全員が同時に選び、全員が選び終えると残りの束を左隣へ渡します。'}</p>}
+      {mine && (
+        <div className="cards">
+          {pd.options.map((o) => {
+            const id = String(o.data!.card);
+            return <SourceCard key={id} src={`${draft ? 'draft' : 'search'}:${id}`} id={id} why={{ k: 'other' }} />;
+          })}
+        </div>
+      )}
+      {draft && (
+        <>
+          <h3 className="picked-head">取ったカード（{picked.length}枚。ドラフトの終わりに手札に入る）</h3>
+          <div className="cards picked">
+            {picked.length === 0 ? <p className="hint">まだありません</p> : picked.map((id) => <SourceCard key={id} src={`picked:${id}`} id={id} why={{ k: 'other' }} />)}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -106,6 +121,43 @@ function MapChoice({ id, label }: { id: string; label: string }) {
   );
 }
 
+const NO_FLASH = new Set<string>();
+
+/** 地図ボードの選択肢を面ごとにまとめ、各面の地図を見せながら選ぶ（A面は5枚とも同じ地図なので1つにまとめる） */
+function MapGrid({ s, seat, options }: { s: GameState; seat: number; options: { id: string; label: string }[] }) {
+  const maps = options.filter((o) => o.id.startsWith('map:'));
+  const faces = [...new Set(maps.map((o) => (o.id.startsWith('map:A@') ? 'A' : o.id.slice(4))))].sort();
+  return (
+    <div className="mapgrid">
+      {faces.map((face) => (
+        <div key={face} className="mapface">
+          <h3>{face === 'A' ? 'A面（5枚とも同じ）' : `${face}面`}</h3>
+          <div className="mappreview">
+            <MapBoard p={mapPreview(s, seat, face)} color={playerColor(seat)} flashKeys={NO_FLASH} />
+          </div>
+          <div className="mapface-actions">
+            {maps
+              .filter((o) => (face === 'A' ? o.id.startsWith('map:A@') : o.id === `map:${face}`))
+              .map((o) => (
+                <MapChoice key={o.id} id={o.id.slice(4)} label={o.label} />
+              ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** 準備の小窓の上部：この卓のタイル（マイルストーン・最終得点計算・上級スキル）を開いて確認できる */
+function TableTiles({ s }: { s: GameState }) {
+  return (
+    <details className="tabletiles">
+      <summary>この卓のマイルストーン・最終得点計算{s.advSkills.length > 0 && '・上級スキルタイル'}を見る</summary>
+      <PublicTiles s={s} />
+    </details>
+  );
+}
+
 type PickKind = 'char' | 'map' | 'support';
 const PICK_LABEL: Record<PickKind, string> = { char: 'キャラクター', map: '地図ボード', support: 'ラウンド支援駒' };
 
@@ -141,6 +193,7 @@ function DraftWindow({ s, viewer }: { s: GameState; viewer: number }) {
     <div className="modal-back setup">
       <div className="modal wide draft" role="dialog" aria-label="準備のドラフト">
         <h2>{mine ? '準備のドラフト：まだ選んでいないものから1つを選んでください' : `${s.players[pd.player].name}さんが選んでいます`}</h2>
+        <TableTiles s={s} />
         <ol className="draft-order" aria-label="ピックの順番">
           {order.map((seat, i) => (
             <li key={i} className={i < done ? 'done' : i === done ? 'now' : ''} style={{ ['--pc' as string]: playerColor(seat) }} title={s.players[seat].name}>
@@ -174,15 +227,7 @@ function DraftWindow({ s, viewer }: { s: GameState; viewer: number }) {
         </div>
         <div className="draft-body">
           {shown === 'char' && <CharGrid s={s} seat={pd.player} open={openChars} />}
-          {shown === 'map' && (
-            <div className="modal-actions" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
-              {pd.options
-                .filter((o) => o.id.startsWith('map:'))
-                .map((o) => (
-                  <MapChoice key={o.id} id={o.id.slice(4)} label={o.label} />
-                ))}
-            </div>
-          )}
+          {shown === 'map' && <MapGrid s={s} seat={pd.player} options={pd.options} />}
           {shown === 'support' && <SupportBoard s={s} />}
         </div>
       </div>
@@ -202,6 +247,7 @@ export function SetupWindow({ s, viewer }: { s: GameState; viewer: number }) {
       <div className="modal-back setup">
         <div className="modal wide" role="dialog" aria-label="キャラクターの選択">
           <h2>{mine ? 'キャラクターを選んでください' : `${s.players[pd.player].name}さんがキャラクターを選んでいます`}</h2>
+          <TableTiles s={s} />
           <CharGrid s={s} seat={pd.player} open={open} />
         </div>
       </div>
@@ -209,14 +255,11 @@ export function SetupWindow({ s, viewer }: { s: GameState; viewer: number }) {
   }
   return (
     <div className="modal-back setup">
-      <div className="modal" role="dialog" aria-label="地図ボードの選択">
+      <div className="modal wide" role="dialog" aria-label="地図ボードの選択">
         <h2>{mine ? '地図ボードと面を選んでください' : `${s.players[pd.player].name}さんが地図ボードを選んでいます`}</h2>
         <p>地図ボードは5枚で、表はどれも同じA面、裏はボードごとに違うB面です。A面を選ぶときも、どのボードを使うかを選びます（そのボードのB面はほかの人が選べなくなります）。最初のゲームでは、全員がA面を使うのがおすすめです。</p>
-        <div className="modal-actions" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
-          {c.state.pending!.options.map((o) => (
-            <MapChoice key={o.id} id={o.id.slice(4)} label={o.label} />
-          ))}
-        </div>
+        <TableTiles s={s} />
+        <MapGrid s={s} seat={pd.player} options={c.state.pending!.options} />
       </div>
     </div>
   );

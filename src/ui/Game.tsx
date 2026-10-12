@@ -1,5 +1,6 @@
 // 対局画面（ui_design §4, §7, §10, §12）
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { viewFor } from '../game/engine';
 import type { GameState } from '../game/types';
 import { NARROW_WIDTH, NOTICE_MS } from './constants';
 import { buildAffordances } from './gestures';
@@ -52,9 +53,11 @@ function useNarrow(): boolean {
 }
 
 export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { session: GameSession; hotseat: boolean; fixedViewer?: number; onExit: () => void; onFinished: () => void }) {
-  const s = session.state;
+  const raw = session.state;
   const [lastViewer, setLastViewer] = useState(0);
-  const viewer = hotseat ? s.pending?.player ?? lastViewer : fixedViewer ?? 0;
+  const viewer = hotseat ? raw.pending?.player ?? lastViewer : fixedViewer ?? 0;
+  // 同時に選べる選択待ち（手札のドラフト）は、見ている席の分だけに絞る
+  const s = useMemo(() => viewFor(raw, viewer), [raw, viewer]);
   useEffect(() => {
     if (s.pending) setLastViewer(s.pending.player);
   }, [s.pending]);
@@ -139,7 +142,9 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
       otherHands: s.players.filter((p) => p.seat !== viewer).flatMap((p) => p.hand),
       sources: active ? [...aff.clicks.keys(), ...aff.drags.keys()] : [],
       // 盤面の指紋（オンライン対戦の検査で、全員の画面が同じ盤面かを比べる。公開情報だけ）
-      digest: JSON.stringify([s.round, s.phase, s.pending?.player ?? null, s.players.map((p) => [p.score, p.res, p.income, p.hand.length, Object.values(p.hexes).filter((h) => h.tile).length])]),
+      // 選択待ちの席は、席ごとに絞る前の局面で比べる（手札のドラフトでは同時に選べる席ごとに見え方が違う）
+      waiting: raw.pending?.waiting ?? null,
+      digest: JSON.stringify([s.round, s.phase, raw.pending?.player ?? null, s.players.map((p) => [p.score, p.res, p.income, p.hand.length, Object.values(p.hexes).filter((h) => h.tile).length])]),
     };
   });
 
@@ -414,7 +419,9 @@ function WideLayout(props: LayoutProps) {
   const supportWanted = keys.some((k) => k.startsWith('support:') || k === 'marker:support');
   // プレイしたカードの展開：カードの置き先になったとき、またはプレイしたカードを動かす場面（オートメーション化）で自動で開く
   // プレイしたカードの一覧：オートメーション化（プレイしたカードを動かす場面）で自動で開く。カードをプレイするときは帯そのものが置き先になる
-  const tableauWanted = sources.some((k) => k.startsWith('tableau:'));
+  // ただし一覧は個人ボードの産業列（オートメーション化の置き先）にかぶさるため、置き先の列をクリックで選べる場面では自動で開かない
+  const tableauUsable = sources.some((k) => k.startsWith('tableau:'));
+  const tableauWanted = tableauUsable && !sources.some((k) => k.startsWith('row:'));
   // フリーアクションは手番中ほぼ常に使えるので、自動で開くのはディスクの置き先になったときだけ
   const freeUsable = sources.some((k) => k.startsWith('free:'));
   const freeWanted = dests.some((k) => k.startsWith('free:'));
@@ -493,7 +500,7 @@ function WideLayout(props: LayoutProps) {
               <MagButton onClick={() => setEnlarged('char')} />
               <PersonalBoard s={s} p={p} withTableau={false} />
             </div>
-            <TableauBar p={p} openForce={tableauWanted} />
+            <TableauBar p={p} openForce={tableauWanted} hint={tableauUsable && !tableauWanted} />
           </div>
           <div className="board wide-industry">
             <MagButton onClick={() => setEnlarged('industry')} />

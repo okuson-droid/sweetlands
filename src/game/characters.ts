@@ -6,7 +6,7 @@ import type { BuildingType, Res, Row, Tag, Terrain } from './types';
 /** 時計塔駒の配置条件。groups の各要素はすべて満たす必要があり、alt はそのどれか1つを満たせばよい（「A／B」＝AまたはB、ユーザー確認済み） */
 export type ClockReq =
   | { k: 'terrain'; kind: Terrain | 'any'; n: number }
-  | { k: 'bld'; type: BuildingType; n: number }
+  | { k: 'bld'; type?: BuildingType; n: number } // type なし＝任意の建物駒
   | { k: 'played'; row: Row | 'all' | 'any'; n: number }
   | { k: 'food'; n: number }
   | { k: 'ipPassed'; n: number }
@@ -29,24 +29,26 @@ const F = (n: number): ClockReq => ({ k: 'terrain', kind: 'F', n });
 const M = (n: number): ClockReq => ({ k: 'terrain', kind: 'M', n });
 const ANY = (n: number): ClockReq => ({ k: 'terrain', kind: 'any', n });
 const B = (type: BuildingType, n: number): ClockReq => ({ k: 'bld', type, n });
+/** 任意の建物駒（種類を問わない。ユーザー確認済み 2026-10-12：以前は家駒に限っていた） */
+const ANYB = (n: number): ClockReq => ({ k: 'bld', n });
 const P = (row: Row | 'all' | 'any', n: number): ClockReq => ({ k: 'played', row, n });
 const WONDER: ClockReq[] = [{ k: 'wonder' }];
 
 const CLOCK: Record<string, ClockReq[][]> = {
-  'アリス・ティーローズ': [[F(5)], [B('house', 4)], [P('for', 2), P('any', 4)], WONDER],
-  'ロータス・チェー': [[F(5)], [B('house', 4)], [P('for', 2), P('any', 4)], WONDER],
+  'アリス・ティーローズ': [[F(5)], [ANYB(4)], [P('for', 2), P('any', 4)], WONDER],
+  'ロータス・チェー': [[F(5)], [ANYB(4)], [P('for', 2), P('any', 4)], WONDER],
   'エリ・マカロン': [[W(6)], [B('tent', 2)], [P('agr', 2), P('any', 4)], WONDER],
-  'エルサ・スカイル': [[ANY(9)], [B('house', 4)], [P('any', 5)], WONDER],
+  'エルサ・スカイル': [[ANY(9)], [ANYB(4)], [P('any', 5)], WONDER],
   'ナタ・パステル': [[M(4)], [B('lab', 2)], [P('min', 2), P('any', 4)], WONDER],
   'ビスキュイ・バステト': [[M(4)], [B('bldg', 2)], [P('min', 2), P('any', 4)], WONDER],
   'グレーテル・シュトーレン': [[W(6)], [B('tent', 3)], [P('agr', 2), P('any', 4)], WONDER],
-  'サクラ・モチ': [[ANY(8)], [B('house', 4)], [P('any', 4)], WONDER],
+  'サクラ・モチ': [[ANY(8)], [ANYB(4)], [P('any', 4)], WONDER],
   'ソルビー・ショコラ': [[W(7)], [B('tent', 2)], [P('agr', 2), P('any', 4)], WONDER],
   'リッカ・ベリー': [[W(6)], [B('tent', 2)], [P('agr', 2), P('any', 4)], WONDER],
-  'カルメン・メロ': [[ANY(8)], [B('house', 4)], [P('all', 2), P('any', 4)], WONDER],
-  'セナ・デライト': [[ANY(8)], [B('house', 4)], [P('any', 4)], WONDER],
-  'コーラル・ライラ': [[{ k: 'food', n: 4 }], [B('house', 4)], [{ k: 'ipPassed', n: 1 }], WONDER],
-  'ジャスミン・メイ': [[{ k: 'food', n: 3 }], [B('house', 3)], [{ k: 'ipPassed', n: 1 }, P('any', 4)], WONDER],
+  'カルメン・メロ': [[ANY(8)], [ANYB(4)], [P('all', 2), P('any', 4)], WONDER],
+  'セナ・デライト': [[ANY(8)], [ANYB(4)], [P('any', 4)], WONDER],
+  'コーラル・ライラ': [[{ k: 'food', n: 4 }], [ANYB(4)], [{ k: 'ipPassed', n: 1 }], WONDER],
+  'ジャスミン・メイ': [[{ k: 'food', n: 3 }], [ANYB(3)], [{ k: 'ipPassed', n: 1 }, P('any', 4)], WONDER],
 };
 
 const TEXT: Record<string, [string, string]> = {

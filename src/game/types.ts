@@ -104,6 +104,9 @@ export interface Pending {
   options: Option[];
   resume: Task; // 回答を受けて続きを解決するタスク
   step: string; // タスク内のどの段階の選択か
+  /** 同時に選べる席（手札のドラフトのみ）。このとき options は全員分の和で、各選択肢の data.player が選ぶ席を表す。
+   *  player は waiting の先頭（ホットシートではこの順に回答する） */
+  waiting?: number[];
 }
 
 // ---- タスク（効果の解決単位） ----

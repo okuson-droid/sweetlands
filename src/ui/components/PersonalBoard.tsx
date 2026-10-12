@@ -270,7 +270,7 @@ export function TableauCards({ p }: { p: PlayerState }) {
 /** 横長レイアウト：キャラボードの下の「プレイしたカード」の帯（ui_design §21）。
  *  カードを持ち上げているあいだは帯そのものが置き先になり、置くとプレイする。それ以外のときはクリックで一覧を開く。
  *  プレイしたカードをオートメーション化する場面（tableau:ID を動かす）では、一覧を自動で開く */
-export function TableauBar({ p, openForce }: { p: PlayerState; openForce: boolean }) {
+export function TableauBar({ p, openForce, hint = false }: { p: PlayerState; openForce: boolean; hint?: boolean }) {
   const target = useTarget('tableau', { k: 'other' });
   if (target.lit)
     return (
@@ -284,7 +284,7 @@ export function TableauBar({ p, openForce }: { p: PlayerState; openForce: boolea
     <div className="tableau-bar">
       <Fold name="tableau" label={<>
           <Glyph g={{ k: 'played' }} size={16} /> プレイしたカード
-        </>} summary={`${p.played.length}枚`} force={openForce} wide={430} side="up" align="right">
+        </>} summary={`${p.played.length}枚`} force={openForce} hint={hint} wide={430} side="up" align="right">
         <h3>{p.name}さんがプレイしたカード</h3>
         <TableauCards p={p} />
       </Fold>

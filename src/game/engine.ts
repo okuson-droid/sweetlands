@@ -192,6 +192,15 @@ export function getOptions(s: GameState): Option[] {
   return s.pending ? s.pending.options : [];
 }
 
+/** seat の席から見た局面：同時に選べる選択待ち（pending.waiting）のうち、その席が答える分だけに絞る。
+ *  その席が答えなくてよいときは、先頭の人の選択待ちのまま返す。画面とオンラインの操作権の判定に使う */
+export function viewFor(s: GameState, seat: number): GameState {
+  const pd = s.pending;
+  if (!pd?.waiting) return s;
+  const who = pd.waiting.includes(seat) ? seat : pd.player;
+  return { ...s, pending: { ...pd, player: who, options: pd.options.filter((o) => o.data?.player === who) } };
+}
+
 export function applyMove(state: GameState, optionId: string): GameState {
   const s: GameState = structuredClone(state);
   const pd = s.pending;
@@ -283,6 +292,14 @@ export function characterPreview(s: GameState, seat: number, name: string): Play
   p.res = { ...c.startRes };
   p.diamond = c.startDiamond;
   p.income = { ...c.startIncome };
+  return p;
+}
+
+/** 地図ボードを選ぶ前に、その面の地図を確認するための仮のプレイヤー（状態は変えない） */
+export function mapPreview(s: GameState, seat: number, face: string): PlayerState {
+  const p = newPlayer(seat, s.players[seat].name);
+  p.mapId = face;
+  p.hexes = initialHexes(face);
   return p;
 }
 
@@ -1459,9 +1476,12 @@ function execSpecial(s: GameState, t: Task, id: string): void {
       s.draftPicked = s.players.map(() => []);
       return;
     case 'draftPick': {
-      const pack = s.draftPacks[t.player];
-      if (pack.length === 0) return;
-      ask(s, t, 'draftPick', `${p.name}：手札に加えるカードを1枚選んでください`, pack.map((id) => ({ id: `card:${id}`, label: CARDS[id].nameJa, data: { card: id } })), 'card');
+      // 全員が同時に1枚ずつ選ぶ（§10.2）。カード ID は束をまたいで重複しないため、選択肢 ID だけで選んだ席が決まる
+      const done = (t.ctx?.done as number[] | undefined) ?? [];
+      const waiting = s.turnOrder.filter((pl) => !done.includes(pl) && s.draftPacks[pl].length > 0);
+      if (waiting.length === 0) return;
+      const options = waiting.flatMap((pl) => s.draftPacks[pl].map((id) => ({ id: `card:${id}`, label: CARDS[id].nameJa, data: { card: id, player: pl } })));
+      s.pending = { player: waiting[0], kind: 'card', prompt: '手札に加えるカードを1枚選んでください', options, resume: t, step: 'draftPick', waiting };
       return;
     }
     case 'draftPass': {
@@ -1599,9 +1619,12 @@ function resumeSpecial(s: GameState, t: Task, step: string, opt: Option): void {
     }
     case 'draftPick': {
       const id = String(opt.data!.card);
-      s.draftPacks[t.player] = s.draftPacks[t.player].filter((x) => x !== id);
-      s.draftPicked[t.player].push(id);
-      emit(s, { t: 'card', p: t.player, card: id, reason: 'draft' });
+      const pl = Number(opt.data!.player);
+      s.draftPacks[pl] = s.draftPacks[pl].filter((x) => x !== id);
+      s.draftPicked[pl].push(id);
+      emit(s, { t: 'card', p: pl, card: id, reason: 'draft' });
+      // まだ選んでいない人がいれば、同じ巡の選択待ちを続ける
+      front(s, [{ ...t, ctx: { done: [...((t.ctx?.done as number[] | undefined) ?? []), pl] } }]);
       return;
     }
     case 'keep': {
@@ -1659,7 +1682,7 @@ function queueIncome(s: GameState): void {
     // 手札のドラフト（§10.2）：6枚引き、1枚取って左隣へ渡すのを繰り返す
     s.queue.push(sp(s.startPlayer, 'draftDeal'));
     for (let k = 0; k < 6; k++) {
-      for (const pl of s.turnOrder) s.queue.push(sp(pl, 'draftPick'));
+      s.queue.push(sp(s.startPlayer, 'draftPick'));
       s.queue.push(sp(s.startPlayer, 'draftPass'));
     }
     s.queue.push(sp(s.startPlayer, 'draftEnd'));

@@ -1770,3 +1770,77 @@ fieldset {
   align-items: center;
   gap: 6px;
 }
+
+/* 準備の小窓：この卓のタイルと地図ボードの確認 */
+.tabletiles {
+  margin: 0 0 10px;
+  background: var(--biscuit);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+.tabletiles summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.publictiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px 16px;
+  margin-top: 6px;
+}
+.publictiles h3 {
+  font-size: 13px;
+  margin: 0 0 4px;
+}
+.publictiles ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.publictiles li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.mapgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+}
+.mapface {
+  background: var(--biscuit);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mapface h3 {
+  font-size: 14px;
+  margin: 0;
+}
+.mappreview {
+  height: 220px;
+  background: var(--sugar);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.mapface-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.window .picked-head {
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+.window .cards.picked {
+  max-height: 24vh;
+}
+.mappreview .mapstats {
+  display: none;
+}

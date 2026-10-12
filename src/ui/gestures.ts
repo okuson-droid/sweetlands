@@ -87,6 +87,8 @@ function place(s: GameState, a: Affordances, t: Target, opt: Option, step: strin
       return true;
     case 'cardToRow':
       addDrag(a, t.from === 'hand' ? `card:${t.card}` : `tableau:${t.card}`, `row:${t.row}`, one());
+      // プレイしたばかりのカード（オートメーション化の申し出）は1枚だけなので、置き先の列をクリックしても選べる
+      if (t.from === 'tableau') a.clicks.set(`row:${t.row}`, one());
       return true;
     case 'cardToHand': {
       const src = `${t.from}:${t.card}`;

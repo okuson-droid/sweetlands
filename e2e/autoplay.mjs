@@ -96,7 +96,7 @@ while (steps < Number(maxArg)) {
       const keys = window.__sl.sources;
       const shown = (k) => [...document.querySelectorAll(`[data-src="${k}"],[data-dest="${k}"]`)].some((e) => e.getClientRects().length > 0);
       // 畳んだ中にある手は、それを収めた展開ボタンに●印が出ていればよい
-      const home = (k) => (k.startsWith('free:') ? 'free' : k.startsWith('skillpile:') || k.startsWith('advskill:') ? 'skills' : null);
+      const home = (k) => (k.startsWith('free:') ? 'free' : k.startsWith('skillpile:') || k.startsWith('advskill:') ? 'skills' : k.startsWith('tableau:') ? 'tableau' : null);
       // 準備のドラフト（rules v1.1 §10.5）：別のタブにある手は、そのタブが押せればよい
       const tabOf = (k) => (k.startsWith('setupChar:') ? 'char' : k.startsWith('setupMap:') ? 'map' : k.startsWith('support:') ? 'support' : null);
       const onTab = (k) => tabOf(k) !== null && document.querySelector(`.draft-tabs [data-kind="${tabOf(k)}"]:not([disabled])`) !== null;

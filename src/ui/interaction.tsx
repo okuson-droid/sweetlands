@@ -220,9 +220,11 @@ function zoomPos(z: Zoom): React.CSSProperties {
 
 /** ポインタ位置の置き先。道駒の受け皿は近くにあれば吸い付く */
 function findDest(x: number, y: number, src: string, aff: Affordances): string | null {
-  const el = document.elementFromPoint(x, y)?.closest('[data-dest]');
-  const direct = el?.getAttribute('data-dest') ?? null;
-  if (direct && destsOf(aff, src).has(direct)) return direct;
+  // 重なった要素を上から順に見て、置ける置き先を探す（展開した一覧などが置き先の上にかぶさっていても落とせるように）
+  const under = document.elementsFromPoint(x, y).map((e) => e.closest('[data-dest]')?.getAttribute('data-dest') ?? null);
+  const legal = under.find((k) => k && destsOf(aff, src).has(k));
+  if (legal) return legal;
+  const direct = under[0] ?? null; // 置けない場所なら、いちばん上の要素を返す（呼び出し側が理由の説明に使う）
   if (src === 'road') {
     let best: string | null = null;
     let bd = SNAP_PX;

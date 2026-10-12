@@ -1,12 +1,14 @@
 // オンライン対戦の受け入れ検査：プレイヤーごとに別のページ（別の利用者 ID）を開き、
 // 代わりの共有データベース（?fakedb=1、同じブラウザの localStorage）越しに、盤面の所作だけで1局を打ち切る。
 // 確かめること：全員の画面の盤面が一致する／自分の番でない人は操作できない／他人の手札の中身が DOM に出ない／エラーがない。
-// 使い方: node e2e/online.mjs <players> <seed> [maxSteps]
+// 使い方: node e2e/online.mjs <players> <seed> [maxSteps] [variants]
+//   variants はロビーで入れるヴァリアントのチェックの文言をカンマ区切りで（例：手札のドラフト）。
+//   手札のドラフトでは全員が同時に選ぶため、操作できる人が複数いてよく、そのうちの1人をランダムに動かす。
 import { chromium } from '@playwright/test';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
-const [, , playersArg = '3', seedArg = '1', maxArg = '4000'] = process.argv;
+const [, , playersArg = '3', seedArg = '1', maxArg = '4000', variantsArg = ''] = process.argv;
 const n = Number(playersArg);
 const base = `${pathToFileURL(path.resolve('dist/index.html'))}?noanim=1&fakedb=1`;
 let rng = Number(seedArg) * 2654435761 >>> 0;
@@ -30,6 +32,7 @@ await host.evaluate(() => localStorage.removeItem('sweetlands.fakedb.games/curre
 // ---- ロビー：作る → 席に座る → 開始 ----
 for (const p of pages) await p.click('text=オンライン対戦へ');
 await host.selectOption('.lobby-card select', String(n));
+for (const v of variantsArg.split(',').filter(Boolean)) await host.click(`label:has-text("${v}") input[type=checkbox]`);
 await host.click('button:has-text("ゲームを作る")');
 for (const p of others) {
   await p.waitForSelector('button:has-text("この席に座る")');
@@ -54,6 +57,7 @@ const mismatches = [];
 const leaks = [];
 const wrongActive = [];
 let steps = 0;
+let concurrentSteps = 0;
 let stuck = 0;
 let last = -1;
 while (steps < Number(maxArg)) {
@@ -69,7 +73,9 @@ while (steps < Number(maxArg)) {
   }
   // いま操作できる人（自分の選択待ちで、使える手がある）は1人だけ
   const actors = sls.map((x, i) => (x.sources.length ? i : -1)).filter((i) => i >= 0);
-  if (actors.length > 1) wrongActive.push(`${sls[0].moves}: ${actors.join(',')}`);
+  const simultaneous = sls.some((x) => x.waiting);
+  if (actors.length > 1 && !(simultaneous && actors.every((i) => sls[i].waiting?.includes(sls[i].viewer)))) wrongActive.push(`${sls[0].moves}: ${actors.join(',')}`);
+  if (simultaneous) concurrentSteps++;
   const maxMoves = Math.max(...sls.map((x) => x.moves));
   if (maxMoves === last) stuck++;
   else (stuck = 0), (last = maxMoves);
@@ -78,7 +84,7 @@ while (steps < Number(maxArg)) {
     break;
   }
   // 選択待ちの人のページで、盤面の所作を1つ行う（autoplay.mjs と同じ選び方）
-  const i = sls.findIndex((x) => x.viewer === Number(JSON.parse(x.digest)[2]));
+  const i = simultaneous && actors.length ? pick(actors) : sls.findIndex((x) => x.viewer === Number(JSON.parse(x.digest)[2]));
   const p = pages[i >= 0 ? i : 0];
   const confirmBtn = await visibleLit(p, '.modal-back .modal .btn.primary');
   if (confirmBtn.length && !(await p.$('.modal-back.setup'))) {
@@ -127,5 +133,5 @@ while (steps < Number(maxArg)) {
 await new Promise((r) => setTimeout(r, 500));
 const fin = await Promise.all(pages.map((p) => p.evaluate(() => window.__sl)));
 const same = fin.every((x) => x.digest === fin[0].digest && x.moves === fin[0].moves);
-console.log(JSON.stringify({ players: n, seed: seedArg, steps, moves: fin.map((x) => x.moves), finished: fin.map((x) => x.finished), sameAtEnd: same, mismatches: mismatches.slice(0, 3), wrongActive: wrongActive.slice(0, 3), leaks: leaks.slice(0, 3), errors: errors.slice(0, 3) }));
+console.log(JSON.stringify({ players: n, seed: seedArg, steps, moves: fin.map((x) => x.moves), finished: fin.map((x) => x.finished), sameAtEnd: same, concurrentSteps, mismatches: mismatches.slice(0, 3), wrongActive: wrongActive.slice(0, 3), leaks: leaks.slice(0, 3), errors: errors.slice(0, 3) }));
 await browser.close();

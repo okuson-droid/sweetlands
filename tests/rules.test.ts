@@ -1,6 +1,7 @@
 // SweetLands_rules.md（2026-10-10版）の条項ごとのテスト
 import { describe, expect, it } from 'vitest';
-import { applyMove, getOptions, withEffects } from '../src/game/engine';
+import { applyMove, clockReady, createGame, getOptions, viewFor, withEffects } from '../src/game/engine';
+import { CARDS } from '../src/game/cards';
 import { hexEdges } from '../src/game/geometry';
 import { cities, connectedPorts, passedIp } from '../src/game/queries';
 import { finalScores, prosVp } from '../src/game/scoring';
@@ -289,6 +290,50 @@ describe('§9 最終得点計算', () => {
   });
 });
 
+describe('時計塔駒の配置条件（§12.2）', () => {
+  // 建物の条件のうち、家駒と書いていたものは任意の建物駒（ユーザー確認 2026-10-12）。テント駒・研究所駒・ビル駒の指定はそのまま
+  const ready = (name: string, types: ('tent' | 'house' | 'bldg' | 'lab')[]) => {
+    const s = setupGame(2, [name]);
+    const p = s.players[0];
+    const keys = Object.keys(p.hexes);
+    types.forEach((ty, i) => (p.hexes[keys[i]].building = ty));
+    // 建物以外の条件はすべて満たしておく
+    Object.values(p.hexes).forEach((h) => h.terrain !== 'X' && h.terrain !== 'C' && !h.tile && (h.tile = { kind: h.terrain as 'F', flipped: false }));
+    p.played = Object.keys(CARDS).slice(0, 6);
+    p.food = 9;
+    p.wonders = 1;
+    return { s, p, clockReady: () => clockReady(s, p) };
+  };
+
+  it('セナ・デライト：種類の違う建物駒4個で満たす', () => {
+    expect(ready('セナ・デライト', ['tent', 'house', 'bldg', 'lab']).clockReady()).toBe(true);
+    expect(ready('セナ・デライト', ['tent', 'house', 'bldg']).clockReady()).toBe(false);
+  });
+
+  it('エリ・マカロン：テント駒の指定は種類を問わない扱いにしない', () => {
+    expect(ready('エリ・マカロン', ['house', 'bldg']).clockReady()).toBe(false);
+  });
+});
+
+describe('最終得点の表（§9）', () => {
+  it('条件つきの行も全員に同じ並びで入り、行ごとの値が正しい人の列に出る', () => {
+    const s = setupGame(3);
+    s.finalTiles = [3];
+    // 2人目だけが家駒を5個取り終えている
+    s.players[1].taken.house = 5;
+    s.players[1].score.cp = 4;
+    s.players[2].res.gold = 12;
+    const rows = finalScores(s);
+    const labels = rows.map((r) => r.items.map((x) => x.label).join('|'));
+    expect(new Set(labels).size).toBe(1);
+    const vp = (seat: number, label: string) => rows[seat].items.find((x) => x.label === label)!.vp;
+    expect(vp(0, '家駒5個：都市点×1')).toBe(0);
+    expect(vp(1, '家駒5個：都市点×1')).toBe(4);
+    expect(vp(2, 'ゴールド5につき1')).toBe(2);
+    for (const r of rows) expect(r.total).toBe(r.items.reduce((a, b) => a + b.vp, 0));
+  });
+});
+
 describe('§8 クリーンナップとパス', () => {
   it('全員パスでクリーンナップ：手札は1枚だけ残し、ディスクを戻す', () => {
     let s = setupGame(2);
@@ -322,7 +367,7 @@ describe('§10 ヴァリアント', () => {
     let picks = 0;
     while (s.pending && s.pending.kind !== 'turn') {
       if (s.pending.step === 'draftPick') {
-        expect(getOptions(s).length).toBe(6 - Math.floor(picks / 3));
+        expect(getOptions(viewFor(s, s.pending.player)).length).toBe(6 - Math.floor(picks / 3));
         picks++;
       }
       s = applyMove(s, getOptions(s)[0].id);
@@ -332,6 +377,43 @@ describe('§10 ヴァリアント', () => {
     for (const p of s.players) expect(p.hand.length).toBeGreaterThanOrEqual(6);
     const all = s.players.flatMap((p) => p.hand);
     expect(new Set(all).size).toBe(all.length);
+  });
+});
+
+describe('§10.2 手札のドラフトの同時選択', () => {
+  const cfg = { players: 3, names: ['A', 'B', 'C'], variants: { turnOrder: false, draft: true, advSkills: false } };
+  const toDraft = (seed: number) => {
+    let s = createGame(cfg, seed);
+    while (s.pending && s.pending.step !== 'draftPick') s = applyMove(s, getOptions(s)[0].id);
+    return s;
+  };
+
+  it('同じ巡の中では全員が同時に選べ、選んだ順に関係なく同じ結果になる', () => {
+    let a = toDraft(11);
+    let b = a;
+    expect(a.pending!.waiting!.length).toBe(3);
+    // a は手番順、b は逆順に、各席の束の先頭を取る
+    const pick = (s: GameState, seat: number) => applyMove(s, getOptions(viewFor(s, seat))[0].id);
+    for (const seat of a.pending!.waiting!) a = pick(a, seat);
+    for (const seat of [...b.pending!.waiting!].reverse()) b = pick(b, seat);
+    expect(a.draftPicked).toEqual(b.draftPicked);
+    expect(a.draftPacks).toEqual(b.draftPacks);
+    expect(a.pending!.step).toBe('draftPick');
+    expect(a.pending!.waiting!.length).toBe(3);
+  });
+
+  it('席から見た選択肢は自分の束のカードだけで、選んだカードは取ったカードに入る', () => {
+    let s = toDraft(12);
+    const seat = s.pending!.waiting![1];
+    const v = viewFor(s, seat);
+    expect(v.pending!.player).toBe(seat);
+    expect(getOptions(v).map((o) => o.data!.card)).toEqual(s.draftPacks[seat]);
+    const card = String(getOptions(v)[2].data!.card);
+    s = applyMove(s, getOptions(v)[2].id);
+    expect(s.draftPicked[seat]).toEqual([card]);
+    expect(s.pending!.waiting).not.toContain(seat);
+    // 選び終えた席から見ると、まだ選んでいる人の選択待ちが見える（自分の選択肢はない）
+    expect(viewFor(s, seat).pending!.player).not.toBe(seat);
   });
 });
 

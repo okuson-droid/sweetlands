@@ -468,3 +468,17 @@ body:has(.game.wide .hand .hslot:hover) .zoom {
 .handrow.holding .hslot:hover .hpeek {
   display: none;
 }
+
+/* 横長レイアウトでは帯が画面の上部にあるため、効果の一覧（解決中・順番の選択）は帯の下に開く。
+   上に開くと画面の外へはみ出し、順番の選択肢が見切れる */
+.game.wide .band .stack {
+  top: calc(100% + 6px);
+  bottom: auto;
+  max-height: 60vh;
+  overflow: auto;
+}
+
+/* 展開した一覧からカードを持ち上げているあいだは一覧を薄くし、下にある置き先（産業列など）が見えるようにする */
+.fold-pop:has(.held) {
+  opacity: 0.35;
+}

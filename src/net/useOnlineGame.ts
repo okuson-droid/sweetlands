@@ -1,7 +1,7 @@
 // オンライン対戦の対局フック。正本は共有ドキュメントの手の列で、各画面はそれを再生して盤面を作る。
 // 書き込むのは選択待ちの席の人だけ（ひと操作ごと。ui_design §2-11）。取り消しは手の列から最後の1手を消す。
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { applyMove, createGame } from '../game/engine';
+import { applyMove, createGame, viewFor } from '../game/engine';
 import { isCheckpoint, type GameRecord } from '../game/history';
 import type { GameState } from '../game/types';
 import type { Move } from '../ui/gestures';
@@ -70,19 +70,43 @@ export function useOnlineGame(room: Room, doc: GameDoc, seat: number | null, onW
     [room, onWriteError],
   );
 
-  const mine = useCallback((s: GameState) => seat !== null && !!s.pending && s.pending.player === seat && !s.finished, [seat]);
+  const mine = useCallback((s: GameState) => seat !== null && !!s.pending && viewFor(s, seat).pending!.player === seat && !s.finished, [seat]);
+
+  // 同時に選べる選択待ち（手札のドラフト）では、ほかの人の手と競合しうる。読んだ時点の手の列に自分の手がまだ合法なら、
+  // その末尾へ足す（同じ巡のピックは順番に依らず同じ結果になる）。合法でなければ送らない（届いた手の列で盤面が作り直される）
+  const pushConcurrent = useCallback(
+    (ids: string[]) => {
+      queue.current = queue.current
+        .then(async () => {
+          const ok = await room.transact((d) => {
+            let s = build(d, null).state;
+            for (const id of ids) {
+              if (!s.pending || !s.pending.options.some((o) => o.id === id)) return null;
+              s = applyMove(s, id);
+            }
+            version.current = Math.max(version.current, d.version) + 1;
+            return { ...d, moves: [...d.moves, ...ids], version: version.current };
+          });
+          if (!ok) onWriteError('ほかの人の操作と重なり、手を送れませんでした。盤面を確かめて、もう一度操作してください。');
+        })
+        .catch((e) => onWriteError(`手を送れませんでした（${(e as { code?: string }).code ?? 'error'}）。通信を確かめて、もう一度操作してください。`));
+    },
+    [room, onWriteError],
+  );
 
   // 自分の手を盤面に当てて（先に画面へ出す）、手の列を共有ドキュメントへ送る
   const applyLocal = useCallback(
     (ids: string[]) => {
       const cur = builtRef.current;
       if (!mine(cur.state)) return;
+      const concurrent = !!cur.state.pending?.waiting;
       const next = build({ ...docRef.current, moves: [...cur.moves, ...ids] }, cur);
       builtRef.current = next;
       setBuilt(next);
-      push(next.moves);
+      if (concurrent) pushConcurrent(ids);
+      else push(next.moves);
     },
-    [mine, push],
+    [mine, push, pushConcurrent],
   );
 
   const prefill = useRef<{ step: string; id: string } | null>(null);
@@ -114,13 +138,13 @@ export function useOnlineGame(room: Room, doc: GameDoc, seat: number | null, onW
     const pf = prefill.current;
     if (pf) {
       prefill.current = null;
-      if (s.pending!.step === pf.step && s.pending!.options.some((o) => o.id === pf.id)) {
+      if (s.pending!.step === pf.step && viewFor(s, seat!).pending!.options.some((o) => o.id === pf.id)) {
         applyLocal([pf.id]);
         return;
       }
     }
     if (built.lastWasUndo) return;
-    const a = autoAnswer(s, auto);
+    const a = autoAnswer(viewFor(s, seat!), auto);
     if (a) applyLocal([a]);
   }, [built, auto, mine, applyLocal]);
 

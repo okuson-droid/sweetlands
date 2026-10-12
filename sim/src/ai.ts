@@ -5,7 +5,7 @@
 // 先読みはすべて決定化した仮の局面（core.determinize）の上で行い、実際の市民デッキの並びは見ない。
 import type { GameState } from '../../src/game/types';
 import { Rng, determinize, legal, scoreTotal, step } from './core';
-import { baseEval, passesLeft, type Weights } from './evaluate';
+import { WEIGHT_NAMES, baseEval, features, passesLeft, type Weights } from './evaluate';
 
 export interface AgentConfig {
   kind: 'v0' | 'v1' | 'v2';
@@ -19,9 +19,20 @@ export interface AgentConfig {
   beamDepth: number;
   /** v2 で1つの局面から解決まで進める候補の数（1手だけ進めた評価の上位） */
   beamExpand: number;
+  /** v2 の決定化の数 K（第5版 §6.3） */
+  determinizations: number;
 }
 
-export const DEFAULT_AGENT: Omit<AgentConfig, 'kind' | 'weights'> = { rules: { clock: true, prePass: true }, topK: 4, beamWidth: 3, beamDepth: 5, beamExpand: 6 };
+/** v2 のスキル梯子（第5版 §5.5・§6.5）：探索の量だけを変える3段階。中が調整に使う設定 */
+export const V2_LADDER = {
+  S: { beamWidth: 1, beamDepth: 4, beamExpand: 3, determinizations: 2 },
+  M: { beamWidth: 2, beamDepth: 4, beamExpand: 4, determinizations: 2 },
+  L: { beamWidth: 4, beamDepth: 4, beamExpand: 5, determinizations: 2 },
+} as const;
+
+const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
+
+export const DEFAULT_AGENT: Omit<AgentConfig, 'kind' | 'weights'> = { rules: { clock: true, prePass: true }, topK: 4, ...V2_LADDER.M };
 
 /** 両替にあたるフリーアクション（主行動の前に付けて候補を作る） */
 const CONVERSIONS = new Set(['fa2', 'fa3', 'fa5', 'fa6', 'fa7d', 'fa7h']);
@@ -138,12 +149,27 @@ export class Agent {
     return base + this.cfg.weights[11] * this.passGain(s) * passesLeft(s);
   }
 
+  /** 事例分析用（判断には使わない）：ある手を選んで解決まで進めた局面の評価値と、特徴量ごとの寄与 */
+  explainMove(s: GameState, id: string): { value: number; score: number; parts: Record<string, number> } {
+    const det = determinize(s, this.rng);
+    const c = this.resolve(step(det, id));
+    const f = features(c);
+    const parts: Record<string, number> = {};
+    WEIGHT_NAMES.forEach((n, i) => {
+      if (i !== 11 && f[i] !== 0) parts[n] = this.cfg.weights[i] * f[i];
+    });
+    const pg = this.passGain(c) * passesLeft(c);
+    if (pg !== 0) parts.passGain = this.cfg.weights[11] * pg;
+    const score = scoreTotal(c);
+    return { value: score + Object.values(parts).reduce((a, b) => a + b, 0), score, parts };
+  }
+
   // ---- 手番 ----
 
   private chooseTurn(det: GameState): string {
     const ids = legal(det).map((o) => o.id);
     if (this.cfg.rules.clock && ids.includes('fa8')) return 'fa8';
-    let pick = this.cfg.kind === 'v2' && !det.turnMainDone ? this.beam(det) : this.oneTurn(det, true);
+    let pick = this.cfg.kind === 'v2' && !det.turnMainDone ? this.beamK(det) : this.oneTurn(det, true);
     if (pick === 'pass' && this.cfg.rules.prePass) {
       if (ids.includes('fa7d')) pick = 'fa7d';
       else if (ids.includes('fa7h') && det.players[0].hand.length >= 2) pick = 'fa7h';
@@ -196,7 +222,7 @@ export class Agent {
     return s;
   }
 
-  private beam(det: GameState): string {
+  private beam(det: GameState): Map<string, number> {
     const W = this.cfg.beamWidth;
     const D = this.cfg.beamDepth;
     type Node = { first: string; s: GameState; value: number };
@@ -236,8 +262,25 @@ export class Agent {
       const c = this.resolve(step(node.s, 'pass'));
       leaves.push({ first: node.first, s: c, value: this.ev(c) });
     }
-    if (leaves.length === 0) return this.oneTurn(det, true);
-    return this.argmax(leaves, (l) => l.value).first;
+    // 最初の手ごとに、その手から始まる列の最良の葉の評価値
+    const best = new Map<string, number>();
+    for (const l of leaves) if (l.value > (best.get(l.first) ?? -Infinity)) best.set(l.first, l.value);
+    return best;
+  }
+
+  /** v2（第5版）：混ぜ直した並びを K 個作り、それぞれでビームの列挙を行って、最初の主行動ごとに葉の評価値を平均して選ぶ。
+   *  ある並びの列挙に現れなかった最初の手には、その並びの葉の評価値の最小値を当てる（控えめに見る） */
+  private beamK(det: GameState): string {
+    const K = this.cfg.determinizations;
+    const maps: Map<string, number>[] = [];
+    for (let k = 0; k < K; k++) {
+      const m = this.beam(k === 0 ? det : determinize(det, this.rng));
+      if (m.size) maps.push(m);
+    }
+    if (maps.length === 0) return this.oneTurn(det, true);
+    const firsts = [...new Set(maps.flatMap((m) => [...m.keys()]))];
+    const avg = (f: string) => mean(maps.map((m) => m.get(f) ?? Math.min(...m.values())));
+    return this.argmax(firsts, avg);
   }
 }
 

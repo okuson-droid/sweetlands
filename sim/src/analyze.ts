@@ -108,8 +108,20 @@ export function effectTable(effects: Effect[][], configs: string[]): string {
   return out.join('\n');
 }
 
-/** 頑健さの関門（§5.5）：符号の入れ替わりと、P3 の14効果の順位相関 */
-export function robustness(effectsByConfig: Map<string, Effect[]>) {
+export function kendall(x: number[], y: number[]): number {
+  let c = 0;
+  let d = 0;
+  for (let i = 0; i < x.length; i++)
+    for (let j = i + 1; j < x.length; j++) {
+      const s = Math.sign(x[i] - x[j]) * Math.sign(y[i] - y[j]);
+      if (s > 0) c++;
+      else if (s < 0) d++;
+    }
+  return (c - d) / ((x.length * (x.length - 1)) / 2);
+}
+
+/** 頑健さの関門（第5版 §5.5）：5構成のどの2つの間でも符号の入れ替わりがないこと、指定の4組で P3 の14効果の順位相関 ≥ 0.7 */
+export function robustness(effectsByConfig: Map<string, Effect[]>, rhoPairs: [string, string][]) {
   const configs = [...effectsByConfig.keys()];
   const flips: string[] = [];
   const conds = effectsByConfig.get(configs[0])!.map((e) => e.cond);
@@ -120,18 +132,86 @@ export function robustness(effectsByConfig: Map<string, Effect[]>) {
     if (pos.length && neg.length) flips.push(`${cond}（正：${pos.join('・')}／負：${neg.join('・')}）`);
   }
   const p3 = conds.filter((c) => c.startsWith('A+adv'));
-  const rho: { a: string; b: string; rho: number }[] = [];
-  for (let i = 0; i < configs.length; i++)
-    for (let j = i + 1; j < configs.length; j++) {
-      const x = p3.map((c) => effectsByConfig.get(configs[i])!.find((e) => e.cond === c)!.mean);
-      const y = p3.map((c) => effectsByConfig.get(configs[j])!.find((e) => e.cond === c)!.mean);
-      rho.push({ a: configs[i], b: configs[j], rho: spearman(x, y) });
-    }
+  const m = (c: string) => p3.map((cond) => effectsByConfig.get(c)!.find((e) => e.cond === cond)!.mean);
+  const rho = rhoPairs.filter(([a, b]) => effectsByConfig.has(a) && effectsByConfig.has(b)).map(([a, b]) => ({ a, b, rho: spearman(m(a), m(b)), tau: kendall(m(a), m(b)) }));
   const borderline: string[] = [];
   // 差がまったくない効果（全局で差が0）は境界の結果に数えない
   for (const [c, es] of effectsByConfig) for (const e of es) if (!(e.lo === 0 && e.hi === 0) && ((e.lo >= 0 && e.lo <= 2) || (e.hi <= 0 && e.hi >= -2))) borderline.push(`${c}:${e.cond}`);
   const pass = flips.length === 0 && rho.every((r) => r.rho >= 0.7);
   return { flips, rho, borderline, pass };
+}
+
+/** 標準正規分布の上側確率（両側 p 値に使う） */
+function normSf(z: number): number {
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989423 * Math.exp((-z * z) / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return z > 0 ? p : 1 - p;
+}
+
+/** P3 の14効果の Benjamini-Hochberg 法の q 値（対の差の t 統計量を正規近似した両側 p 値から） */
+export function bhQ(effects: Effect[], sdOf: (e: Effect) => number): Map<string, number> {
+  const ps = effects.map((e) => {
+    const s = sdOf(e);
+    const z = s > 0 ? e.mean / (s / Math.sqrt(e.n)) : e.mean === 0 ? 0 : 99;
+    return { cond: e.cond, p: 2 * normSf(Math.abs(z)) };
+  });
+  const sorted = [...ps].sort((a, b) => a.p - b.p);
+  const m = ps.length;
+  const q = new Map<string, number>();
+  let prev = 1;
+  for (let i = m - 1; i >= 0; i--) {
+    prev = Math.min(prev, (sorted[i].p * m) / (i + 1));
+    q.set(sorted[i].cond, prev);
+  }
+  return q;
+}
+
+/** シードを単位にしたブートストラップで、P3 の各効果の順位（1＝最大）の95%区間を出す */
+export function bootstrapRanks(rows: Row[], config: string, conds: string[], B = 1000, seed = 12345): Map<string, [number, number]> {
+  const base = new Map(rows.filter((r) => r.config === config && r.cond === 'A').map((r) => [r.seed, Number(r.score)]));
+  const by = conds.map((c) => new Map(rows.filter((r) => r.config === config && r.cond === c).map((r) => [r.seed, Number(r.score)])));
+  const seeds = [...base.keys()].filter((s) => by.every((m) => m.has(s)));
+  let st = seed >>> 0;
+  const rnd = () => {
+    st = (Math.imul(st, 1664525) + 1013904223) >>> 0;
+    return st / 4294967296;
+  };
+  const ranks: number[][] = conds.map(() => []);
+  for (let b = 0; b < B; b++) {
+    const pick = seeds.map(() => seeds[Math.floor(rnd() * seeds.length)]);
+    const eff = by.map((m) => mean(pick.map((s) => m.get(s)! - base.get(s)!)));
+    const order = eff.map((v, i) => [v, i] as const).sort((a, b2) => b2[0] - a[0]);
+    order.forEach(([, i], r) => ranks[i].push(r + 1));
+  }
+  return new Map(conds.map((c, i) => [c, [quantile(ranks[i], 0.025), quantile(ranks[i], 0.975)] as [number, number]]));
+}
+
+/** 共通乱数の効き目：同じシードの2条件の得点の相関 ρ（ピアソン） */
+export function pairCorrelation(rows: Row[], config: string, a: string, b: string): number {
+  const ma = new Map(rows.filter((r) => r.config === config && r.cond === a).map((r) => [r.seed, Number(r.score)]));
+  const mb = new Map(rows.filter((r) => r.config === config && r.cond === b).map((r) => [r.seed, Number(r.score)]));
+  const ks = [...ma.keys()].filter((k) => mb.has(k));
+  const x = ks.map((k) => ma.get(k)!);
+  const y = ks.map((k) => mb.get(k)!);
+  const mx = mean(x);
+  const my = mean(y);
+  let num = 0;
+  let dx = 0;
+  let dy = 0;
+  for (let i = 0; i < x.length; i++) {
+    num += (x[i] - mx) * (y[i] - my);
+    dx += (x[i] - mx) ** 2;
+    dy += (y[i] - my) ** 2;
+  }
+  return num / Math.sqrt(dx * dy);
+}
+
+/** 対の差の標準偏差 */
+export function pairedSd(rows: Row[], config: string, cond: string, base = 'A'): number {
+  const mb = new Map(rows.filter((r) => r.config === config && r.cond === base).map((r) => [r.seed + ':' + r.aiSeed, Number(r.score)]));
+  const d = rows.filter((r) => r.config === config && r.cond === cond && mb.has(r.seed + ':' + r.aiSeed)).map((r) => Number(r.score) - mb.get(r.seed + ':' + r.aiSeed)!);
+  return sd(d);
 }
 
 export function breakdownTable(rows: Row[], configs: string[], cond: string): string {

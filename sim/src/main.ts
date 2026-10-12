@@ -11,7 +11,7 @@ import { setKeepLog } from './core';
 if (!isMainThread && workerData?.fast) installFastClone();
 // 等価性の検査で、高速な複製を使わないワーカーはログも空にしない（エンジン本来の動き）
 if (!isMainThread && workerData?.worker && !workerData.fast) setKeepLog(true);
-import { DEFAULT_AGENT, type AgentConfig } from './ai';
+import { DEFAULT_AGENT, V2_LADDER, type AgentConfig } from './ai';
 import { conditionByName, PILOT_CONDITIONS, TARGET_CHAR } from './core';
 import { DEFAULT_WEIGHTS, WEIGHT_NAMES, type Weights } from './evaluate';
 import { playGame, csvHeader, csvRow, type GameResult } from './play';
@@ -53,9 +53,11 @@ function agentConfig(o: Record<string, string>, w: Weights): AgentConfig {
   }
   return {
     ...DEFAULT_AGENT,
+    ...(o.ladder ? V2_LADDER[o.ladder as keyof typeof V2_LADDER] : {}),
     kind: (o.ai ?? 'v1') as AgentConfig['kind'],
     weights: w,
     rules,
+    ...(o.K ? { determinizations: Number(o.K) } : {}),
     ...(o.beamWidth ? { beamWidth: Number(o.beamWidth) } : {}),
     ...(o.beamDepth ? { beamDepth: Number(o.beamDepth) } : {}),
     ...(o.beamExpand ? { beamExpand: Number(o.beamExpand) } : {}),
@@ -69,6 +71,7 @@ async function main(): Promise<void> {
   const o = args();
   if (cmd === 'run') return cmdRun(o);
   if (cmd === 'tune') return cmdTune(o);
+  if (cmd === 'select') return cmdSelect(o);
   if (cmd === 'check') return (await import('./checks')).cmdCheck(o, FILE);
   if (cmd === 'human') return (await import('./human')).cmdHuman(o);
   console.error('使い方: main.cjs run|tune|check|human --オプション 値 ...');
@@ -126,6 +129,9 @@ async function cmdTune(o: Record<string, string>): Promise<void> {
   const ai = (o.ai ?? 'v1') as 'v1' | 'v2';
   const band = o.band ?? 'A';
   const bandStart = band === 'A' ? 10001 : 20001;
+  // 調整に使うシードの先頭（第5版：調整帯 A は 10001〜18999、B は 20001〜28999。調整ごとに重ならないように区切る）
+  const seedStart = Number(o.seedStart ?? bandStart);
+  const floor = Number(o.floor ?? 0.05);
   const chars = o.chars === 'all' ? Object.keys(CHARACTERS) : [TARGET_CHAR];
   const init = loadWeights(o.init);
   const iters = Number(o.iters ?? 15);
@@ -149,17 +155,18 @@ async function cmdTune(o: Record<string, string>): Promise<void> {
   const gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd());
   const pool = new Pool(Number(o.jobs ?? 4), FILE);
   const history: unknown[] = [];
-  const protocol = { method: 'CEM', ai, band, bandStart, chars: o.chars === 'all' ? 'all14' : 'target', iters, pop, elite, games, sigmaFrac, init: init.name, rngseed: seed0, objective: 'mean final score (milestones/final tiles excluded)', meanCandidate: 'iteration mean is always evaluated as candidate 0' };
+  const protocol = { method: 'CEM', ai, band, seedStart, sigmaFloor: floor, ladder: o.ladder ?? 'M', chars: o.chars === 'all' ? 'all14' : 'target', iters, pop, elite, games, sigmaFrac, init: init.name, rngseed: seed0, objective: 'mean final score (milestones/final tiles excluded)', meanCandidate: 'iteration mean is always evaluated as candidate 0' };
+  const ladder = o.ladder ? V2_LADDER[o.ladder as keyof typeof V2_LADDER] : {};
   const t0 = Date.now();
   let bestEver = { score: -Infinity, w: mean };
   for (let it = 0; it < iters; it++) {
     // 同じ反復の候補は、同じシード・同じキャラクターで比べる（共通乱数）
-    const seeds = Array.from({ length: games }, (_, g) => bandStart + it * games + g);
+    const seeds = Array.from({ length: games }, (_, g) => seedStart + it * games + g);
     const cands: Weights[] = [mean.map((m) => m)];
     while (cands.length < pop) cands.push(mean.map((m, i) => m + sigma[i] * gauss()));
     const scores = await Promise.all(
       cands.map(async (w) => {
-        const rs = await Promise.all(seeds.map((seed, g) => pool.run({ cond: 'A', char: chars[(it * games + g) % chars.length], seed, cfg: { ...DEFAULT_AGENT, kind: ai, weights: w }, aiSeed: seed })));
+        const rs = await Promise.all(seeds.map((seed, g) => pool.run({ cond: 'A', char: chars[(it * games + g) % chars.length], seed, cfg: { ...DEFAULT_AGENT, ...ladder, kind: ai, weights: w }, aiSeed: seed })));
         return rs.reduce((a, r) => a + r.score, 0) / rs.length;
       }),
     );
@@ -167,15 +174,48 @@ async function cmdTune(o: Record<string, string>): Promise<void> {
     const el = order.slice(0, elite).map((i) => cands[i]);
     if (scores[order[0]] > bestEver.score) bestEver = { score: scores[order[0]], w: cands[order[0]] };
     mean = Array.from({ length: dim }, (_, i) => el.reduce((a, w) => a + w[i], 0) / elite);
-    sigma = Array.from({ length: dim }, (_, i) => Math.max(0.02, Math.sqrt(el.reduce((a, w) => a + (w[i] - mean[i]) ** 2, 0) / elite)));
-    const rec = { it, meanScoreOfMeanCand: scores[0], best: scores[order[0]], eliteMean: order.slice(0, elite).reduce((a, i) => a + scores[i], 0) / elite, sec: Math.round((Date.now() - t0) / 1000) };
+    sigma = Array.from({ length: dim }, (_, i) => Math.max(floor, Math.sqrt(el.reduce((a, w) => a + (w[i] - mean[i]) ** 2, 0) / elite)));
+    // 最終選考（select）のため、反復ごとの上位2候補の重みも残す
+    const top = order.slice(0, 2).map((i) => ({ score: scores[i], weights: cands[i] }));
+    const rec = { it, seeds: [seeds[0], seeds[seeds.length - 1]], meanScoreOfMeanCand: scores[0], best: scores[order[0]], eliteMean: order.slice(0, elite).reduce((a, i) => a + scores[i], 0) / elite, top, sec: Math.round((Date.now() - t0) / 1000) };
     history.push(rec);
-    console.log(JSON.stringify(rec));
+    console.log(JSON.stringify({ ...rec, top: rec.top.map((x) => x.score) }));
     const f: WeightFile = { name: path.basename(out, '.json'), ai, weights: mean, names: WEIGHT_NAMES, protocol, history };
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, JSON.stringify(f, null, 1));
   }
   await pool.close();
+}
+
+// ---- select：最終選考（第5版 §6.4） ----
+// 調整の最終の平均の重みと、最後の数反復の上位候補（合わせて最大 n 本）を、最終選考帯で同じシードの集合で回して比べ、最良を採る
+async function cmdSelect(o: Record<string, string>): Promise<void> {
+  const f = JSON.parse(fs.readFileSync(o.weights!, 'utf8')) as Omit<WeightFile, 'history'> & { history: { it: number; top: { score: number; weights: Weights }[] }[] };
+  const lastIters = Number(o.lastIters ?? 3);
+  const n = Number(o.n ?? 5);
+  const games = Number(o.games ?? 50);
+  const seedStart = Number(o.seedStart!);
+  const chars = o.chars === 'all' ? Object.keys(CHARACTERS) : [TARGET_CHAR];
+  const ladder = o.ladder ? V2_LADDER[o.ladder as keyof typeof V2_LADDER] : {};
+  const pool = new Pool(Number(o.jobs ?? 4), FILE);
+  const recent = f.history.slice(-lastIters).flatMap((h) => h.top.map((x) => ({ from: `反復${h.it}の上位（調整中の値 ${x.score.toFixed(2)}）`, score: x.score, weights: x.weights })));
+  recent.sort((a, b) => b.score - a.score);
+  const cands = [{ from: '最終の平均', weights: f.weights }, ...recent.slice(0, n - 1).map((x) => ({ from: x.from, weights: x.weights }))];
+  const seeds = Array.from({ length: games }, (_, g) => seedStart + g);
+  const results = [];
+  for (const c of cands) {
+    const rs = await Promise.all(seeds.map((seed, g) => pool.run({ cond: 'A', char: chars[g % chars.length], seed, cfg: { ...DEFAULT_AGENT, ...ladder, kind: f.ai, weights: c.weights }, aiSeed: seed })));
+    const sc = rs.map((r) => r.score);
+    const m = sc.reduce((a, b) => a + b, 0) / sc.length;
+    results.push({ from: c.from, mean: m, scores: sc });
+    console.log(JSON.stringify({ from: c.from, mean: m }));
+  }
+  await pool.close();
+  const best = results.reduce((a, b) => (b.mean > a.mean ? b : a));
+  const chosen = cands[results.indexOf(best)];
+  const outFile = o.out!;
+  const g: WeightFile & { selection?: unknown } = { ...f, name: path.basename(outFile, '.json'), weights: chosen.weights, selection: { seeds: [seeds[0], seeds[seeds.length - 1]], chars: o.chars === 'all' ? 'all14' : 'target', games, chosen: best.from, results: results.map((r) => ({ from: r.from, mean: r.mean })) } };
+  fs.writeFileSync(outFile, JSON.stringify(g, null, 1));
 }
 
 export type { GameResult };

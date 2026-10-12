@@ -3,12 +3,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { PILOT_CONDITIONS } from './core';
-import { actionTable, advTable, breakdownTable, ci, effectTable, mean, pairedEffect, readCsv, robustness, sd, summaryTable, type Effect } from './analyze';
+import { actionTable, advTable, bhQ, bootstrapRanks, breakdownTable, ci, effectTable, mean, pairCorrelation, pairedEffect, pairedSd, readCsv, robustness, sd, summaryTable, type Effect } from './analyze';
 
 const [mdir = 'out/measure', rdir = 'reports/pilot'] = process.argv.slice(2);
 const rows = readCsv(path.join(mdir, 'games.csv'));
-const GATE = ['v1-eri-A', 'v1-eri-B', 'v2-eri-A'];
-const ALL = ['v1-eri-A', 'v1-eri-B', 'v2-eri-A', 'v1-common-A'];
+// 頑健さの関門の5構成（第5版 §5.5）と、順位相関を判定に使う4組
+const GATE = ['v1-eri-A', 'v1-eri-B', 'v2-S', 'v2-M', 'v2-L'];
+const RHO_PAIRS: [string, string][] = [['v1-eri-A', 'v1-eri-B'], ['v1-eri-A', 'v2-M'], ['v2-S', 'v2-M'], ['v2-M', 'v2-L']];
+const ALL = [...GATE, 'v1-common-A'];
+const JUDGE = 'v2-M';
 const effConds = PILOT_CONDITIONS.filter((c) => c !== 'A' && rows.some((r) => r.cond === c));
 const out: string[] = [];
 const json: Record<string, unknown> = {};
@@ -21,7 +24,7 @@ json.anomalies = anomalies.length;
 
 // ---- P0：版の比較 ----
 out.push('## P0：版の比較（エリ・マカロン × A面、シード 1〜100）\n');
-out.push(summaryTable(rows, ['v0', 'v1-common-A', 'v1-eri-A', 'v1-eri-B', 'v1-eri-A-norules', 'v2-eri-A', 'v1-common-B'], ['A']));
+out.push(summaryTable(rows, ['v0', 'v1-common-A', 'v1-common-B', 'v1-eri-A', 'v1-eri-B', 'v1-eri-A-norules', 'v2-S', 'v2-M', 'v2-L'], ['A']));
 const ruleEff = pairedEffect(rows.map((r) => (r.config === 'v1-eri-A-norules' ? { ...r, config: 'cmp', cond: 'X' } : r.config === 'v1-eri-A' && r.cond === 'A' ? { ...r, config: 'cmp' } : r)), 'cmp', 'X', 'A');
 if (ruleEff) out.push(`\n決め打ちのフリーアクションを外した版 − 外さない版（v1-eri-A、対の差）：${f1(ruleEff.mean)}（95%信頼区間 ${f1(ruleEff.lo)}〜${f1(ruleEff.hi)}、${ruleEff.n}局）\n`);
 json.ruleEffect = ruleEff;
@@ -38,8 +41,21 @@ out.push(effectTable(GATE.map((c) => effects.get(c)!), GATE));
 const common = effConds.map((cond) => pairedEffect(rows, 'v1-common-A', cond)!);
 out.push('\n共通の重み版（参考）\n');
 out.push(effectTable([common], ['v1-common-A']));
-const rob = robustness(effects);
-out.push(`\n### 頑健さの関門\n\n- 符号の入れ替わり：${rob.flips.length}件${rob.flips.length ? '（' + rob.flips.join('、') + '）' : ''}\n- P3 の14効果の順位相関（スピアマン）：${rob.rho.map((r) => `${r.a}×${r.b} = ${r.rho.toFixed(2)}`).join('、')}\n- 判定：${rob.pass ? '合格' : '不合格'}\n- 追試の対象（信頼区間の端が0に近い効果）：${rob.borderline.length ? rob.borderline.join('、') : 'なし'}\n`);
+const rob = robustness(effects, RHO_PAIRS);
+out.push(`\n### 頑健さの関門（第5版）\n\n- 符号の入れ替わり（5構成のどの2つの間でも）：${rob.flips.length}件${rob.flips.length ? '（' + rob.flips.join('、') + '）' : ''}\n- P3 の14効果の順位相関（スピアマン、判定に使う4組）：${rob.rho.map((r) => `${r.a}×${r.b} = ${r.rho.toFixed(2)}`).join('、')}\n- 判定：${rob.pass ? '合格' : '不合格'}\n- 追試の対象（信頼区間の端が0に近い効果）：${rob.borderline.length ? rob.borderline.join('、') : 'なし'}\n`);
+out.push(`参考（判定には使わない）\n\n- ケンドールの順位相関：${rob.rho.map((r) => `${r.a}×${r.b} = ${r.tau.toFixed(2)}`).join('、')}\n`);
+const p3conds = effConds.filter((c) => c.startsWith('A+adv'));
+if (p3conds.length) {
+  const lines = ['| 上級スキル | ' + GATE.map((c) => `${c}：順位の95%区間／q 値`).join(' | ') + ' |', '| --- | ' + GATE.map(() => '---').join(' | ') + ' |'];
+  const br = new Map(GATE.map((c) => [c, bootstrapRanks(rows, c, p3conds)]));
+  const qs = new Map(GATE.map((c) => [c, bhQ(effects.get(c)!.filter((e) => p3conds.includes(e.cond)), (e) => pairedSd(rows, c, e.cond))]));
+  for (const cond of p3conds) lines.push(`| ${cond.replace('A+adv', '')} | ${GATE.map((c) => { const r = br.get(c)!.get(cond)!; return `${r[0]}〜${r[1]}位／${qs.get(c)!.get(cond)!.toFixed(3)}`; }).join(' | ')} |`);
+  out.push('P3 の14効果の順位のブートストラップ95%区間（シードを単位に1000回）と、Benjamini-Hochberg 法の q 値\n');
+  out.push(lines.join('\n'));
+}
+const rhoCrn = GATE.map((c) => ({ c, rho: pairCorrelation(rows, c, 'A', 'B1') }));
+out.push(`\n共通乱数の効き目（A面と B1面の同じシードの得点の相関 ρ）：${rhoCrn.map((x) => `${x.c} ${x.rho.toFixed(2)}`).join('、')}。対の差の分散は条件ごとの分散のおよそ (1−ρ) 倍になる。\n`);
+json.crnRho = rhoCrn;
 json.robustness = rob;
 json.effects = Object.fromEntries([...effects].map(([k, v]) => [k, v]));
 
@@ -100,6 +116,7 @@ if (fs.existsSync(hai)) {
   const perSeed: Record<string, number[]> = {};
   for (const c of GATE) {
     perSeed[c] = [1, 2, 3, 4, 5].map((s) => mean(ai.filter((r) => r.config === c && Number(r.seed) === s).map((r) => Number(r.score))));
+    if (perSeed[c].some((v) => Number.isNaN(v))) continue;
     out.push(`| ${c} | ${perSeed[c].map(f1).join(' | ')} | ${f1(mean(perSeed[c]))} |`);
   }
   json.humanAi = perSeed;
@@ -114,7 +131,7 @@ if (fs.existsSync(hai)) {
         const [lo, hi] = ci(d);
         const m = mean(d);
         const verdict = m >= 0 ? '合格' : m >= -0.15 * mean(H) ? '条件付き合格' : '不合格';
-        out.push(`- ${c}：d の平均 ${f1(m)}（95%信頼区間 ${f1(lo)}〜${f1(hi)}）、閾値 −0.15×人の平均 = ${f1(-0.15 * mean(H))} → ${verdict}`);
+        out.push(`- ${c}${c === JUDGE ? '（判定に使う構成）' : '（参考）'}：d の平均 ${f1(m)}（95%信頼区間 ${f1(lo)}〜${f1(hi)}）、d の標準偏差 ${f1(sd(d))}、閾値 −0.15×人の平均 = ${f1(-0.15 * mean(H))} → ${verdict}`);
       }
     } else out.push('\n人の基準プレイの記録がまだそろっていない（判定は保留）。\n');
   } else out.push('\n人の基準プレイの記録がまだない（判定は保留）。\n');

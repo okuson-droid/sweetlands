@@ -662,10 +662,6 @@ svg .lit-svg {
   box-shadow: var(--shadow);
   font-size: 12px;
 }
-.logpanel .undone {
-  text-decoration: line-through;
-  opacity: 0.6;
-}
 
 /* ---- 狭い画面（§4.2） ---- */
 .portrait-guard {
@@ -749,4 +745,19 @@ svg .lit-svg {
 }
 .modal-back.setup {
   top: 34px;
+}
+
+/* ログ：見出しの行（プレイヤーの絞り込み）と、主体の席の色の帯 */
+.logpanel .loghead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.logpanel .loghead b {
+  flex: 1;
+}
+.logpanel .logline {
+  border-left: 3px solid transparent;
+  padding-left: 6px;
 }

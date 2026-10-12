@@ -201,6 +201,28 @@ export function playedCount(p: PlayerState, row?: Row | 'all'): number {
   return list.filter((c) => c.industry === row || c.industry === 'all').length;
 }
 
+/** 画面の集計表示用：置いた地形タイルの枚数（地形ごと・特殊地形タイル）、道駒の本数、
+ *  プレイしたカード（オートメーション化したものを含む）の産業タグごとの枚数。
+ *  産業タグはカードの産業そのもので数え、オールマイティは農業・林業・鉱業に重ねず別に数える */
+export interface Tally {
+  tiles: Record<Terrain | 'special', number>;
+  roads: number;
+  cards: Record<Row | 'all' | 'none', number>;
+  cardsTotal: number;
+}
+export function tally(p: PlayerState): Tally {
+  const tiles = { W: 0, F: 0, M: 0, S: 0, special: 0 };
+  for (const h of Object.values(p.hexes)) {
+    if (!h.tile) continue;
+    if (h.tile.kind === 'special') tiles.special++;
+    else tiles[h.terrain as Terrain]++;
+  }
+  const cards = { agr: 0, for: 0, min: 0, all: 0, none: 0 };
+  const list = allPlayed(p);
+  for (const id of list) cards[CARDS[id].industry ?? 'none']++;
+  return { tiles, roads: p.roads.length, cards, cardsTotal: list.length };
+}
+
 export function automatedCount(p: PlayerState): number {
   return p.automated.agr.length + p.automated.for.length + p.automated.min.length;
 }

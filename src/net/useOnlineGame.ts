@@ -131,6 +131,16 @@ export function useOnlineGame(room: Room, doc: GameDoc, seat: number | null, onW
     push(next.moves);
   }, [mine, push]);
 
+  const undoAll = useCallback(() => {
+    prefill.current = null;
+    const cur = builtRef.current;
+    if (!mine(cur.state) || cur.moves.length <= cur.cpIndex) return;
+    const next = build({ ...docRef.current, moves: cur.moves.slice(0, cur.cpIndex) }, cur);
+    builtRef.current = next;
+    setBuilt(next);
+    push(next.moves);
+  }, [mine, push]);
+
   // 先回りの回答と自動化：自分の選択待ちのときだけ
   useEffect(() => {
     const s = built.state;
@@ -159,6 +169,7 @@ export function useOnlineGame(room: Room, doc: GameDoc, seat: number | null, onW
     lastWasUndo: built.lastWasUndo,
     perform,
     undo,
+    undoAll,
     auto,
     setAuto,
   };

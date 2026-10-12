@@ -17,7 +17,7 @@
   - `supabaseRoom.ts`：本番。Supabase の `public.games` テーブル（id text, doc jsonb）＋Realtime＋匿名ログイン。
   - `useOnlineGame.ts`：共有ドキュメントの手の列を各画面が再生する。書き込むのは選択待ちのプレイヤーだけ。取り消しは手の列の末尾を削る（チェックポイントまで）。
 - `src/ui/Online.tsx`：ロビー（ゲーム作成・席・名前・開始）と対局画面。
-- `tests/`：Vitest（65件）。`e2e/`：Playwright の自動対戦・同期検査。
+- `tests/`：Vitest（66件）。`e2e/`：Playwright の自動対戦・同期検査。
 - `deploy/`：Supabase の準備用 SQL（`supabase_setup.sql`）と手順書。
 
 ## コマンド
@@ -53,4 +53,4 @@
 
 ## 詳しい資料
 
-ルール全文（`SweetLands_rules.md`）、設計方針（`decisions.md`）、UI 設計書（`ui_design.md`）は claude.ai のプロジェクト「スイーツランドデジタル化」にある。`docs/` にはその追補（v1.1 ルール、ヴァリアント、横長レイアウト、不具合の改修）だけを置いている。ルールの判断が要るときは、推測で決めずに持ち主に確認すること。
+ルール全文（`SweetLands_rules.md`）、設計方針（`decisions.md`）、UI 設計書（`ui_design.md`）は claude.ai のプロジェクト「スイーツランドデジタル化」にある。`docs/` にはその追補（v1.1 ルール、ヴァリアント、横長レイアウト、不具合の改修、機能の追加）だけを置いている。ルールの判断が要るときは、推測で決めずに持ち主に確認すること。

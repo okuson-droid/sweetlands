@@ -482,3 +482,9 @@ body:has(.game.wide .hand .hslot:hover) .zoom {
 .fold-pop:has(.held) {
   opacity: 0.35;
 }
+
+/* ログは帯（取り消し・手番の最初に戻るのボタン）にかぶさらないよう、帯の下から開く */
+.game.wide .logpanel {
+  top: 112px;
+  max-height: calc(100vh - 130px);
+}

@@ -139,7 +139,7 @@ while (steps < Number(maxArg)) {
   const srcs = await visibleLit('[data-src].lit');
   const buttons = (await visibleLit('.band .actions .btn:not([disabled])')).filter(Boolean);
   const btnTexts = await Promise.all(buttons.map((b) => b.innerText()));
-  const nonPass = buttons.filter((_, i) => !['パス', '取り消し', 'コピーをやめる'].includes(btnTexts[i]));
+  const nonPass = buttons.filter((_, i) => !['パス', '取り消し', '手番の最初に戻る', 'コピーをやめる'].includes(btnTexts[i]));
   const passBtn = buttons.filter((_, i) => btnTexts[i] === 'パス');
 
   const r = rand();
@@ -189,7 +189,7 @@ while (steps < Number(maxArg)) {
     }
   }
   if (!did) {
-    const pool = nonPass.length && rand() < 0.85 ? nonPass : buttons.filter((_, i) => btnTexts[i] !== '取り消し');
+    const pool = nonPass.length && rand() < 0.85 ? nonPass : buttons.filter((_, i) => !['取り消し', '手番の最初に戻る'].includes(btnTexts[i]));
     if (pool.length) {
       const p = await center(pick(pool));
       if (p) await tapAt(p);

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { replay, type GameRecord } from '../game/history';
 import type { GameConfig } from '../game/types';
 import { Game } from './Game';
+import { downloadRecord } from './recordFile';
 import { Result } from './components/Result';
 import { useGame } from './useGame';
 import { InteractionProvider } from './interaction';
@@ -102,7 +103,7 @@ function LocalGame({ config, seed, moves, onExit, onFinished }: { config: GameCo
 
 export function ResultScreen({ record, onReplay, onLobby }: { record: GameRecord; onReplay: () => void; onLobby: () => void }) {
   const s = useMemo(() => replay(record), [record]);
-  return <Result s={s} onReplay={onReplay} onLobby={onLobby} />;
+  return <Result s={s} onReplay={onReplay} onLobby={onLobby} onExport={() => downloadRecord(record)} />;
 }
 
 function ReplayScreen({ record, onBack }: { record: GameRecord; onBack: () => void }) {

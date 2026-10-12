@@ -4,6 +4,7 @@ import { viewFor } from '../game/engine';
 import type { GameState } from '../game/types';
 import { NARROW_WIDTH, NOTICE_MS } from './constants';
 import { buildAffordances } from './gestures';
+import { downloadRecord } from './recordFile';
 import { InteractionProvider, useInteraction } from './interaction';
 import { eventText, redact, usePlayback } from './playback';
 import { chime, setSoundEnabled } from './sound';
@@ -253,6 +254,10 @@ function SettingsPanel({ session, settings, setSettings, close }: { session: Gam
         {row('演出', settings.animation, (v) => setSettings({ ...settings, animation: v }))}
         {row('音', settings.sound, (v) => setSettings({ ...settings, sound: v }))}
         {row('ログ', settings.log, (v) => setSettings({ ...settings, log: v }))}
+        <h3>記録</h3>
+        <button className="btn" onClick={() => downloadRecord(session.record)}>
+          記録を書き出す（JSON）
+        </button>
         <div className="modal-actions">
           <button className="btn primary" onClick={close}>
             閉じる

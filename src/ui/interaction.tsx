@@ -28,6 +28,8 @@ interface Ctx {
   setHeld: (k: string | null) => void;
   copyKey: string | null;
   cancelCopy: () => void;
+  /** コピー（特殊アクションL）：ディスクをエリアに置いたあと、コピー先を選ぶ段階に入る */
+  startCopy: (key: string) => void;
   run: (m: Move) => void;
   reason: (t: ExplainTarget, x: number, y: number) => void;
   showZoom: (z: Zoom | null) => void;
@@ -162,7 +164,7 @@ export function InteractionProvider(props: {
   }, []);
 
   const value = useMemo<Ctx>(
-    () => ({ state, viewer, aff, active, held, setHeld, copyKey, cancelCopy: () => setCopyKey(null), run, reason, showZoom: setZoom, dragging, startPointer }),
+    () => ({ state, viewer, aff, active, held, setHeld, copyKey, cancelCopy: () => setCopyKey(null), startCopy: (k: string) => (setCopyKey(k), setHeld(null)), run, reason, showZoom: setZoom, dragging, startPointer }),
     [state, viewer, aff, active, held, copyKey, run, reason, dragging, startPointer],
   );
 
@@ -212,7 +214,10 @@ export function InteractionProvider(props: {
 }
 
 function zoomPos(z: Zoom): React.CSSProperties {
-  const w = 300;
+  // 拡大表示の幅の上限（styles.css の .zoom：max-width 320px＋左右の padding 24px＋枠 4px）。
+  // 実際の幅より小さく見積もると、画面の右寄りでは拡大表示がポインタの上に重なり、
+  // ポインタが要素から外れた扱いになって表示と消去を繰り返す
+  const w = 348;
   const left = z.x + 16 + w > window.innerWidth ? Math.max(8, z.x - w - 16) : z.x + 16;
   const top = Math.min(Math.max(8, z.y - 40), window.innerHeight - 260);
   return { left, top };
@@ -290,7 +295,9 @@ export function useTarget(key: string, why: ExplainTarget) {
         if (copyMove) return c.run(copyMove);
         if (dropMove) {
           if (dropMove.ids.length === 0) {
-            c.setHeld(null);
+            // コピーするエリアに置いた（クリックで置いたときも、ドラッグと同じくコピー先を選ぶ段階に入る）
+            if (key.startsWith('area:')) c.startCopy(`${c.held}>${key.slice(5)}`);
+            else c.setHeld(null);
             return;
           }
           return c.run(dropMove);

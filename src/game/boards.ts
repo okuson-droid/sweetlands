@@ -117,7 +117,7 @@ export const PRINTED_AUTO: Record<BoardType, Record<Row, Eff[]>> = {
   δ: { agr: [gain({ wheat: 1, wood: 1 })], for: [{ k: 'road', n: 1 }], min: [gain({ iron: 1 }), inc('gold', 1)] },
   ε: { agr: [inc('gold', 4)], for: [inc('wood', 1)], min: [gain({ iron: 1, wheat: 1 })] },
   ζ: { agr: [gain({ wheat: 1, iron: 1 })], for: [{ k: 'road', n: 1 }], min: [inc('gold', 2)] },
-  η: { agr: [gain({ wheat: 1 }), inc('gold', 1)], for: [{ k: 'score', kind: 'ip', n: 1 }], min: [inc('iron', 1)] },
+  η: { agr: [gain({ wheat: 1 }), inc('gold', 1)], for: [{ k: 'score', kind: 'cp', n: 1 }], min: [inc('iron', 1)] },
 };
 
 // ---- 地形タイル（§6.3） ----

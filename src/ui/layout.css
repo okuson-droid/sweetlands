@@ -1844,3 +1844,6 @@ fieldset {
 .mappreview .mapstats {
   display: none;
 }
+.rab.gone .icons {
+  opacity: 0.45;
+}

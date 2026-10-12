@@ -740,3 +740,13 @@ svg .lit-svg {
 .game.narrow .lit {
   outline-width: 3px;
 }
+
+/* 準備の小窓（キャラクター・地図ボードの選択）のあいだも、上の帯（ロビー・設定など）は押せるようにする。
+   小窓が帯まで覆うと、選択の途中で誰かが抜けたときにロビーへ戻れず、ゲームを終了できなくなる */
+.game:has(.modal-back.setup) .topbar {
+  position: relative;
+  z-index: 75;
+}
+.modal-back.setup {
+  top: 34px;
+}

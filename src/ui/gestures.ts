@@ -84,6 +84,8 @@ function place(s: GameState, a: Affordances, t: Target, opt: Option, step: strin
       return true;
     case 'cardToDiscard':
       addDrag(a, `card:${t.card}`, 'discard', one());
+      // 手札で払う場面（フリーアクションなどの支払い）では、カードをクリックしても選べる
+      if (step === 'payHand') a.clicks.set(`card:${t.card}`, one());
       return true;
     case 'cardToRow':
       addDrag(a, t.from === 'hand' ? `card:${t.card}` : `tableau:${t.card}`, `row:${t.row}`, one());
@@ -99,13 +101,11 @@ function place(s: GameState, a: Affordances, t: Target, opt: Option, step: strin
     case 'cardToKeep':
       addDrag(a, `card:${t.card}`, 'keep', { ...one(), confirm: '残りの手札を捨てて、このカードを次のラウンドに残します。よろしいですか' });
       return true;
-    case 'cardToFree': {
-      // 手札のどのカードでも、そのカードを支払いに使う（先回りの回答）
-      const p = s.players[s.pending!.player];
-      const dest = t.slot === 'sakura' ? 'char:sakura' : t.slot === 'fa1' ? 'free:fa1' : 'free:fa7';
-      for (const card of p.hand) addDrag(a, `card:${card}`, dest, { ids: [opt.id], prefill: { step: 'payHand', id: `card:${card}` }, label: opt.label });
+    case 'cardToFree':
+      // 手札を使うフリーアクションは、先にフリーアクションのマス（サクラは能力）をクリックし、
+      // そのあとの支払い（payHand）で手札のカードを選ぶ
+      a.clicks.set(t.slot === 'sakura' ? 'char:sakura' : t.slot === 'fa1' ? 'free:fa1' : 'free:fa7', one());
       return true;
-    }
     case 'discToFree':
       addDrag(a, 'disc:own', 'free:fa7', one());
       return true;

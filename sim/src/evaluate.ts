@@ -4,6 +4,9 @@ import { CHARACTERS, type ClockReq } from '../../src/game/characters';
 import { buildingCount, cities, neighbors, passedIp, playedCount, terrainCount, virtualAreas } from '../../src/game/queries';
 import { hexKey, neighborCoords } from '../../src/game/geometry';
 import type { GameState, PlayerState } from '../../src/game/types';
+import { PORT_VP, PROS_TRACKS } from '../../src/game/boards';
+import { CARDS } from '../../src/game/cards';
+import { connectedPorts } from '../../src/game/queries';
 import { scoreTotal } from './core';
 
 /** 重みの名前（並びが重みベクトルの添字） */
@@ -34,11 +37,37 @@ export const WEIGHT_NAMES = [
   'rabbits', // 23 地図上のクッキーラビット駒
   'roads', // 24 道駒
   'portReach', // 25 港までの近さ：港ごとに、首都から地形タイルでつなぐのに要る残りの枚数（上限6）の合計にマイナスを付けたもの
+  // ---- 評価関数の第2版（人の基準プレイの事例分析を受けて追加。重みが26個を超える重みファイルで有効になる） ----
+  'rateTerrain', // 26 繁栄トラック（地形タイル）の今の位置のレート（対象1つあたりの点）× 残りのパスの回数
+  'rateRabbit', // 27 同（クッキーラビット駒）
+  'rateRoad', // 28 同（道駒）
+  'rateBuilding', // 29 同（建物駒）
+  'rateAutomated', // 30 同（オートメーション化したカード）
+  'rateIp', // 31 同（工業点）
+  'handCost', // 32 手札のカードのコスト（ゴールド）の合計。カードの強さの目安
+  'portUrgency', // 33 港の得点（接続数で決まる失点・得点）を、残りのパスの回数で割ったもの。終盤ほど重く見る
 ] as const;
+
+/** 評価関数の第2版を使うか（重みの数で決まる。第1版の重みファイルは26個） */
+export const isEval2 = (w: Weights) => w.length > 26;
 export type Weights = number[];
 
 /** 初期値（調整の出発点）。単位はおおよその勝利点 */
 export const DEFAULT_WEIGHTS: Weights = [0.1, 0.4, 0.4, 0.4, 0.3, 1.0, 1.0, 0.15, 0.4, 0.4, 0.4, 0.8, 0.5, 0.3, 1.0, 0.5, 0.4, 0.4, 0.2, 4.0, 0.3, 0.3, 0.5, 0.5, 0.2, 2.5];
+
+/** 評価関数の第2版の初期値（第1版の26個のあとに足す8個） */
+export const EVAL2_EXTRA: Weights = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.05, 1.0];
+export const DEFAULT_WEIGHTS_2: Weights = [...DEFAULT_WEIGHTS, ...EVAL2_EXTRA];
+
+/** 繁栄トラック i の、今の位置のレート（対象1つあたりの勝利点）。scoring.ts の prosVp と同じ区間の決め方 */
+export function prosRate(p: PlayerState, i: number): number {
+  const tr = PROS_TRACKS[i];
+  const pos = p.pros[i];
+  if (pos === 0) return 0;
+  const seg = pos >= tr.length ? 2 : pos <= tr.seg1End ? 0 : 1;
+  const [per, vp] = tr.rates[seg];
+  return vp / per;
+}
 
 /** 収入フェイズがあと何回あるか（5ラウンド制） */
 export function incomesLeft(s: GameState): number {
@@ -184,5 +213,18 @@ export function baseEval(s: GameState, w: Weights): number {
   const f = features(s);
   let v = score;
   for (let i = 0; i < f.length; i++) v += w[i] * f[i];
+  if (!isEval2(w)) return v;
+  // 第2版：港の得点は、今の得点からいったん外し、残りのパスの回数で割って足し直す（終盤ほど重い）
+  const p = s.players[0];
+  const P = Math.max(1, passesLeft(s));
+  const port = PORT_VP[connectedPorts(p)];
+  v += -port + w[33] * (port / P);
+  // 繁栄トラックの掛け算：今のレート × 残りのパスの回数（これから増やす対象1つあたりの価値の見込み）
+  const pl = passesLeft(s);
+  for (let i = 0; i < 6; i++) v += w[26 + i] * prosRate(p, i) * pl;
+  // 手札のカードの強さ（クリーンナップ中は1枚しか残らないので最も高いもの）
+  const costs = p.hand.map((id) => CARDS[id].cost);
+  const hc = s.phase === 'cleanup' ? Math.max(0, ...costs) : costs.reduce((a, b) => a + b, 0);
+  v += w[32] * hc * (pl > 0 ? 1 : 0);
   return v;
 }

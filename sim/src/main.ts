@@ -13,7 +13,7 @@ if (!isMainThread && workerData?.fast) installFastClone();
 if (!isMainThread && workerData?.worker && !workerData.fast) setKeepLog(true);
 import { DEFAULT_AGENT, V2_LADDER, type AgentConfig } from './ai';
 import { conditionByName, PILOT_CONDITIONS, TARGET_CHAR } from './core';
-import { DEFAULT_WEIGHTS, WEIGHT_NAMES, type Weights } from './evaluate';
+import { DEFAULT_WEIGHTS, DEFAULT_WEIGHTS_2, EVAL2_EXTRA, WEIGHT_NAMES, type Weights } from './evaluate';
 import { playGame, csvHeader, csvRow, type GameResult } from './play';
 import { Pool, type Job } from './pool';
 import { CHARACTERS } from '../../src/game/characters';
@@ -40,10 +40,13 @@ export interface WeightFile {
   protocol?: Record<string, unknown>;
   history?: unknown[];
 }
+/** 重みを読む。'default'：第1版の初期値、'default2'：第2版の初期値、'<ファイル>+eval2'：第1版の重みに第2版の初期値を足したもの */
 function loadWeights(spec: string | undefined): { name: string; w: Weights } {
   if (!spec || spec === 'default') return { name: 'default', w: [...DEFAULT_WEIGHTS] };
-  const f = JSON.parse(fs.readFileSync(spec, 'utf8')) as WeightFile;
-  return { name: f.name, w: f.weights };
+  if (spec === 'default2') return { name: 'default2', w: [...DEFAULT_WEIGHTS_2] };
+  const extend = spec.endsWith('+eval2');
+  const f = JSON.parse(fs.readFileSync(extend ? spec.slice(0, -6) : spec, 'utf8')) as WeightFile;
+  return extend ? { name: `${f.name}+eval2`, w: [...f.weights, ...EVAL2_EXTRA] } : { name: f.name, w: f.weights };
 }
 function agentConfig(o: Record<string, string>, w: Weights): AgentConfig {
   const rules = { ...DEFAULT_AGENT.rules };

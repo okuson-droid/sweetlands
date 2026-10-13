@@ -1,0 +1,15 @@
+{"it":0,"seeds":[10001,10008],"meanScoreOfMeanCand":41.125,"best":51,"eliteMean":45.875,"top":[51,49],"sec":103}
+{"it":1,"seeds":[10009,10016],"meanScoreOfMeanCand":52.5,"best":55.25,"eliteMean":53.375,"top":[55.25,54],"sec":213}
+{"it":2,"seeds":[10017,10024],"meanScoreOfMeanCand":55.75,"best":55.75,"eliteMean":52.5625,"top":[55.75,53.625],"sec":333}
+{"it":3,"seeds":[10025,10032],"meanScoreOfMeanCand":53.5,"best":57.625,"eliteMean":56.1875,"top":[57.625,56.125],"sec":494}
+{"it":4,"seeds":[10033,10040],"meanScoreOfMeanCand":50,"best":54.5,"eliteMean":53.25,"top":[54.5,53.25],"sec":604}
+{"it":5,"seeds":[10041,10048],"meanScoreOfMeanCand":54.75,"best":60.875,"eliteMean":57.84375,"top":[60.875,59.125],"sec":753}
+{"it":6,"seeds":[10049,10056],"meanScoreOfMeanCand":54.375,"best":55.375,"eliteMean":54.84375,"top":[55.375,55.125],"sec":883}
+{"it":7,"seeds":[10057,10064],"meanScoreOfMeanCand":62.375,"best":62.375,"eliteMean":60.03125,"top":[62.375,60.875],"sec":1017}
+{"it":8,"seeds":[10065,10072],"meanScoreOfMeanCand":52.75,"best":59.375,"eliteMean":58.53125,"top":[59.375,58.875],"sec":1136}
+{"it":9,"seeds":[10073,10080],"meanScoreOfMeanCand":54.5,"best":57.75,"eliteMean":56.625,"top":[57.75,56.625],"sec":1267}
+{"it":10,"seeds":[10081,10088],"meanScoreOfMeanCand":56.875,"best":62,"eliteMean":61.46875,"top":[62,61.75],"sec":1405}
+{"it":11,"seeds":[10089,10096],"meanScoreOfMeanCand":51.375,"best":54.625,"eliteMean":53.875,"top":[54.625,54.125],"sec":1509}
+{"it":12,"seeds":[10097,10104],"meanScoreOfMeanCand":59.125,"best":63.375,"eliteMean":60.96875,"top":[63.375,61.625],"sec":1636}
+{"it":13,"seeds":[10105,10112],"meanScoreOfMeanCand":52.875,"best":62.625,"eliteMean":60.625,"top":[62.625,60.75],"sec":1754}
+{"it":14,"seeds":[10113,10120],"meanScoreOfMeanCand":50.75,"best":54.5,"eliteMean":53.4375,"top":[54.5,54],"sec":1897}

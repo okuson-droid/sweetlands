@@ -7,6 +7,7 @@
 import { chromium } from '@playwright/test';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
+import { stepSplit } from './split.mjs';
 
 const [, , playersArg = '3', seedArg = '1', maxArg = '4000', variantsArg = ''] = process.argv;
 const n = Number(playersArg);
@@ -91,6 +92,8 @@ while (steps < Number(maxArg)) {
     await p.mouse.click(...Object.values(await center(confirmBtn[0])));
     continue;
   }
+  // 基礎資源の内訳の入力（初期値は0）：決定が押せないあいだは、＋／−を押して数を合わせる
+  if (await stepSplit(p, rand, (c) => p.mouse.click(c.x, c.y))) continue;
   const tabs = await visibleLit(p, '.draft-tabs .btn:not([disabled]):not(.on)');
   if (tabs.length && rand() < 0.5) await tabs[0].click();
   const hints = await visibleLit(p, '.fold.hint:not(.open) .fold-head');

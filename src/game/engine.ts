@@ -443,6 +443,21 @@ function basicCombos(n: number, limit?: Res): Record<Basic, number>[] {
     }
   return out;
 }
+/** 合計が unit の倍数（unit 以上 max 以下）になる内訳の候補。両替のフリーアクションを一括で行うために使う */
+function bulkCombos(unit: number, max: number, limit?: Res): Record<Basic, number>[] {
+  const out: Record<Basic, number>[] = [];
+  for (let n = unit; n <= max; n += unit) out.push(...basicCombos(n, limit));
+  return out;
+}
+const comboTotal = (c: Record<Basic, number>) => c.wheat + c.wood + c.iron;
+/** 両替の効果を k 回分にまとめる（得る基礎資源・ゴールドの数を k 倍にする） */
+function scaleEffs(effs: Eff[], k: number): Eff[] {
+  return effs.map((e) => {
+    if (e.k === 'anyBasic') return { ...e, n: e.n * k };
+    if (e.k === 'gain') return { ...e, res: Object.fromEntries(Object.entries(e.res).map(([r, v]) => [r, (v ?? 0) * k])) };
+    return e;
+  });
+}
 const comboLabel = (c: Record<Basic, number>) =>
   BASICS.filter((b) => c[b] > 0)
     .map((b) => `${RES_LABEL[b]}${c[b]}`)
@@ -537,6 +552,14 @@ function exec(s: GameState, t: Task): void {
       return;
     case 'anyBasic': {
       if (e.n <= 0) return;
+      const goldEach = Number(t.ctx?.goldEach ?? 0);
+      if (goldEach > 0) {
+        // フリーアクション❸の一括：goldEach ゴールドにつき1個、払える分まで何個でも得る
+        const max = Math.floor(p.res.gold / goldEach);
+        const opts = bulkCombos(1, max).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
+        ask(s, t, 'anyBasic', `得る基礎資源の内訳を選んでください（${goldEach}ゴールドにつき1個、最大${max}個）`, opts);
+        return;
+      }
       const opts = basicCombos(e.n).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
       ask(s, t, 'anyBasic', `任意の基礎資源を${e.n}個得る：内訳を選んでください`, opts);
       return;
@@ -624,6 +647,7 @@ function resume(s: GameState, t: Task, step: string, opt: Option): void {
   switch (step) {
     case 'anyBasic': {
       const c = d as Record<Basic, number>;
+      p.res.gold -= Number(t.ctx?.goldEach ?? 0) * comboTotal(c);
       addRes(s, p, c);
       return;
     }
@@ -1235,6 +1259,7 @@ function resumePay(s: GameState, t: Task, step: string, opt: Option): void {
     const c = opt.data as Record<Basic, number>;
     for (const b of BASICS) p.res[b] -= c[b];
     ctx.basicLeft = 0;
+    if (ctx.bulk) ctx.times = comboTotal(c) / Number(ctx.bulk);
   } else if (step === 'payHand') {
     const id = String(opt.data!.card);
     p.hand = p.hand.filter((x) => x !== id);
@@ -1243,6 +1268,13 @@ function resumePay(s: GameState, t: Task, step: string, opt: Option): void {
     ctx.handLeft = Number(ctx.handLeft) - 1;
   }
   if (Number(ctx.basicLeft) > 0) {
+    if (ctx.bulk) {
+      // 両替のフリーアクション（❺❻）の一括：bulk 個を1単位として、持っている分まで何単位でも払える
+      const unit = Number(ctx.bulk);
+      const opts = bulkCombos(unit, BASICS.reduce((a, b) => a + p.res[b], 0), p.res).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
+      ask(s, t, 'payBasic', `支払う基礎資源の内訳を選んでください（${unit}個につき${describe(e.then)}）`, opts);
+      return;
+    }
     const opts = basicCombos(Number(ctx.basicLeft), p.res).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
     ask(s, t, 'payBasic', `支払う基礎資源${ctx.basicLeft}個の内訳を選んでください`, opts);
     return;
@@ -1252,7 +1284,8 @@ function resumePay(s: GameState, t: Task, step: string, opt: Option): void {
     ask(s, t, 'payHand', `捨てる手札を選んでください（あと${ctx.handLeft}枚）`, opts, 'card');
     return;
   }
-  const out = tasks(t.player, e.then, t.src);
+  const times = Number(ctx.times ?? 1);
+  const out = tasks(t.player, times > 1 ? scaleEffs(e.then, times) : e.then, t.src);
   if (e.repeat) out.push({ player: t.player, eff: e, src: t.src });
   t.ctx = {};
   front(s, out);
@@ -2116,17 +2149,19 @@ function resumeFreeAction(s: GameState, t: Task, opt: Option): void {
       p.res.gold -= 15;
       q([{ k: 'draw', n: 1 }]);
       return;
+    // ❸❺❻の両替は、繰り返し使うのと同じ結果を1回の入力で得られるよう、何単位分でもまとめて行う。
+    // 1単位分の内訳の選択肢 ID は以前と同じため、以前の手の列もそのまま再生できる
     case 'fa3':
-      p.res.gold -= 4;
       q([{ k: 'anyBasic', n: 1 }]);
+      s.queue[s.queue.length - 1].ctx = { goldEach: 4 };
       return;
     case 'fa5':
       q([{ k: 'pay', cost: { anyBasic: 1 }, then: [{ k: 'gain', res: { gold: 1 } }] }]);
-      s.queue[s.queue.length - 1].ctx = { basicLeft: 1, handLeft: 0, direct: true };
+      s.queue[s.queue.length - 1].ctx = { basicLeft: 1, handLeft: 0, direct: true, bulk: 1 };
       return;
     case 'fa6':
       q([{ k: 'pay', cost: { anyBasic: 3 }, then: [{ k: 'anyBasic', n: 1 }] }]);
-      s.queue[s.queue.length - 1].ctx = { basicLeft: 3, handLeft: 0, direct: true };
+      s.queue[s.queue.length - 1].ctx = { basicLeft: 3, handLeft: 0, direct: true, bulk: 3 };
       return;
     case 'fa7d':
       p.discs -= 1;

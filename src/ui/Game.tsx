@@ -1,57 +1,23 @@
-// 対局画面（ui_design §4, §7, §10, §12）
+// 対局画面（ui_design §4, §7, §10, §12, §21, §22）
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { viewFor } from '../game/engine';
-import type { GameState } from '../game/types';
-import { NARROW_WIDTH, NOTICE_MS } from './constants';
+import { NOTICE_MS } from './constants';
 import { buildAffordances } from './gestures';
-import { downloadRecord } from './recordFile';
 import { InteractionProvider, useInteraction } from './interaction';
 import { eventText, redact, usePlayback } from './playback';
 import { chime, setSoundEnabled } from './sound';
 import { playerColor } from './theme';
 import type { GameSession } from './useGame';
-import { Band, phaseLabel } from './components/Band';
+import { Band } from './components/Band';
 import { CandidateWindow, SetupWindow } from './components/Dialogs';
-import { HandBar, HandRow, MineSupply, SharedSupply } from './components/HandBar';
+import { HandRow, MineSupply, SharedSupply } from './components/HandBar';
 import { Fold } from './components/Fold';
-import { Icons } from './icons/EffIcons';
 import { IndustryBoard } from './components/IndustryBoard';
-import { FreeActions, MainBoard, ProsBoard, SideBoard, SideStrip, SkillPiles, SupportBoard } from './components/MainBoard';
+import { FreeActions, MainBoard, ProsBoard, SideStrip, SkillPiles, SupportBoard } from './components/MainBoard';
 import { MapBoard } from './components/MapBoard';
 import { PersonalBoard, TableauBar } from './components/PersonalBoard';
-
-export interface ViewSettings {
-  animation: boolean;
-  sound: boolean;
-  log: boolean;
-}
-
-interface LogLine {
-  group: number; // その行を出した手の番号（手の列の長さ）。取り消しで手の列が縮んだら、それより後の行を消す
-  text: string;
-  player: number | null; // 出来事の主体の席（ラウンドの区切りなど主体のない行は null）
-}
-
-const UPPER_KEYS = ['area:', 'pros:', 'free:', 'skillpile:', 'milestone:', 'support:', 'advskill:', 'marker:support'];
-const LOWER_KEYS = ['hex:', 'edge:', 'piece:', 'row:', 'tableau', 'marker:carriage', 'marker:loco', 'income:', 'skills', 'char:', 'skill:'];
-
-function sideOf(keys: string[]): 'upper' | 'lower' | null {
-  const up = keys.some((k) => UPPER_KEYS.some((p) => k.startsWith(p)));
-  const lo = keys.some((k) => LOWER_KEYS.some((p) => k.startsWith(p)));
-  if (up && !lo) return 'upper';
-  if (lo && !up) return 'lower';
-  return null;
-}
-
-function useNarrow(): boolean {
-  const [narrow, setNarrow] = useState(() => window.innerWidth < NARROW_WIDTH || window.innerHeight < 600);
-  useEffect(() => {
-    const f = () => setNarrow(window.innerWidth < NARROW_WIDTH || window.innerHeight < 600);
-    window.addEventListener('resize', f);
-    return () => window.removeEventListener('resize', f);
-  }, []);
-  return narrow;
-}
+import { LogPanel, mapFlash, Opponents, SettingsPanel, TopBar, usePanels, type LayoutProps, type LogLine, type ViewSettings } from './GameParts';
+import { LandscapeLayout, PortraitLayout, useLayoutMode } from './MobileLayout';
 
 export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { session: GameSession; hotseat: boolean; fixedViewer?: number; onExit: () => void; onFinished: () => void }) {
   const raw = session.state;
@@ -149,16 +115,13 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
     };
   });
 
-  const narrow = useNarrow();
+  const mode = useLayoutMode();
   const meStyle = { ['--me' as string]: playerColor(viewer) } as React.CSSProperties;
   return (
     <InteractionProvider state={s} viewer={viewer} aff={aff} active={active} perform={session.perform}>
-      <div className="portrait-guard">横向きにしてください。スイーツランドは横長の画面で遊びます。</div>
-      {narrow ? (
-        <NarrowLayout s={display} live={s} viewer={viewer} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />
-      ) : (
-        <WideLayout s={display} live={s} viewer={viewer} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />
-      )}
+      {mode === 'portrait' && <PortraitLayout s={display} live={s} viewer={viewer} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}
+      {mode === 'landscape' && <LandscapeLayout s={display} live={s} viewer={viewer} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}
+      {mode === 'wide' && <WideLayout s={display} live={s} viewer={viewer} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}
       {pb.playing && <div className="skip-layer" onPointerDown={pb.skip} aria-label="演出を飛ばす" />}
       {notice && (
         <div className="notice" style={meStyle}>
@@ -174,233 +137,6 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
   );
 }
 
-interface LayoutProps {
-  s: GameState; // 表示中の盤面（演出中は写し）
-  live: GameState; // 真の盤面
-  viewer: number;
-  session: GameSession;
-  pulse: boolean;
-  log: LogLine[];
-  settings: ViewSettings;
-  setSettings: (v: ViewSettings) => void;
-  onExit: () => void;
-  flash: Set<string>;
-  style: React.CSSProperties;
-}
-
-function mapFlash(flash: Set<string>, seat: number): Set<string> {
-  return new Set([...flash].filter((k) => k.startsWith(`${seat}|`)).map((k) => k.split('|')[1]));
-}
-
-function TopBar({ s, viewer, onLog, onPeople, onSettings, onExit }: { s: GameState; viewer: number; onLog: () => void; onPeople: () => void; onSettings: () => void; onExit: () => void }) {
-  return (
-    <header className="topbar">
-      <span>
-        R{s.round} {phaseLabel(s)}
-      </span>
-      <span className="order">
-        手番順{' '}
-        {s.turnOrder.map((seat, i) => (
-          <span key={seat} className={`chip ${s.pending?.player === seat ? 'now' : ''} ${s.players[seat].passed ? 'passed' : ''}`} style={{ marginLeft: i ? 4 : 0 }}>
-            {s.players[seat].name}
-          </span>
-        ))}
-      </span>
-      <span>スタート：{s.players[s.startPlayer].name}</span>
-      {s.round === 5 && <span className="chip">最終ラウンド：手札を使い切れます</span>}
-      <span className="spacer" />
-      <span className="mycolor" style={{ background: playerColor(viewer) }} title="あなたの色" />
-      <button onClick={onPeople}>みんな</button>
-      <button onClick={onLog}>ログ</button>
-      <button onClick={onSettings}>設定</button>
-      <button onClick={onExit}>ロビー</button>
-    </header>
-  );
-}
-
-function Opponents({ s, viewer, viewing, setViewing }: { s: GameState; viewer: number; viewing: number; setViewing: (n: number) => void }) {
-  return (
-    <div className="opponents" role="list">
-      {s.players.map((p) => (
-        <button key={p.seat} role="listitem" className={`opp ${viewing === p.seat ? 'viewing' : ''}`} onClick={() => setViewing(p.seat)}>
-          <span className="dot" style={{ background: playerColor(p.seat) }} />
-          <b>{p.seat === viewer ? `${p.name}（あなた）` : p.name}</b>
-          <Icons toks={[{ g: 'gold', n: p.res.gold }, { g: 'wheat', n: p.res.wheat }, { g: 'wood', n: p.res.wood }, { g: 'iron', n: p.res.iron }, { g: 'diamond', n: p.diamond }, { g: 'disc', n: p.discs }, { g: 'handCard', n: p.hand.length }]} size={15} />
-          <Icons className="scores" toks={[{ g: 'vp', n: p.score.vp }, { g: 'cp', n: p.score.cp }, { g: 'ip', n: p.score.ip }]} size={15} />
-          {p.passed && <span className="busy">パス済み</span>}
-          {s.pending?.player === p.seat && p.seat !== viewer && <span className="busy">操作中</span>}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function SettingsPanel({ session, settings, setSettings, close }: { session: GameSession; settings: ViewSettings; setSettings: (v: ViewSettings) => void; close: () => void }) {
-  const a = session.auto;
-  const row = (label: string, v: boolean, set: (v: boolean) => void) => (
-    <label className="setting">
-      <input type="checkbox" checked={v} onChange={(e) => set(e.target.checked)} /> {label}
-    </label>
-  );
-  return (
-    <div className="modal-back" onPointerDown={close}>
-      <div className="modal" onPointerDown={(e) => e.stopPropagation()} role="dialog" aria-label="設定">
-        <h2>設定</h2>
-        <h3>自動化（既定は切）</h3>
-        {row('候補が1つだけの選択を自動で選ぶ', a.single, (v) => session.setAuto({ ...a, single: v }))}
-        {row('基礎資源の支払いの内訳を自動で決める', a.payBasic, (v) => session.setAuto({ ...a, payBasic: v }))}
-        {row('できることがパスしかないとき自動でパスする', a.pass, (v) => session.setAuto({ ...a, pass: v }))}
-        <h3>表示</h3>
-        {row('演出', settings.animation, (v) => setSettings({ ...settings, animation: v }))}
-        {row('音', settings.sound, (v) => setSettings({ ...settings, sound: v }))}
-        {row('ログ', settings.log, (v) => setSettings({ ...settings, log: v }))}
-        <h3>記録</h3>
-        <button className="btn" onClick={() => downloadRecord(session.record)}>
-          記録を書き出す（JSON）
-        </button>
-        <div className="modal-actions">
-          <button className="btn primary" onClick={close}>
-            閉じる
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LogPanel({ s, log, close }: { s: GameState; log: LogLine[]; close: () => void }) {
-  // 表示するプレイヤー（null はすべて）。主体のない行（ラウンドの区切りなど）は絞り込み中も出す
-  const [who, setWho] = useState<number | null>(null);
-  const shown = who === null ? log : log.filter((l) => l.player === who || l.player === null);
-  return (
-    <aside className="logpanel" aria-label="ログ">
-      <div className="loghead">
-        <b>ログ（新しい順）</b>
-        <select value={who ?? ''} onChange={(e) => setWho(e.target.value === '' ? null : Number(e.target.value))} aria-label="表示するプレイヤー">
-          <option value="">全員</option>
-          {s.players.map((p) => (
-            <option key={p.seat} value={p.seat}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-        <button className="btn" onClick={close}>
-          閉じる
-        </button>
-      </div>
-      {[...shown].reverse().map((l, i) => (
-        <div key={i} className="logline" style={l.player !== null ? { borderLeftColor: playerColor(l.player) } : undefined}>
-          {l.text}
-        </div>
-      ))}
-    </aside>
-  );
-}
-
-function usePanels() {
-  const [panel, setPanel] = useState<'log' | 'settings' | null>(null);
-  return { panel, setPanel };
-}
-
-type Tab = 'shared' | 'mine' | 'hand' | 'people';
-
-function NarrowLayout(props: LayoutProps) {
-  const { s, live, viewer, session, pulse, flash, style } = props;
-  const c = useInteraction();
-  const [tab, setTab] = useState<Tab>('mine');
-  const { panel, setPanel } = usePanels();
-  const [viewing, setViewing] = useState(viewer);
-  useEffect(() => setViewing(viewer), [viewer, live.pending?.player]);
-  const keys = c.held ? [...(c.aff.drags.get(c.held)?.keys() ?? [])] : [...c.aff.clicks.keys(), ...c.aff.drags.keys()];
-  const want = (t: Tab) => {
-    if (t === 'shared') return keys.some((k) => UPPER_KEYS.some((p) => k.startsWith(p))) || !!c.copyKey;
-    if (t === 'mine') return keys.some((k) => LOWER_KEYS.some((p) => k.startsWith(p)));
-    if (t === 'hand') return keys.some((k) => k.startsWith('card:') || k === 'discard' || k === 'hand' || k === 'keep' || k.startsWith('tile:') || k.startsWith('disc:') || k === 'road' || k === 'diamond' || k.startsWith('special:'));
-    return false;
-  };
-  // 合法な対象がある側へ自動で切り替える
-  useEffect(() => {
-    const order: Tab[] = c.held ? ['shared', 'mine', 'hand'] : ['hand', 'shared', 'mine'];
-    if (want(tab)) return;
-    const t = order.find(want);
-    if (t) setTab(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [live.pending, c.held, c.copyKey]);
-  const p = s.players[viewing];
-  const tabs: [Tab, string][] = [
-    ['shared', '共通の場'],
-    ['mine', '自分の場'],
-    ['hand', '手札'],
-    ['people', 'みんな'],
-  ];
-  return (
-    <div className="game narrow" style={style}>
-      <TopBar s={s} viewer={viewer} onLog={() => setPanel(panel === 'log' ? null : 'log')} onPeople={() => setTab('people')} onSettings={() => setPanel('settings')} onExit={props.onExit} />
-      <nav className="vtabs">
-        {tabs.map(([t, label]) => (
-          <button
-            key={t}
-            className={`${tab === t ? 'on' : ''} ${want(t) && tab !== t ? 'wants' : ''}`}
-            onClick={() => setTab(t)}
-            onPointerEnter={() => c.held && setTab(t)}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
-      <div className="narrow-pane">
-        {tab === 'shared' && (
-          <div className="narrow-stack">
-            <div className="board">
-              <MainBoard s={s} flashKeys={flash} />
-            </div>
-            <div className="board">
-              <SideBoard s={s} flashKeys={flash} />
-            </div>
-          </div>
-        )}
-        {tab === 'mine' && (
-          <div className="narrow-mine">
-            <div className="board mapboard">
-              <MapBoard p={p} color={playerColor(p.seat)} flashKeys={mapFlash(flash, p.seat)} />
-            </div>
-            <div className="board">
-              <PersonalBoard s={s} p={p} />
-            </div>
-            <div className="board">
-              <IndustryBoard s={s} p={p} />
-            </div>
-          </div>
-        )}
-        {tab === 'hand' && <HandBar s={s} me={s.players[viewer]} viewer={viewer} />}
-        {tab === 'people' && (
-          <div className="people">
-            <Opponents
-              s={s}
-              viewer={viewer}
-              viewing={viewing}
-              setViewing={(n) => {
-                setViewing(n);
-                setTab('mine');
-              }}
-            />
-            <LogPanel s={s} log={props.log} close={() => setTab('mine')} />
-          </div>
-        )}
-      </div>
-      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} />
-      <CandidateWindow s={live} viewer={viewer} />
-      <SetupWindow s={live} viewer={viewer} />
-      {panel === 'log' && <LogPanel s={s} log={props.log} close={() => setPanel(null)} />}
-      {panel === 'settings' && <SettingsPanel session={session} settings={props.settings} setSettings={props.setSettings} close={() => setPanel(null)} />}
-    </div>
-  );
-}
-
-// ---- 横長（PC）レイアウト（ui_design §21） ----
-// 左半分：共有ボード（メインボード・模倣ボードなどの帯・手札と共通サプライ）。右半分：個人ボード（工業ボード・マップ・キャラボード）。
-// フリーアクション・スキルタイル・ラウンド支援ボード・特殊タイル・プレイしたカードはクリックで展開する。
-// 繁栄トラックは左半分に、マップ・キャラボード・工業ボードは右半分に、それぞれその側の中だけを覆って拡大表示する。
 type Enlarged = 'map' | 'char' | 'industry';
 const ENLARGED_TITLE: Record<Enlarged, string> = { map: 'マップ', char: 'キャラボード（個人ボード）', industry: '工業発展ボード' };
 

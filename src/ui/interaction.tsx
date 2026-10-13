@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { explain, type ExplainTarget } from '../game/explain';
 import type { GameState } from '../game/types';
-import { DRAG_START_PX, HOVER_ZOOM_MS, LONG_PRESS_MS, REASON_TOAST_MS, SNAP_PX } from './constants';
+import { CLICK_SWALLOW_MS, DRAG_START_PX, HOVER_ZOOM_MS, LONG_PRESS_MS, REASON_TOAST_MS, SNAP_PX } from './constants';
 import { destsOf, type Affordances, type Move } from './gestures';
 
 interface Toast {
@@ -117,6 +117,9 @@ export function InteractionProvider(props: {
       drag.current = null;
       setDragging(null);
       if (!d.moved) {
+        // タップのあとに来るクリックは捨てる。持ち上げたり手を送ったりすると、スマートフォンでは表示中の面やシートが切り替わり、
+        // 同じ位置へ遅れて届くクリックが別の要素（置き先のヘクスなど）に当たって、意図しない操作になるため（ui_design §22.5）
+        swallowNextClick();
         // タップ：直接触る所作があればそれ、なければ持ち上げる／下ろす
         const direct = aff.clicks.get(d.src);
         if (direct) run(direct);
@@ -211,6 +214,15 @@ export function InteractionProvider(props: {
       )}
     </InteractionCtx.Provider>
   );
+}
+
+function swallowNextClick(): void {
+  const f = (e: MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+  window.addEventListener('click', f, { capture: true, once: true });
+  window.setTimeout(() => window.removeEventListener('click', f, { capture: true }), CLICK_SWALLOW_MS);
 }
 
 function zoomPos(z: Zoom): React.CSSProperties {

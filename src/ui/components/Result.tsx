@@ -18,7 +18,7 @@ export function Result({ s, onReplay, onLobby, onExport }: { s: GameState; onRep
   return (
     <div className="result" onClick={() => setShown(items)}>
       <h1>最終得点</h1>
-      <div className="result-grid" style={{ gridTemplateColumns: `minmax(180px, 1.4fr) repeat(${rows.length}, minmax(90px, 1fr))` }}>
+      <div className="result-grid" style={{ gridTemplateColumns: `minmax(180px, 1.4fr) repeat(${rows.length}, minmax(90px, 1fr))`, ['--n' as string]: rows.length }}>
         <span />
         {rows.map((r) => (
           <b key={r.seat} className="rname">

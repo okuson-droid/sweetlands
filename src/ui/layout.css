@@ -906,65 +906,6 @@ fieldset {
   min-height: 0;
 }
 
-/* ---- 狭い画面 ---- */
-.game.narrow .narrow-pane {
-  grid-column: 2;
-  grid-row: 2;
-}
-.game.narrow .band {
-  grid-column: 2;
-  grid-row: 3;
-  flex-wrap: wrap;
-}
-.game.narrow .handbar {
-  height: 100%;
-  grid-template-columns: 90px minmax(0, 1fr);
-  grid-template-rows: 1fr auto;
-}
-.game.narrow .handbar .supply {
-  grid-column: 1 / -1;
-  flex-wrap: wrap;
-}
-.narrow-stack {
-  display: grid;
-  gap: 4px;
-}
-.narrow-stack .mainboard {
-  grid-template-columns: 1fr;
-}
-.narrow-mine {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 4px;
-  height: 100%;
-}
-.narrow-mine .mapboard {
-  grid-row: span 2;
-  min-height: 240px;
-}
-.people {
-  display: grid;
-  gap: 6px;
-}
-.people .opponents {
-  flex-direction: column;
-  align-items: stretch;
-  background: none;
-}
-.people .logpanel {
-  position: static;
-  width: auto;
-  max-height: none;
-}
-.game.narrow .topbar {
-  font-size: 11px;
-  gap: 6px;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.game.narrow .topbar .order {
-  display: none;
-}
 .mycolor {
   width: 14px;
   height: 14px;

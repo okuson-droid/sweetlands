@@ -1,12 +1,16 @@
 // 受け入れ検査（ui_design §16）：盤面の所作だけで1局を打ち切る自動プレイヤー
-// 使い方: node e2e/autoplay.mjs mouse|touch <seed> <players> [maxSteps] [shotDir]
+// 使い方: node e2e/autoplay.mjs mouse|touch|portrait|landscape <seed> <players> [maxSteps] [shotDir]
+// touch と landscape はスマートフォン横持ち（844×390）、portrait は縦持ち（390×844）。どれもタッチ操作だけで打つ
 import { chromium } from '@playwright/test';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const [, , mode = "mouse", seedArg = "1", playersArg = "3", maxArg = "6000", shotDir = "", variants = "0"] = process.argv;
-const touch = mode === 'touch';
-const viewport = touch ? { width: 800, height: 360 } : { width: 1280, height: 720 };
+const touch = mode !== 'mouse';
+const VIEWPORTS = { mouse: { width: 1280, height: 720 }, touch: { width: 844, height: 390 }, landscape: { width: 844, height: 390 }, portrait: { width: 390, height: 844 } };
+const viewport = VIEWPORTS[mode] ?? VIEWPORTS.touch;
+// スマートフォンのレイアウト（ui_design §22）で、対象のある面を知らせるタブ（●印）
+const WANT_TABS = '.mtabs button.wants, .mside-tabs button.wants, .msheet-head.wants';
 const url = `${pathToFileURL(path.resolve('dist/index.html'))}?auto=1&noanim=1&players=${playersArg}&seed=${seedArg}&v=${variants}`;
 
 let rng = Number(seedArg) * 2654435761 >>> 0;
@@ -14,7 +18,7 @@ const rand = () => ((rng = (rng * 1664525 + 1013904223) >>> 0) / 2 ** 32);
 const pick = (a) => a[Math.floor(rand() * a.length)];
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport, hasTouch: touch, isMobile: false });
+const page = await browser.newPage({ viewport, hasTouch: touch, isMobile: touch });
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
 await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
@@ -78,7 +82,7 @@ while (steps < Number(maxArg)) {
       const rec = await page.evaluate(() => localStorage.getItem('sweetlands.local.v1'));
       (await import('node:fs')).writeFileSync('/tmp/claude-0/stuck-record.json', rec ?? '');
     }
-    console.log('STUCK at', sl.step, await page.evaluate(() => JSON.stringify({ tabs: [...document.querySelectorAll('.vtabs button')].map((b) => b.className + ':' + b.textContent), lit: document.querySelectorAll('.lit').length, srcs: [...document.querySelectorAll('[data-src]')].length, held: document.querySelectorAll('.held').length })));
+    console.log('STUCK at', sl.step, await page.evaluate(() => JSON.stringify({ tabs: [...document.querySelectorAll('.mtabs button, .mside-tabs button')].map((b) => b.className + ':' + b.textContent), lit: document.querySelectorAll('.lit').length, srcs: [...document.querySelectorAll('[data-src]')].length, held: document.querySelectorAll('.held').length })));
     if (shotDir) await page.screenshot({ path: `${shotDir}/stuck-${mode}.png` });
     break;
   }
@@ -153,7 +157,7 @@ while (steps < Number(maxArg)) {
         await page.waitForTimeout(30);
         let ds = await visibleLit('[data-dest].lit');
         if (!ds.length) {
-          const tabs = await visibleLit('.vtabs button.wants');
+          const tabs = await visibleLit(WANT_TABS);
           if (tabs.length) {
             await page.touchscreen.tap(...Object.values(await center(tabs[0])));
             await page.waitForTimeout(30);
@@ -195,7 +199,7 @@ while (steps < Number(maxArg)) {
       if (p) await tapAt(p);
     } else {
       // 狭い画面：対象のある側へ切り替える
-      const tabs = await visibleLit('.vtabs button.wants');
+      const tabs = await visibleLit(WANT_TABS);
       if (tabs.length) await tapAt(await center(tabs[0]));
     }
   }

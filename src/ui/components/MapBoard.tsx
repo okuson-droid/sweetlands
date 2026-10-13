@@ -43,8 +43,11 @@ function pointsOf(r: number, c: number): string {
 
 export function MapBoard({ p, color, flashKeys }: { p: PlayerState; color: string; flashKeys: Set<string> }) {
   const c = useInteraction();
-  const [view, setView] = useState({ x: -2.1, y: -3.0, w: 18.2, h: 14.6 });
+  const [view, setView] = useState(HOME_VIEW);
   const pan = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
+  // 2本指の拡大縮小（ui_design §22.4）。指ごとの位置と、つまみ始めの距離・表示範囲を持つ
+  const touches = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ d0: number; v0: typeof HOME_VIEW } | null>(null);
   const svg = useRef<SVGSVGElement>(null);
   const virtual = useMemo(() => (p.mapId ? virtualAreas(p.mapId) : { ports: [], draws: [] }), [p.mapId]);
   const held = c.held;
@@ -55,16 +58,26 @@ export function MapBoard({ p, color, flashKeys }: { p: PlayerState; color: strin
 
   if (!p.mapId) return <div className="empty">地図ボードはまだ選ばれていません</div>;
 
+  /** 表示範囲を k 倍にする。画面上の点 (cx, cy) の位置を動かさない */
+  const zoomAt = (v: typeof HOME_VIEW, k: number, cx: number, cy: number) => {
+    const w = Math.min(24, Math.max(6, v.w * k));
+    const h = (v.h / v.w) * w;
+    const rect = svg.current!.getBoundingClientRect();
+    const fx = (cx - rect.left) / rect.width;
+    const fy = (cy - rect.top) / rect.height;
+    return { x: v.x + (v.w - w) * fx, y: v.y + (v.h - h) * fy, w, h };
+  };
   const onWheel = (e: React.WheelEvent) => {
     const k = e.deltaY > 0 ? 1.12 : 1 / 1.12;
-    setView((v) => {
-      const w = Math.min(24, Math.max(6, v.w * k));
-      const h = (v.h / v.w) * w;
-      const rect = svg.current!.getBoundingClientRect();
-      const fx = (e.clientX - rect.left) / rect.width;
-      const fy = (e.clientY - rect.top) / rect.height;
-      return { x: v.x + (v.w - w) * fx, y: v.y + (v.h - h) * fy, w, h };
-    });
+    setView((v) => zoomAt(v, k, e.clientX, e.clientY));
+  };
+  const zoomCenter = (k: number) => {
+    const r = svg.current!.getBoundingClientRect();
+    setView((v) => zoomAt(v, k, r.left + r.width / 2, r.top + r.height / 2));
+  };
+  const spread = () => {
+    const [a, b] = [...touches.current.values()];
+    return { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
   };
 
   const cityGroups = cities(p);
@@ -93,17 +106,41 @@ export function MapBoard({ p, color, flashKeys }: { p: PlayerState; color: strin
       preserveAspectRatio="xMidYMid meet"
       onWheel={onWheel}
       onPointerDown={(e) => {
+        if (e.pointerType === 'touch') {
+          touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          if (touches.current.size === 2) {
+            pan.current = null;
+            pinch.current = { d0: spread().d, v0: view };
+            return;
+          }
+        }
         if ((e.target as Element).closest('[data-dest]') || e.button !== 0) return;
         pan.current = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y };
       }}
       onPointerMove={(e) => {
+        if (touches.current.has(e.pointerId)) touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        const pc = pinch.current;
+        if (pc && touches.current.size === 2) {
+          const sp = spread();
+          if (sp.d > 0) setView(zoomAt(pc.v0, pc.d0 / sp.d, sp.cx, sp.cy));
+          return;
+        }
         const pn = pan.current;
         if (!pn || c.dragging) return;
         const rect = svg.current!.getBoundingClientRect();
         const sx = view.w / rect.width;
         setView((v) => ({ ...v, x: pn.vx - (e.clientX - pn.x) * sx, y: pn.vy - (e.clientY - pn.y) * sx }));
       }}
-      onPointerUp={() => (pan.current = null)}
+      onPointerUp={(e) => {
+        touches.current.delete(e.pointerId);
+        if (touches.current.size < 2) pinch.current = null;
+        pan.current = null;
+      }}
+      onPointerCancel={(e) => {
+        touches.current.delete(e.pointerId);
+        pinch.current = null;
+        pan.current = null;
+      }}
       onPointerLeave={() => (pan.current = null)}
       role="img"
       aria-label={`${p.name}の地図ボード`}
@@ -133,9 +170,23 @@ export function MapBoard({ p, color, flashKeys }: { p: PlayerState; color: strin
         <EdgeSpot key={e} e={e} />
       ))}
     </svg>
+      <div className="mapzoom" aria-label="地図の拡大縮小">
+        <button className="btn" onClick={() => zoomCenter(1 / 1.25)} aria-label="地図を拡大">
+          ＋
+        </button>
+        <button className="btn" onClick={() => zoomCenter(1.25)} aria-label="地図を縮小">
+          −
+        </button>
+        <button className="btn" onClick={() => setView(HOME_VIEW)} aria-label="地図の全体を表示">
+          全体
+        </button>
+      </div>
     </div>
   );
 }
+
+/** 地図の最初の表示範囲（盤面全体が入る） */
+const HOME_VIEW = { x: -2.1, y: -3.0, w: 18.2, h: 14.6 };
 
 function VirtualSpot({ r, c, glyph, active, title }: { r: number; c: number; glyph: GlyphSpec; active?: boolean; title: string }) {
   const [x, y] = hexCenter(r, c);

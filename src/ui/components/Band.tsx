@@ -1,6 +1,7 @@
 // 帯（ui_design §7）・宣言パネル（§5.6）・解決中／次の一覧（§9）・安全網（§5.7）
 import { useMemo, useState } from 'react';
 import { describe } from '../../game/engine';
+import { CARDS } from '../../game/cards';
 import type { GameState, Task } from '../../game/types';
 import type { Affordances, Move } from '../gestures';
 import { useInteraction, useTarget } from '../interaction';
@@ -60,18 +61,48 @@ function taskLabel(t: Task): string | null {
   return t.src ? `${t.src}：${d}` : d;
 }
 
-function EffectStack({ s }: { s: GameState }) {
+function EffectStack({ s, compact }: { s: GameState; compact?: boolean }) {
+  const [open, setOpen] = useState(false);
   const pd = s.pending!;
   const next = s.queue.map(taskLabel).filter((x): x is string => !!x).slice(0, 4);
   const ordering = pd.step === 'orderEffects';
   if (!ordering && next.length === 0 && (pd.step === 'turn' || !pd.resume.src)) return null;
-  return (
-    <div className={`stack ${ordering ? 'clickable' : ''}`} aria-live="polite">
+  const body = (
+    <div className={`stack ${ordering ? 'clickable' : ''} ${compact ? 'stack-inline' : ''}`} aria-live="polite">
       <div className="now">解決中：{pd.resume.src ?? '手番'}{ordering ? '（先に解決する効果を選んでください）' : ''}</div>
       {ordering && pd.options.map((o, i) => <StackLine key={o.id} i={i} label={o.label} />)}
       {next.length > 0 && <div className="next">次：{next.join('／')}</div>}
     </div>
   );
+  // スマートフォン（ui_design §22.4）：盤面を覆わないよう、帯の中の札に畳む。先に解決する効果を選ぶ場面だけは開いたまま出す
+  if (!compact || ordering) return body;
+  return (
+    <div className="stack-fold">
+      <button className="stack-chip" onClick={() => setOpen(!open)} aria-expanded={open}>
+        解決中{next.length > 0 ? `・次${next.length}` : ''} {open ? '▴' : '▾'}
+      </button>
+      {open && body}
+    </div>
+  );
+}
+
+const TERRAIN_NAME: Record<string, string> = { W: '麦畑タイル', F: '森林タイル', M: '鉱山タイル', S: '海タイル' };
+const PIECE_NAME: Record<string, string> = { tent: 'テント駒', house: '家駒', bldg: 'ビル駒', lab: '研究所駒', shop: 'ショップ駒', clock: '時計塔駒', rabbit: 'クッキーラビット駒' };
+
+/** 持ち上げているものの名前（タップで持ち上げたとき、帯に出す） */
+export function heldLabel(key: string): string {
+  const [kind, rest = ''] = key.split(/:(.*)/s);
+  if (kind === 'tile') return TERRAIN_NAME[rest] ?? '地形タイル';
+  if (kind === 'special') return '特殊地形タイル';
+  if (kind === 'road') return '道駒';
+  if (kind === 'diamond') return 'ダイヤ';
+  if (key === 'disc:own') return '手元のディスク';
+  if (key === 'disc:supply') return 'アクションディスク';
+  if (key === 'marker:support') return 'ラウンド支援駒';
+  if (kind === 'piece') return PIECE_NAME[rest] ?? '駒';
+  if (kind === 'skillpile' || kind === 'advskill') return 'スキルタイル';
+  if (CARDS[rest]) return CARDS[rest].nameJa;
+  return '選んだもの';
 }
 
 function SplitPanel({ moves, mode, n }: { moves: { move: Move; split?: Record<string, number> }[]; mode: 'gain' | 'pay'; n: number }) {
@@ -121,7 +152,7 @@ function Declare({ aff }: { aff: Affordances }) {
   );
 }
 
-export function Band(props: { s: GameState; viewer: number; canUndo: boolean; undo: () => void; undoCount: number; undoAll: () => void; pulse: boolean; onResize?: (dy: number) => void }) {
+export function Band(props: { s: GameState; viewer: number; canUndo: boolean; undo: () => void; undoCount: number; undoAll: () => void; pulse: boolean; onResize?: (dy: number) => void; compact?: boolean }) {
   const { s, viewer, canUndo, undo, undoCount, undoAll, pulse } = props;
   const c = useInteraction();
   const text = bandText(s, viewer, !!c.copyKey);
@@ -144,10 +175,11 @@ export function Band(props: { s: GameState; viewer: number; canUndo: boolean; un
       }}
     >
       <div className="say" aria-live="polite">
+        {props.compact && c.held && <span className="held-chip">持ち上げ中：{heldLabel(c.held)}</span>}
         {text.src && <span className="src">【{text.src}】</span>}
-        {text.say}
+        {props.compact && c.held ? '置き先をタップしてください' : text.say}
       </div>
-      {s.pending && c.active && <EffectStack s={s} />}
+      {s.pending && c.active && <EffectStack s={s} compact={props.compact} />}
       <div className="actions">
         {c.active && aff.declare && <Declare aff={aff} />}
         {c.active && aff.fallback.length > 0 && (
@@ -158,6 +190,11 @@ export function Band(props: { s: GameState; viewer: number; canUndo: boolean; un
               </button>
             ))}
           </div>
+        )}
+        {props.compact && c.held && (
+          <button className="btn" onClick={() => c.setHeld(null)}>
+            戻す
+          </button>
         )}
         {c.copyKey && (
           <button className="btn" onClick={c.cancelCopy}>

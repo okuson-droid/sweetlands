@@ -16,6 +16,16 @@
 .game.mobile .lit {
   outline-width: 3px;
 }
+/* タップだけで操作する（ドラッグはしない）。指を動かしたら、手札・盤面の枠・小窓がスクロールするようにする。
+   ダブルタップの拡大だけは止める。地図は2本指の拡大縮小と1本指の移動を自前で扱うので、ブラウザには渡さない */
+.game.mobile,
+.game.mobile * {
+  touch-action: manipulation;
+}
+.game.mobile .mapsvg,
+.game.mobile .mapsvg * {
+  touch-action: none;
+}
 
 /* ---- 上の札 ---- */
 .mtop {

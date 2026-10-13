@@ -35,6 +35,8 @@ interface Ctx {
   showZoom: (z: Zoom | null) => void;
   dragging: { src: string; label: string; x: number; y: number } | null;
   startPointer: (src: string, label: string, e: React.PointerEvent) => void;
+  /** タップだけで操作する（スマートフォン）。ドラッグはせず、指を動かしたら画面のスクロールに任せる */
+  tapOnly: boolean;
 }
 
 const InteractionCtx = createContext<Ctx | null>(null);
@@ -51,9 +53,12 @@ export function InteractionProvider(props: {
   aff: Affordances;
   active: boolean;
   perform: (m: Move) => void;
+  /** タップだけで操作する（スマートフォン、ui_design §22.4） */
+  tapOnly?: boolean;
   children: ReactNode;
 }) {
   const { state, viewer, aff, active, perform } = props;
+  const tapOnly = !!props.tapOnly;
   const [held, setHeld] = useState<string | null>(null);
   const [copyKey, setCopyKey] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
@@ -106,6 +111,11 @@ export function InteractionProvider(props: {
       const d = drag.current;
       if (!d || e.pointerId !== d.id) return;
       if (!d.moved && Math.hypot(e.clientX - d.x0, e.clientY - d.y0) > DRAG_START_PX) {
+        // タップだけの操作では、指が動いたらタップではない（手札などのスクロール）。持ち上げずに見送る
+        if (tapOnly) {
+          drag.current = null;
+          return;
+        }
         d.moved = true;
         setHeld(d.src);
       }
@@ -144,13 +154,19 @@ export function InteractionProvider(props: {
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
-    window.addEventListener('pointercancel', up);
+    // ブラウザがスクロールなどに指を引き取ったとき（pointercancel）は、タップとしても置いたとしても扱わない
+    const cancel = (e: PointerEvent) => {
+      if (drag.current?.id !== e.pointerId) return;
+      drag.current = null;
+      setDragging(null);
+    };
+    window.addEventListener('pointercancel', cancel);
     return () => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
-      window.removeEventListener('pointercancel', up);
+      window.removeEventListener('pointercancel', cancel);
     };
-  }, [aff, run, reason]);
+  }, [aff, run, reason, tapOnly]);
 
   // Esc で持ち上げ・小窓を解く
   useEffect(() => {
@@ -167,8 +183,8 @@ export function InteractionProvider(props: {
   }, []);
 
   const value = useMemo<Ctx>(
-    () => ({ state, viewer, aff, active, held, setHeld, copyKey, cancelCopy: () => setCopyKey(null), startCopy: (k: string) => (setCopyKey(k), setHeld(null)), run, reason, showZoom: setZoom, dragging, startPointer }),
-    [state, viewer, aff, active, held, copyKey, run, reason, dragging, startPointer],
+    () => ({ state, viewer, aff, active, held, setHeld, copyKey, cancelCopy: () => setCopyKey(null), startCopy: (k: string) => (setCopyKey(k), setHeld(null)), run, reason, showZoom: setZoom, dragging, startPointer, tapOnly }),
+    [state, viewer, aff, active, held, copyKey, run, reason, dragging, startPointer, tapOnly],
   );
 
   return (
@@ -274,7 +290,8 @@ export function useSource(key: string, label: string, why: ExplainTarget) {
       onPointerDown: (e: React.PointerEvent) => {
         zoomBind.cancel();
         if (liftable) {
-          e.preventDefault();
+          // タップだけの操作（スマートフォン）では既定の動作を止めない。指を動かしたら、手札や盤面の枠がスクロールする
+          if (!c.tapOnly) e.preventDefault();
           c.startPointer(key, label, e);
         }
       },
@@ -347,6 +364,7 @@ export function useZoomBind(node?: () => ReactNode) {
         timer.current = window.setTimeout(() => c.showZoom({ node: node(), x, y }), LONG_PRESS_MS);
       },
       onPointerUpCapture: cancel,
+      onPointerCancelCapture: cancel,
       onContextMenu: (e: React.MouseEvent) => {
         e.preventDefault();
         c.showZoom({ node: node(), x: e.clientX, y: e.clientY });

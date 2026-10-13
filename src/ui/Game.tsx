@@ -118,7 +118,7 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
   const mode = useLayoutMode();
   const meStyle = { ['--me' as string]: playerColor(viewer) } as React.CSSProperties;
   return (
-    <InteractionProvider state={s} viewer={viewer} aff={aff} active={active} perform={session.perform}>
+    <InteractionProvider state={s} viewer={viewer} aff={aff} active={active} perform={session.perform} tapOnly={mode !== 'wide'}>
       {mode === 'portrait' && <PortraitLayout s={display} live={s} viewer={viewer} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}
       {mode === 'landscape' && <LandscapeLayout s={display} live={s} viewer={viewer} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}
       {mode === 'wide' && <WideLayout s={display} live={s} viewer={viewer} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}

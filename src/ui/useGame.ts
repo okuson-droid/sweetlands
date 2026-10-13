@@ -45,7 +45,8 @@ export function autoAnswer(s: GameState, auto: AutoSettings): string | null {
   if (auto.pass && pd.step === 'turn' && opts.length > 0 && opts.every((o) => o.id === 'pass' || o.id.startsWith('fa'))) {
     if (!opts.some((o) => o.id.startsWith('fa'))) return 'pass';
   }
-  if (auto.payBasic && pd.step === 'payBasic') {
+  // 両替のフリーアクションの一括（払う数をプレイヤーが決める）は自動にしない
+  if (auto.payBasic && pd.step === 'payBasic' && !pd.resume.ctx?.bulk) {
     const p = s.players[pd.player];
     // 多く持っている資源から払う：支払い後の最小値が最大になる内訳
     let best = opts[0];

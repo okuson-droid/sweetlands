@@ -105,16 +105,32 @@ export function heldLabel(key: string): string {
   return '選んだもの';
 }
 
-function SplitPanel({ moves, mode, n }: { moves: { move: Move; split?: Record<string, number> }[]; mode: 'gain' | 'pay'; n: number }) {
+const SPLIT_KEYS = ['wheat', 'wood', 'iron'] as const;
+const splitTotal = (v: Record<string, number> | undefined) => SPLIT_KEYS.reduce((a, k) => a + (v?.[k] ?? 0), 0);
+
+/** 合計の条件の文。合計が1通りならその数、等間隔なら「〜の倍数」、それ以外は範囲で示す */
+function totalRule(totals: number[]): string {
+  if (totals.length === 1) return `${totals[0]}`;
+  const unit = totals[0];
+  if (totals.every((t, i) => t === unit * (i + 1))) return unit === 1 ? `${totals[totals.length - 1]}以下` : `${unit}の倍数（${totals[totals.length - 1]}以下）`;
+  return `${totals[0]}〜${totals[totals.length - 1]}`;
+}
+
+/** 基礎資源の内訳の入力。初期値は0とし、選択肢が1つしかないときだけその内訳を入れておく。
+ *  合計は選択肢から読み取る（両替のフリーアクションの一括では合計が1通りに決まらない） */
+function SplitPanel({ moves, mode }: { moves: { move: Move; split?: Record<string, number> }[]; mode: 'gain' | 'pay' }) {
   const c = useInteraction();
-  const [v, setV] = useState<Record<string, number>>(() => ({ ...(moves[0].split ?? {}) }));
-  const match = moves.find((m) => ['wheat', 'wood', 'iron'].every((k) => (m.split?.[k] ?? 0) === (v[k] ?? 0)));
-  const total = (v.wheat ?? 0) + (v.wood ?? 0) + (v.iron ?? 0);
+  const [v, setV] = useState<Record<string, number>>(() => (moves.length === 1 ? { ...(moves[0].split ?? {}) } : {}));
+  const totals = useMemo(() => [...new Set(moves.map((m) => splitTotal(m.split)))].sort((a, b) => a - b), [moves]);
+  const match = moves.find((m) => SPLIT_KEYS.every((k) => (m.split?.[k] ?? 0) === (v[k] ?? 0)));
+  const total = splitTotal(v);
   const step = (k: string, d: number) => setV((x) => ({ ...x, [k]: Math.max(0, (x[k] ?? 0) + d) }));
+  const rule = totalRule(totals);
+  const word = mode === 'gain' ? '得る' : '払う';
   return (
     <div className="declare">
-      <span>{mode === 'gain' ? `得る内訳（合計${n}）` : `払う内訳（合計${n}）`}</span>
-      {(['wheat', 'wood', 'iron'] as const).map((k) => (
+      <span>{totals.length === 1 ? `${word}内訳（合計${rule}）` : `${word}内訳（合計${total}／${rule}）`}</span>
+      {SPLIT_KEYS.map((k) => (
         <span key={k} className="stepper">
           <button aria-label={`${k}を減らす`} onClick={() => step(k, -1)}>
             −
@@ -127,7 +143,7 @@ function SplitPanel({ moves, mode, n }: { moves: { move: Move; split?: Record<st
         </span>
       ))}
       <button className="btn primary" disabled={!match} onClick={() => match && c.run(match.move)}>
-        {match ? '決定' : total !== n ? `合計を${n}にしてください` : '持っている数を超えています'}
+        {match ? '決定' : !totals.includes(total) ? `合計を${rule}にしてください` : '持っている数を超えています'}
       </button>
     </div>
   );
@@ -137,9 +153,7 @@ function Declare({ aff }: { aff: Affordances }) {
   const c = useInteraction();
   const d = aff.declare!;
   if (d.kind === 'basicGain' || d.kind === 'basicPay') {
-    const sp = d.moves[0].split!;
-    const n = (sp.wheat ?? 0) + (sp.wood ?? 0) + (sp.iron ?? 0);
-    return <SplitPanel key={`${d.kind}-${n}-${d.moves.map((m) => m.move.ids[0]).join()}-${c.state.events.length}-${c.state.log.length}`} moves={d.moves} mode={d.kind === 'basicGain' ? 'gain' : 'pay'} n={n} />;
+    return <SplitPanel key={`${d.kind}-${d.moves.map((m) => m.move.ids[0]).join()}-${c.state.events.length}-${c.state.log.length}`} moves={d.moves} mode={d.kind === 'basicGain' ? 'gain' : 'pay'} />;
   }
   return (
     <div className="declare">

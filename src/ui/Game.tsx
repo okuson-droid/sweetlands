@@ -108,6 +108,8 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
       fallback: active ? aff.fallback.map((o) => `${s.pending!.step}:${o.id}`) : [],
       otherHands: s.players.filter((p) => p.seat !== viewer).flatMap((p) => p.hand),
       sources: active ? [...aff.clicks.keys(), ...aff.drags.keys()] : [],
+      // 基礎資源の内訳の候補（e2e の自動操作が、人のように＋／−で数を合わせるために使う。選択待ちの本人の情報だけ）
+      splits: active && (aff.declare?.kind === 'basicGain' || aff.declare?.kind === 'basicPay') ? aff.declare.moves.map((m) => m.split) : [],
       // 盤面の指紋（オンライン対戦の検査で、全員の画面が同じ盤面かを比べる。公開情報だけ）
       // 選択待ちの席は、席ごとに絞る前の局面で比べる（手札のドラフトでは同時に選べる席ごとに見え方が違う）
       waiting: raw.pending?.waiting ?? null,

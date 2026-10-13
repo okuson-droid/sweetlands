@@ -1,4 +1,4 @@
-// 事例分析（sim/PLAN.md 第5版 §5.5）：人の基準プレイの記録を再生し、人の手番の判断ごとに AI（v2 中）が選ぶ手と比べる。
+// 事例分析（sim/PLAN.md 第5版 §5.5）：人の基準プレイの記録を再生し、人の手番の判断ごとに AI（--ai v1|v2。v2 は中）が選ぶ手と比べる。
 // 主行動が分かれた局面を、AI の評価で差が大きいものから各局数件ずつ書き出す（局面の要約、人の手、AI の手、AI の評価値の内訳）。
 // node dist/cases.cjs --records a.json,b.json --weights reports/pilot/weights/v2_eri_A.json --out reports/pilot/cases.md
 import fs from 'node:fs';
@@ -16,7 +16,8 @@ const o: Record<string, string> = {};
 for (let i = 0; i < a.length; i += 2) o[a[i].replace(/^--/, '')] = a[i + 1];
 const weights = JSON.parse(fs.readFileSync(o.weights!, 'utf8')).weights;
 const perGame = Number(o.perGame ?? 4);
-const cfg = { ...DEFAULT_AGENT, ...V2_LADDER.M, kind: 'v2' as const, weights };
+const kind = (o.ai ?? 'v2') as 'v1' | 'v2';
+const cfg = { ...DEFAULT_AGENT, ...V2_LADDER.M, kind, weights };
 const label = (s: GameState, id: string) => `${id}｜${s.pending!.options.find((x) => x.id === id)?.label ?? ''}`;
 const isMainish = (id: string) => /^(area:|play:|flip:|pass$|fa)/.test(id);
 const fmt = (p: Record<string, number>) =>
@@ -26,7 +27,7 @@ const fmt = (p: Record<string, number>) =>
     .map(([k, v]) => `${k} ${v.toFixed(1)}`)
     .join('、');
 
-const out: string[] = ['# 事例分析：人と AI（v2 中）で主行動が分かれた局面', '', 'AI の評価で「AI の手 − 人の手」の差が大きい局面から、各局で上位を書き出す。評価値は AI の評価関数によるもので、正しさの基準ではない（AI の見落としを探すための材料）。寄与は「重み × 特徴量」（passGain は「いまパスしたら得る得点 × 残りのパスの回数」に重みを掛けたもの）。', ''];
+const out: string[] = [`# 事例分析：人と AI（${kind === 'v2' ? 'v2 中' : 'v1'}）で主行動が分かれた局面`, '', 'AI の評価で「AI の手 − 人の手」の差が大きい局面から、各局で上位を書き出す。評価値は AI の評価関数によるもので、正しさの基準ではない（AI の見落としを探すための材料）。寄与は「重み × 特徴量」（passGain は「いまパスしたら得る得点 × 残りのパスの回数」に重みを掛けたもの）。', ''];
 for (const f of (o.records ?? '').split(',').filter(Boolean)) {
   const rec = JSON.parse(fs.readFileSync(f, 'utf8')) as GameRecord;
   let s = createGame(rec.config, rec.seed);

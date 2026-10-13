@@ -21,13 +21,15 @@ export interface AgentConfig {
   beamExpand: number;
   /** v2 の決定化の数 K（第5版 §6.3） */
   determinizations: number;
+  /** v2 で深く読む最初の手の数（v1 と同じ方法で解決した評価の上位） */
+  beamRoot: number;
 }
 
 /** v2 のスキル梯子（第5版 §5.5・§6.5）：探索の量だけを変える3段階。中が調整に使う設定 */
 export const V2_LADDER = {
-  S: { beamWidth: 1, beamDepth: 4, beamExpand: 3, determinizations: 2 },
-  M: { beamWidth: 2, beamDepth: 4, beamExpand: 4, determinizations: 2 },
-  L: { beamWidth: 4, beamDepth: 4, beamExpand: 5, determinizations: 2 },
+  S: { beamRoot: 3, beamWidth: 1, beamDepth: 4, beamExpand: 3, determinizations: 2 },
+  M: { beamRoot: 4, beamWidth: 2, beamDepth: 4, beamExpand: 4, determinizations: 2 },
+  L: { beamRoot: 6, beamWidth: 3, beamDepth: 4, beamExpand: 5, determinizations: 2 },
 } as const;
 
 const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
@@ -222,65 +224,82 @@ export class Agent {
     return s;
   }
 
-  private beam(det: GameState): Map<string, number> {
+  /** 葉（パスしたあとの局面）の評価：基本の評価に、このパスで実際に得た得点を「残りのパスでも同じだけ得る見込み」として足す。
+   *  v1 の評価（passGain × 残りのパスの回数）と同じ物差しにそろえるため */
+  private leafValue(before: GameState, leaf: GameState): number {
+    const v = this.ev(leaf);
+    if (leaf.finished) return v;
+    return v + this.cfg.weights[11] * (scoreTotal(leaf) - scoreTotal(before)) * passesLeft(leaf);
+  }
+
+  /** ある局面（最初の手を指したあと）から、ラウンドの終わりまでの列をビームで列挙し、最良の葉の評価値を返す。
+   *  prev は最初の手を指す前の局面（最初の手がパスだったときの葉の評価に使う） */
+  private continueBeam(s0: GameState, prev: GameState): number {
     const W = this.cfg.beamWidth;
     const D = this.cfg.beamDepth;
-    type Node = { first: string; s: GameState; value: number };
-    const leaves: Node[] = [];
-    let frontier: Node[] = [{ first: '', s: det, value: 0 }];
-    const seen = new Set<string>();
     const isLeaf = (s: GameState) => s.finished || s.phase !== 'action';
-    for (let depth = 0; depth < D && frontier.length > 0; depth++) {
-      const next: Node[] = [];
+    let s = s0;
+    if (isLeaf(s)) return this.leafValue(prev, s);
+    s = this.finishTurn(s);
+    if (isLeaf(s)) return this.ev(s);
+    let best = -Infinity;
+    let frontier: GameState[] = [s];
+    const seen = new Set<string>();
+    for (let depth = 1; depth < D && frontier.length > 0; depth++) {
+      const next: { s: GameState; value: number }[] = [];
       for (const node of frontier) {
         // 1手だけ進めた局面の評価で候補を絞り、上位とパスだけを解決まで進める
-        const opts = legal(node.s);
-        const pre = opts.map((o) => ({ id: o.id, s: step(node.s, o.id) })).map((x) => ({ ...x, v: this.ev(x.s) }));
+        const pre = legal(node).map((o) => ({ id: o.id, s: step(node, o.id) })).map((x) => ({ ...x, v: this.ev(x.s) }));
         pre.sort((a, b) => b.v - a.v);
-        const keep = pre.filter((x, i) => i < this.cfg.beamExpand || x.id === 'pass');
-        for (const o of keep) {
+        for (const o of pre.filter((x, i) => i < this.cfg.beamExpand || x.id === 'pass')) {
           let c = this.resolve(o.s);
-          if (!isLeaf(c)) c = this.finishTurn(c);
-          const first = node.first || o.id;
           if (isLeaf(c)) {
-            leaves.push({ first, s: c, value: this.ev(c) });
+            best = Math.max(best, this.leafValue(node, c));
+            continue;
+          }
+          c = this.finishTurn(c);
+          if (isLeaf(c)) {
+            best = Math.max(best, this.ev(c));
             continue;
           }
           if (c.pending?.step !== 'turn') continue;
           const key = stateKey(c);
           if (seen.has(key)) continue;
           seen.add(key);
-          next.push({ first, s: c, value: this.ev(c) });
+          next.push({ s: c, value: this.ev(c) });
         }
       }
       next.sort((a, b) => b.value - a.value);
-      frontier = next.slice(0, W);
+      frontier = next.slice(0, W).map((x) => x.s);
     }
     // 深さの上限に達した列はそこでパスする
     for (const node of frontier) {
-      if (!legal(node.s).some((o) => o.id === 'pass')) continue;
-      const c = this.resolve(step(node.s, 'pass'));
-      leaves.push({ first: node.first, s: c, value: this.ev(c) });
+      if (!legal(node).some((o) => o.id === 'pass')) continue;
+      best = Math.max(best, this.leafValue(node, this.resolve(step(node, 'pass'))));
     }
-    // 最初の手ごとに、その手から始まる列の最良の葉の評価値
-    const best = new Map<string, number>();
-    for (const l of leaves) if (l.value > (best.get(l.first) ?? -Infinity)) best.set(l.first, l.value);
     return best;
   }
 
-  /** v2（第5版）：混ぜ直した並びを K 個作り、それぞれでビームの列挙を行って、最初の主行動ごとに葉の評価値を平均して選ぶ。
-   *  ある並びの列挙に現れなかった最初の手には、その並びの葉の評価値の最小値を当てる（控えめに見る） */
+  /** v2（第5版 §6.3）：最初の手は v1 と同じくすべての候補を解決まで進めて比べ、上位 beamRoot 個だけを深く読む。
+   *  各候補について、混ぜ直した並び K 個のそれぞれでラウンドの終わりまでの列をビームで列挙し、最良の葉の評価値を K 個で平均して選ぶ。
+   *  最初の候補の解決は1つ目の並びで行い、2つ目以降の並びでは、その局面のデッキの残りを混ぜ直してから続きを列挙する */
   private beamK(det: GameState): string {
     const K = this.cfg.determinizations;
-    const maps: Map<string, number>[] = [];
-    for (let k = 0; k < K; k++) {
-      const m = this.beam(k === 0 ? det : determinize(det, this.rng));
-      if (m.size) maps.push(m);
-    }
-    if (maps.length === 0) return this.oneTurn(det, true);
-    const firsts = [...new Set(maps.flatMap((m) => [...m.keys()]))];
-    const avg = (f: string) => mean(maps.map((m) => m.get(f) ?? Math.min(...m.values())));
-    return this.argmax(firsts, avg);
+    const root = this.candidates(det, true).sort((a, b) => b.value - a.value);
+    // 同じ最初の手（両替を前に付けた候補を含む）は、解決後の評価が最良のものだけを残す
+    const firsts: typeof root = [];
+    for (const c of root) if (!firsts.some((x) => x.first === c.first)) firsts.push(c);
+    const top = firsts.slice(0, this.cfg.beamRoot);
+    if (top.length === 0) return this.oneTurn(det, true);
+    const score = (c: (typeof top)[number]) => {
+      const vals: number[] = [];
+      for (let k = 0; k < K; k++) {
+        const v = this.continueBeam(k === 0 ? c.s : determinize(c.s, this.rng), det);
+        vals.push(Number.isFinite(v) ? v : c.value);
+      }
+      return mean(vals);
+    };
+    return this.argmax(top, score).first;
   }
 }
 

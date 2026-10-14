@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { printedAuto } from '../src/game/boards';
 import { applyMove, getOptions, withEffects } from '../src/game/engine';
-import { cities, neighbors, passedIp } from '../src/game/queries';
+import { cities, count, neighbors, passedIp, tagCounts } from '../src/game/queries';
 import type { BuildingType, GameState, PlayerState } from '../src/game/types';
 import { setupGame } from './helpers';
 
@@ -177,5 +177,21 @@ describe('アリス・ティーローズの上方修正：都市の分け方', (
       expect(new Set(all).size).toBe(all.length);
       for (const c of got) expect(new Set(c.map((k) => p.hexes[k].building)).size).toBeGreaterThanOrEqual(3);
     }
+  });
+});
+
+describe('サクラ・モチの上方修正', () => {
+  it('特性の和菓子タグが2個になる（上方修正なしでは1個）', () => {
+    const on = game('サクラ・モチ', true);
+    const off = game('サクラ・モチ', false);
+    const p = on.s.players[on.seat];
+    expect(tagCounts(p, true).和菓子).toBe(2);
+    expect(tagCounts(p, false).和菓子).toBe(1);
+    // ほかのキャラクターの特性は変わらない
+    const q = { ...p, character: 'セナ・デライト' };
+    expect(tagCounts(q, true)).toEqual(tagCounts(q, false));
+    // カードの条件などで数える「タグ」は、局面の採用状況に従う
+    expect(count(on.s, p, { k: 'tag', tag: '和菓子' })).toBe(2);
+    expect(count(off.s, off.s.players[off.seat], { k: 'tag', tag: '和菓子' })).toBe(1);
   });
 });

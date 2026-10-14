@@ -163,8 +163,8 @@ function ClockConditions({ p }: { p: PlayerState }) {
   );
 }
 
-function TagSummary({ p }: { p: PlayerState }) {
-  const counts = tagCounts(p);
+function TagSummary({ p, buff }: { p: PlayerState; buff: boolean }) {
+  const counts = tagCounts(p, buff);
   return (
     <div className="tagsum" title="所持しているスイーツタグ（プレイしたカード・オートメーション化したカード・キャラクターの特性）">
       {TAGS.map((t: Tag) => (
@@ -396,7 +396,7 @@ export function PersonalBoard({ s, p, withTableau = true }: { s: GameState; p: P
           <b>{p.diamond}</b>
         </div>
       </div>
-      <TagSummary p={p} />
+      <TagSummary p={p} buff={buff} />
       <BuildingGrid s={s} p={p} />
       <div className="pieces">
         <div className="shops">

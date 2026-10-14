@@ -11,6 +11,7 @@ import {
   tagCounts,
   terrainCount,
 } from './queries';
+import { isBuffed } from './characters';
 import type { GameState, PlayerState } from './types';
 
 export function checkMilestone(s: GameState, p: PlayerState, key: string): boolean {
@@ -30,7 +31,7 @@ export function checkMilestone(s: GameState, p: PlayerState, key: string): boole
     case '4a':
       return playedCount(p) >= 6;
     case '4b':
-      return tagCounts(p).ショートケーキ >= 4;
+      return tagCounts(p, isBuffed(s.config, p.character)).ショートケーキ >= 4;
     case '5a':
       return p.income.gold >= 30;
     case '5b': {

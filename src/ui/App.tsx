@@ -205,15 +205,15 @@ function Lobby({ start, online, openOnline }: { start: (c: GameConfig, seed: num
       )}
       <section className="lobby-card">
         <h2>1台で遊ぶ（ローカル）</h2>
-        <p className="hint">1台の画面で、全員が交代しながら遊びます。手番が来た人の手札が表示されます。</p>
-        <NewGameForm label="ゲーム開始" onSubmit={(c) => start(c, Math.floor(Math.random() * 2 ** 31))} />
+        <p className="hint">1台の画面で、全員が交代しながら遊びます。手番が来た人の手札が表示されます。人数を1人にすると、1人で遊べます（ソロモード専用のルールはなく、2人用の場で1人だけが進めます）。</p>
+        <NewGameForm label="ゲーム開始" allowSolo onSubmit={(c) => start(c, Math.floor(Math.random() * 2 ** 31))} />
       </section>
     </main>
   );
 }
 
-/** 新しいゲームの設定（人数・名前・ヴァリアント）。ローカルとオンラインで共通 */
-export function NewGameForm({ label, onSubmit }: { label: string; onSubmit: (c: GameConfig) => void }) {
+/** 新しいゲームの設定（人数・名前・ヴァリアント）。ローカルとオンラインで共通。allowSolo のときだけ1人を選べる（ローカル） */
+export function NewGameForm({ label, onSubmit, allowSolo = false }: { label: string; onSubmit: (c: GameConfig) => void; allowSolo?: boolean }) {
   const [players, setPlayers] = useState(3);
   const [names, setNames] = useState(['いちご', 'みかん', 'ぶどう', 'ミント']);
   const [variants, setVariants] = useState({ turnOrder: false, draft: false, advSkills: false, freeChar: false, setupDraft: false, charBuff: false });
@@ -222,7 +222,7 @@ export function NewGameForm({ label, onSubmit }: { label: string; onSubmit: (c: 
         <label className="field">
           人数
           <select value={players} onChange={(e) => setPlayers(Number(e.target.value))}>
-            {[2, 3, 4].map((n) => (
+            {(allowSolo ? [1, 2, 3, 4] : [2, 3, 4]).map((n) => (
               <option key={n} value={n}>
                 {n}人
               </option>

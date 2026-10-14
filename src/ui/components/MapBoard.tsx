@@ -2,6 +2,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { edgeVertices, hexCenter, hexVertices, parseHexKey, vertexPoint } from '../../game/geometry';
 import { virtualAreas, legalRoadEdges, cities, portStatus } from '../../game/queries';
+import { isBuffed } from '../../game/characters';
 import { CAPITAL_BONUS, CITY_RATE, LOTUS_CITY_RATE, PORT_VP, TERRAIN_FLIP } from '../../game/boards';
 import { Icons, effToks as effToks2 } from '../icons/EffIcons';
 import { SPECIAL_TILES } from '../../game/boards';
@@ -80,7 +81,9 @@ export function MapBoard({ p, color, flashKeys }: { p: PlayerState; color: strin
     return { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
   };
 
-  const cityGroups = cities(p);
+  // アリス・ティーローズの上方修正では都市どうしが隣接しうるため、都市ごとに線を描き分ける
+  const aliceSplit = isBuffed(c.state.config, p.character) && p.character === 'アリス・ティーローズ';
+  const cityGroups = cities(p, aliceSplit);
   const ports = portStatus(p);
   const lotus = p.lotusRate || (p.character === 'ロータス・チェー' && p.clockPlaced);
   const rate = lotus ? LOTUS_CITY_RATE : CITY_RATE;
@@ -159,7 +162,7 @@ export function MapBoard({ p, color, flashKeys }: { p: PlayerState; color: strin
         return <line key={e} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className={flashKeys.has(`edge:${e}`) ? 'road flash' : 'road'} />;
       })}
       {cityGroups.map((g, i) => (
-        <g key={i} pointerEvents="none" className="cityline">
+        <g key={i} pointerEvents="none" className={`cityline ${aliceSplit && i % 2 === 1 ? 'alt' : ''}`}>
           {g.map((k) => {
             const [r, cc] = parseHexKey(k);
             return <polygon key={k} points={pointsOf(r, cc)} fill="none" />;

@@ -2,8 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import { printedAuto } from '../src/game/boards';
 import { applyMove, getOptions, withEffects } from '../src/game/engine';
-import { passedIp } from '../src/game/queries';
-import type { GameState } from '../src/game/types';
+import { cities, neighbors, passedIp } from '../src/game/queries';
+import type { BuildingType, GameState, PlayerState } from '../src/game/types';
 import { setupGame } from './helpers';
 
 /** 先手に name を選ばせ、上方修正の採用を切り替えた局面（準備は上方修正に関係しない） */
@@ -94,5 +94,88 @@ describe('キャラクターの上方修正', () => {
     s = applyMove(s, area!.id);
     while (s.pending!.step !== 'areaCost') s = applyMove(s, getOptions(s)[0].id);
     expect(getOptions(s).map((o) => o.label)).toEqual(['麦1・木材3', '麦0・木材4']);
+  });
+});
+
+describe('アリス・ティーローズの上方修正：都市の分け方', () => {
+  /** アリスの地図に建物駒を置いた盤面。cells は [hex, 種類] の列 */
+  function alice(): PlayerState {
+    const s = structuredClone(setupGame(2, ['アリス・ティーローズ']));
+    return s.players.find((p) => p.character === 'アリス・ティーローズ')!;
+  }
+  /** 首都でないヘクスから、つながった n 個を選ぶ（乱数 r で広げ方を変える） */
+  function blob(p: PlayerState, n: number, r: number): string[] {
+    const keys = Object.keys(p.hexes).filter((k) => p.hexes[k].terrain !== 'C');
+    const order = [keys[(r * 7) % keys.length]];
+    const seen = new Set(order);
+    while (order.length < n) {
+      const cand = order.flatMap((k) => neighbors(p, k)).filter((k) => !seen.has(k) && p.hexes[k].terrain !== 'C');
+      r = (r * 1103515245 + 12345) & 0x7fffffff;
+      const k = cand[r % cand.length];
+      seen.add(k);
+      order.push(k);
+    }
+    return order;
+  }
+  /** 総当たり：互いに重ならない「つながった3種類以上の組」の最大数 */
+  function brute(p: PlayerState, keys: string[]): number {
+    const n = keys.length;
+    const idx = new Map(keys.map((k, i) => [k, i]));
+    const adj = keys.map((k) => neighbors(p, k).reduce((m, x) => (idx.has(x) ? m | (1 << idx.get(x)!) : m), 0));
+    const valid: number[] = [];
+    for (let m = 1; m < 1 << n; m++) {
+      const vs = keys.map((_, i) => i).filter((i) => m & (1 << i));
+      if (new Set(vs.map((i) => p.hexes[keys[i]].building)).size < 3) continue;
+      let reach = 1 << vs[0];
+      for (let grow = true; grow; ) {
+        const next = vs.reduce((a, i) => (reach & (1 << i) ? a | adj[i] : a), reach) & m;
+        grow = next !== reach;
+        reach = next;
+      }
+      if (reach === m) valid.push(m);
+    }
+    const best = (used: number, from: number): number => {
+      let b = 0;
+      for (let j = from; j < valid.length; j++) if ((valid[j] & used) === 0) b = Math.max(b, 1 + best(used | valid[j], j + 1));
+      return b;
+    };
+    return best(0, 0);
+  }
+
+  it('同じ種類だけの3個は都市にならず、隣接した2組は2つの都市になる', () => {
+    const p = alice();
+    const keys = blob(p, 6, 3);
+    for (const k of keys.slice(0, 3)) p.hexes[k].building = 'tent';
+    expect(cities(p, true)).toHaveLength(0);
+    expect(cities(p, false)).toHaveLength(1); // 通常の基本能力では都市
+    const types: BuildingType[] = ['tent', 'house', 'bldg', 'tent', 'house', 'bldg'];
+    keys.forEach((k, i) => (p.hexes[k].building = types[i]));
+    expect(cities(p, true).length).toBe(brute(p, keys));
+    expect(cities(p, false)).toHaveLength(1);
+  });
+
+  it('時計塔駒は単独で1つの都市になる', () => {
+    const p = alice();
+    const keys = blob(p, 4, 5);
+    const types: BuildingType[] = ['tent', 'house', 'bldg', 'clock'];
+    keys.forEach((k, i) => (p.hexes[k].building = types[i]));
+    p.clockPlaced = true;
+    expect(cities(p, true)).toHaveLength(2);
+  });
+
+  it('無作為な配置で、総当たりの最大値と一致する', () => {
+    const kinds: BuildingType[] = ['tent', 'house', 'bldg', 'lab', 'shop'];
+    for (let r = 1; r <= 60; r++) {
+      const p = alice();
+      const n = 6 + (r % 7); // 6〜12個
+      const keys = blob(p, n, r);
+      keys.forEach((k, i) => (p.hexes[k].building = kinds[(i * 3 + r * (i + 1)) % (2 + (r % 4))]));
+      const got = cities(p, true);
+      expect(got.length, `r=${r}`).toBe(brute(p, keys));
+      // 取り出した都市は重ならず、それぞれ3種類以上でつながっている
+      const all = got.flat();
+      expect(new Set(all).size).toBe(all.length);
+      for (const c of got) expect(new Set(c.map((k) => p.hexes[k].building)).size).toBeGreaterThanOrEqual(3);
+    }
   });
 });

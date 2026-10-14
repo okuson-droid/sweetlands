@@ -2013,11 +2013,11 @@ function passScoring(s: GameState, t: Task): void {
   const out: Task[] = [];
   const vp = (n: number) => n > 0 && addScore(s, p, 'vp', n);
   // ① キャラクター
-  if (clockOf(p, 'ビスキュイ・バステト')) addScore(s, p, 'ip', cities(p).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length);
+  if (clockOf(p, 'ビスキュイ・バステト')) addScore(s, p, 'ip', cities(p, buffOn(s, p)).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length);
   if (clockOf(p, 'ナタ・パステル')) vp(ip);
   if (clockOf(p, 'ソルビー・ショコラ')) vp(Object.values(p.hexes).filter((h) => h.rabbit).length);
-  if (clockOf(p, 'リッカ・ベリー')) addScore(s, p, 'cp', cities(p).filter((c) => c.some((k) => p.hexes[k].rabbit)).length);
-  if (clockOf(p, 'アリス・ティーローズ')) vp(cities(p).length);
+  if (clockOf(p, 'リッカ・ベリー')) addScore(s, p, 'cp', cities(p, buffOn(s, p)).filter((c) => c.some((k) => p.hexes[k].rabbit)).length);
+  if (clockOf(p, 'アリス・ティーローズ')) vp(cities(p, buffOn(s, p)).length);
   if (hasChar(p, 'エルサ・スカイル')) out.push(...tasks(t.player, [{ k: 'terrain', n: 1, kind: 'any' }], 'エルサ・スカイル'));
   if (clockOf(p, 'エルサ・スカイル')) vp(2 * connectedPorts(p));
   if (clockOf(p, 'エリ・マカロン')) vp(Math.min(p.income.wheat, p.income.wood, p.income.iron));
@@ -2035,7 +2035,7 @@ function passRest(s: GameState, t: Task): void {
   const p = P(s, t);
   const vp = (n: number) => n > 0 && addScore(s, p, 'vp', n);
   // ② 都市点
-  const nc = Math.min(6, cities(p).length);
+  const nc = Math.min(6, cities(p, buffOn(s, p)).length);
   const rate = clockOf(p, 'ロータス・チェー') || p.lotusRate ? LOTUS_CITY_RATE : CITY_RATE;
   addScore(s, p, 'cp', rate[nc]);
   // ③ 工業点（①でエルサ・スカイルが地形タイルを置いた場合に備えて数え直す）
@@ -2056,7 +2056,7 @@ function passRest(s: GameState, t: Task): void {
 function passSupportVp(s: GameState, p: PlayerState, id: number): number {
   switch (id) {
     case 101:
-      return 3 * cities(p).length;
+      return 3 * cities(p, buffOn(s, p)).length;
     case 102:
       return playedCount(p);
     case 103:
@@ -2083,7 +2083,7 @@ function skillPassVp(s: GameState, p: PlayerState, id: number, adv: boolean): nu
     return 0;
   }
   if (id === 1) {
-    const c = cities(p).length;
+    const c = cities(p, buffOn(s, p)).length;
     return c >= 5 ? 15 : c >= 3 ? 7 : c >= 1 ? 3 : 0;
   }
   if (id === 2) return [0, 2, 6, 12, 20][connectedPorts(p)];

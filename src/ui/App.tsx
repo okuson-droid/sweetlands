@@ -255,7 +255,7 @@ export function NewGameForm({ label, onSubmit }: { label: string; onSubmit: (c: 
             <input type="checkbox" checked={variants.setupDraft} onChange={(e) => setVariants({ ...variants, setupDraft: e.target.checked })} /> 準備のドラフト（キャラクター・地図ボード・ラウンド支援駒）
           </label>
           <label className="setting">
-            <input type="checkbox" checked={variants.charBuff} onChange={(e) => setVariants({ ...variants, charBuff: e.target.checked })} /> キャラクターの上方修正（ナタ・ビスキュイ・ソルビー・リッカ・コーラル・ジャスミン）
+            <input type="checkbox" checked={variants.charBuff} onChange={(e) => setVariants({ ...variants, charBuff: e.target.checked })} /> キャラクターの上方修正（アリス・ナタ・ビスキュイ・ソルビー・リッカ・コーラル・ジャスミン）
           </label>
         </fieldset>
         <button className="btn primary" onClick={() => onSubmit({ players, names: names.slice(0, players).map((n, i) => n.trim() || `プレイヤー${i + 1}`), variants })}>

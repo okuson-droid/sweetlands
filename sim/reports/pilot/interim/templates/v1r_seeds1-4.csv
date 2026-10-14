@@ -1,0 +1,5 @@
+cond,seed,config,ai,aiSeed,score,s_vp,s_pros0,s_pros1,s_pros2,s_pros3,s_pros4,s_pros5,s_cp,s_tentBonus,s_houseBonus,s_bldgBonus,s_gold,s_diamond,s_ports,cardsPlayed,automations,clockRound,ports,advTaken,advRound,area_A,area_B,area_C,area_D,area_E,area_F,area_G,area_H,area_I,area_J,area_K,area_L,area_M,area_N,area_O,area_P,area_Q,moves,ms,anomalies
+A,2,v1r-3,v1r,2,61,3,7,0,2,0,0,2,4,0,0,0,31,2,10,0,0,,4,0,,5,0,0,0,1,0,1,0,1,3,3,0,0,1,0,0,0,203,610165,""
+A,4,v1r-3,v1r,4,61,0,14,0,2,0,0,3,4,0,0,0,26,2,10,1,0,,4,0,,7,0,0,0,0,1,1,1,1,4,4,0,0,0,0,0,0,207,741355,""
+A,3,v1r-3,v1r,3,67,6,9,0,1,1,0,0,4,0,0,0,29,7,10,1,0,,4,0,,5,1,0,0,2,1,1,1,4,4,5,0,0,0,0,0,1,217,879539,""
+A,1,v1r-3,v1r,1,66,6,10,0,2,0,0,0,6,0,0,0,26,6,10,0,0,,4,0,,5,1,0,0,3,1,1,1,3,5,5,0,0,0,0,0,0,225,887584,""

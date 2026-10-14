@@ -66,10 +66,28 @@ describe('乱択プレイアウト', () => {
       expect(s.finished).toBe(true);
     }
   });
+  it('1人でも、ヴァリアントをすべて採用して最後まで進む', () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const all = { turnOrder: true, draft: true, advSkills: true, freeChar: true, setupDraft: true, charBuff: true };
+      const { s } = playRandom(1, seed * 41, seed % 2 ? all : { turnOrder: false, draft: false, advSkills: false });
+      expect(s.finished).toBe(true);
+    }
+  });
+
   it('キャラクターの上方修正（自由選択と併用）でも最後まで進む', () => {
     for (let seed = 1; seed <= 10; seed++) {
       const { s } = playRandom(2 + (seed % 3), seed * 37, { turnOrder: false, draft: false, advSkills: false, freeChar: true, charBuff: true });
       expect(s.finished).toBe(true);
     }
+  });
+});
+
+describe('1人の上級スキルタイル', () => {
+  it('1人では3枚、2人では3枚、4人では5枚並ぶ', () => {
+    const adv = { turnOrder: false, draft: false, advSkills: true };
+    const names = ['A', 'B', 'C', 'D'];
+    expect(createGame({ players: 1, names, variants: adv }, 5).advSkills).toHaveLength(3);
+    expect(createGame({ players: 2, names, variants: adv }, 5).advSkills).toHaveLength(3);
+    expect(createGame({ players: 4, names, variants: adv }, 5).advSkills).toHaveLength(5);
   });
 });

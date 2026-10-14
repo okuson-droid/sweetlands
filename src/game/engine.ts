@@ -126,7 +126,8 @@ export function createGame(config: GameConfig, seed: number): GameState {
   if (config.variants.advSkills) {
     const [adv, r7] = shuffle(ADV_SKILLS.map((a) => a.id), rng);
     rng = r7;
-    advSkills = adv.slice(0, n + 1);
+    // 人数＋1枚を並べる。1人のときは3枚（持ち主の指示、docs/decisions_13 §13.5）
+    advSkills = adv.slice(0, n === 1 ? 3 : n + 1);
   }
 
   const areas: GameState['areas'] = {};

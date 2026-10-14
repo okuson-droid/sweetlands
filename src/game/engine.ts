@@ -18,7 +18,7 @@ import {
   LAB_GAPS,
   LOTUS_CITY_RATE,
   MAP_ICON,
-  PRINTED_AUTO,
+  printedAuto,
   PROS_TRACKS,
   RABBIT_BONUS,
   RABBIT_POS,
@@ -36,7 +36,7 @@ import {
   supportColumns,
 } from './boards';
 import { CARDS, CARD_IDS } from './cards';
-import { BOARD_PAIRS, CHARACTERS } from './characters';
+import { BOARD_PAIRS, CHARACTERS, isBuffed } from './characters';
 import { shuffle, nextRandom } from './rng';
 import {
   automatedCount,
@@ -385,6 +385,14 @@ function ask(s: GameState, task: Task, step: string, prompt: string, options: Op
 }
 const P = (s: GameState, t: Task) => s.players[t.player];
 const hasChar = (p: PlayerState, name: string) => p.character === name;
+/** キャラクターの上方修正（ヴァリアント、docs/decisions_16）がこのプレイヤーに効いているか */
+const buffOn = (s: GameState, p: PlayerState) => isBuffed(s.config, p.character);
+/** 自分の研究所駒の数 */
+const labCount = (p: PlayerState) => Object.values(p.hexes).filter((h) => h.building === 'lab').length;
+/** ビスキュイ・バステトのフリーアクションで進む歩数。上方修正では研究所駒1個につき、通常は研究所駒のある都市1つにつき */
+const biscuitSteps = (s: GameState, p: PlayerState) => (buffOn(s, p) ? labCount(p) : cities(p).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length);
+/** リッカ・ベリーが麦の代わりに払える資源。上方修正ではゴールド、通常は木材 */
+const rikkaSub = (s: GameState, p: PlayerState): 'gold' | 'wood' => (buffOn(s, p) ? 'gold' : 'wood');
 const clockOf = (p: PlayerState, name: string) => p.character === name && p.clockPlaced;
 const hasSkill = (p: PlayerState, id: number, adv = false) => p.skills.some((x) => x.id === id && x.adv === adv);
 
@@ -1208,7 +1216,7 @@ function runIb(s: GameState, t: Task, row: Row): void {
   emit(s, { t: 'ib', p: t.player, row });
   const board = CHARACTERS[p.character!].board;
   const chain: Task[] = [sp(t.player, 'ibStart')];
-  chain.push(...tasks(t.player, PRINTED_AUTO[board][row], '産業列'));
+  chain.push(...tasks(t.player, printedAuto(board, row, buffOn(s, p)), '産業列'));
   for (const id of p.automated[row]) chain.push(...tasks(t.player, CARDS[id].auto ?? [], CARDS[id].nameJa));
   chain.push(sp(t.player, 'ibEnd'));
   front(s, chain);
@@ -1766,13 +1774,15 @@ export function areaCost(s: GameState, p: PlayerState, id: string): Cost {
   return c;
 }
 
-/** リッカ・ベリー：麦を木材で払える */
+/** リッカ・ベリー：麦を木材（上方修正ではゴールド）で払える */
 function areaCostAffordable(s: GameState, p: PlayerState, id: string, extra: Cost = {}): boolean {
   const c = areaCost(s, p, id);
   const total: Cost = { ...c, gold: (c.gold ?? 0) + (extra.gold ?? 0) };
   if (hasChar(p, 'リッカ・ベリー') && (id === 'C' || id === 'O')) {
     const w = c.wheat ?? 0;
-    return p.res.wheat + p.res.wood >= w && canAfford(s, p, { ...total, wheat: 0 });
+    const sub = rikkaSub(s, p);
+    // 代わりに払える数は、ほかのコストに充てた残り
+    return p.res.wheat + p.res[sub] - (total[sub] ?? 0) >= w && canAfford(s, p, { ...total, wheat: 0 });
   }
   return canAfford(s, p, total);
 }
@@ -1924,13 +1934,16 @@ function payAreaCost(s: GameState, t: Task): void {
   const c = areaCost(s, p, exec);
   if (hasChar(p, 'リッカ・ベリー') && (exec === 'C' || exec === 'O') && (c.wheat ?? 0) > 0) {
     const w = c.wheat!;
+    const sub = rikkaSub(s, p);
+    const spare = p.res[sub] - (c[sub] ?? 0);
     const opts: Option[] = [];
-    for (let wood = 0; wood <= w; wood++) {
-      const wheat = w - wood;
-      if (wheat <= p.res.wheat && wood <= p.res.wood) opts.push({ id: `split:${wood}`, label: `麦${wheat}・木材${wood}`, data: { wood, wheat } });
+    // ID の数は代わりに払う個数。上方修正ではゴールド、通常は木材の個数を表す
+    for (let n = 0; n <= w; n++) {
+      const wheat = w - n;
+      if (wheat <= p.res.wheat && n <= spare) opts.push({ id: `split:${n}`, label: `麦${wheat}・${RES_LABEL[sub]}${n}`, data: { [sub]: n, wheat } });
     }
     t.ctx = { ...t.ctx, exec };
-    ask(s, t, 'areaCost', '麦の代わりに木材で払う個数を選んでください', opts);
+    ask(s, t, 'areaCost', `麦の代わりに${RES_LABEL[sub]}で払う個数を選んでください`, opts);
     return;
   }
   payFixed(s, p, c);
@@ -1941,7 +1954,8 @@ function resumeAreaCost(s: GameState, t: Task, opt: Option): void {
   const p = P(s, t);
   const exec = String(t.ctx!.exec);
   const c = areaCost(s, p, exec);
-  payFixed(s, p, { ...c, wheat: Number(opt.data!.wheat), wood: (c.wood ?? 0) + Number(opt.data!.wood) });
+  const d = opt.data!;
+  payFixed(s, p, { ...c, wheat: Number(d.wheat), wood: (c.wood ?? 0) + Number(d.wood ?? 0), gold: (c.gold ?? 0) + Number(d.gold ?? 0) });
   front(s, tasks(t.player, AREAS[exec].effect, AREAS[exec].label));
 }
 
@@ -1994,7 +2008,7 @@ function resumeAutomateOffer(s: GameState, t: Task, opt: Option): void {
 // ---- パス（§6.11） ----
 function passScoring(s: GameState, t: Task): void {
   const p = P(s, t);
-  const ip = passedIp(p);
+  const ip = passedIp(p, buffOn(s, p));
   p.ipThisPass = ip;
   const out: Task[] = [];
   const vp = (n: number) => n > 0 && addScore(s, p, 'vp', n);
@@ -2025,7 +2039,7 @@ function passRest(s: GameState, t: Task): void {
   const rate = clockOf(p, 'ロータス・チェー') || p.lotusRate ? LOTUS_CITY_RATE : CITY_RATE;
   addScore(s, p, 'cp', rate[nc]);
   // ③ 工業点（①でエルサ・スカイルが地形タイルを置いた場合に備えて数え直す）
-  p.ipThisPass = passedIp(p);
+  p.ipThisPass = passedIp(p, buffOn(s, p));
   addScore(s, p, 'ip', p.ipThisPass);
   // ④ パス時支援タイル
   const up = s.supportTiles[p.supportSpace!][0];
@@ -2096,7 +2110,8 @@ function freeActionOptions(s: GameState, p: PlayerState): Option[] {
   if (!p.clockPlaced && clockReady(s, p) && buildingSpots(p).length > 0) out.push({ id: 'fa8', label: '時計塔駒を置く' });
   // キャラクター固有
   const used = (k: string) => p.usedFree.includes(k);
-  if (hasChar(p, 'ビスキュイ・バステト') && !used('biscuit') && cities(p).some((c) => c.some((k) => p.hexes[k].building === 'lab'))) out.push({ id: 'faC:biscuit', label: '研究所のある都市1つにつき工業トラック1歩' });
+  if (hasChar(p, 'ビスキュイ・バステト') && !used('biscuit') && biscuitSteps(s, p) > 0)
+    out.push({ id: 'faC:biscuit', label: buffOn(s, p) ? '研究所1個につき工業トラック1歩' : '研究所のある都市1つにつき工業トラック1歩' });
   if (hasChar(p, 'ロータス・チェー') && !used('lotus') && Object.values(p.hexes).some((h) => h.tile && !h.tile.flipped))
     out.push({ id: 'faC:lotus', label: '表向きの地形タイルを1枚裏返す' });
   if (hasChar(p, 'ソルビー・ショコラ')) {
@@ -2122,7 +2137,7 @@ export function clockReady(s: GameState, p: PlayerState): boolean {
         case 'food':
           return p.food >= r.n;
         case 'ipPassed':
-          return passedIp(p) >= r.n;
+          return passedIp(p, buffOn(s, p)) >= r.n;
         case 'wonder':
           return p.wonders >= 1;
       }
@@ -2187,7 +2202,7 @@ function resumeFreeAction(s: GameState, t: Task, opt: Option): void {
   if (id.startsWith('faC:')) {
     const k = id.slice(4);
     p.usedFree.push(k);
-    if (k === 'biscuit') q([{ k: 'industry', n: cities(p).filter((c) => c.some((x) => p.hexes[x].building === 'lab')).length }]);
+    if (k === 'biscuit') q([{ k: 'industry', n: biscuitSteps(s, p) }]);
     if (k === 'lotus') q([{ k: 'flipAny' }]);
     if (k === 'solbee3') q([{ k: 'gain', res: { wheat: 1 } }]);
     if (k === 'solbee5') q([{ k: 'road', n: 1 }]);

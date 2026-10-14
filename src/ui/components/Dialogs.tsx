@@ -1,6 +1,6 @@
 // 小窓：市民デッキから探す・ドラフトの候補（§5.5）、準備のキャラクター・地図ボードの選択（§3）
 import { useState } from 'react';
-import { CHARACTERS } from '../../game/characters';
+import { BUFF_NOTES, CHARACTERS, basicTextOf, isBuffed } from '../../game/characters';
 import { CARDS } from '../../game/cards';
 import type { GameState } from '../../game/types';
 import { useInteraction, useTarget } from '../interaction';
@@ -43,7 +43,7 @@ export function CandidateWindow({ s, viewer }: { s: GameState; viewer: number })
   );
 }
 
-function CharChoice({ name, taken, onPreview }: { name: string; taken: boolean; onPreview: (name: string) => void }) {
+function CharChoice({ s, name, taken, onPreview }: { s: GameState; name: string; taken: boolean; onPreview: (name: string) => void }) {
   const t = useTarget(`setupChar:${name}`, { k: 'other' });
   const ch = CHARACTERS[name];
   return (
@@ -59,16 +59,23 @@ function CharChoice({ name, taken, onPreview }: { name: string; taken: boolean; 
       </button>
       <h3>{name}</h3>
       <div className="start">
+        {isBuffed(s.config, name) && <span className="buff-mark lead">上方修正</span>}
         初期：G{ch.startRes.gold} 麦{ch.startRes.wheat} 木{ch.startRes.wood} 鉄{ch.startRes.iron} ダイヤ{ch.startDiamond}
       </div>
       <div className="txt">
         <b>基本能力</b>
-        {ch.basicText}
+        {basicTextOf(s.config, name)}
       </div>
       <div className="txt">
         <b>時計塔能力</b>
         {ch.clockText}
       </div>
+      {isBuffed(s.config, name) && (
+        <div className="txt buff">
+          <b>上方修正</b>
+          {BUFF_NOTES[name].join('／')}
+        </div>
+      )}
     </div>
   );
 }
@@ -104,7 +111,7 @@ function CharGrid({ s, seat, open }: { s: GameState; seat: number; open: Set<str
     <>
       <div className="chargrid">
         {Object.keys(CHARACTERS).map((n) => (
-          <CharChoice key={n} name={n} taken={!open.has(n)} onPreview={setPreview} />
+          <CharChoice key={n} s={s} name={n} taken={!open.has(n)} onPreview={setPreview} />
         ))}
       </div>
       {preview && <CharPreview s={s} seat={seat} name={preview} close={() => setPreview(null)} />}

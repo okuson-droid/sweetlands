@@ -157,9 +157,9 @@ function Declare({ aff }: { aff: Affordances }) {
   }
   return (
     <div className="declare">
-      {d.moves.map(({ move, split }) => (
+      {d.moves.map(({ move }) => (
         <button key={move.ids.join()} className="btn" onClick={() => c.run(move)}>
-          {d.kind === 'woodSplit' ? `麦${split!.wheat}・木材${split!.wood}` : move.label}
+          {move.label}
         </button>
       ))}
     </div>

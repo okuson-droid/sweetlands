@@ -1,7 +1,7 @@
 // 個人ボード（ui_design §4.1）：キャラクター・資源と収入・建物駒・産業列・スキル・手元
-import { ADV_SKILLS, CHAR_BOARD, GRID_IRON, GRID_WOOD, PRINTED_AUTO, SHOP_COST, SKILLS, gridBonus } from '../../game/boards';
+import { ADV_SKILLS, CHAR_BOARD, GRID_IRON, GRID_WOOD, SHOP_COST, SKILLS, gridBonus, printedAuto } from '../../game/boards';
 import { CARDS } from '../../game/cards';
-import { CHARACTERS } from '../../game/characters';
+import { BUFF_NOTES, CHARACTERS, basicTextOf, isBuffed } from '../../game/characters';
 import { buildingCount, passedIp, playedCount, rowCapacity, tagCounts, tally, terrainCount } from '../../game/queries';
 import type { ClockReq } from '../../game/characters';
 import { TAGS, type Tag } from '../../game/types';
@@ -14,7 +14,7 @@ import { PIECE_LABEL } from './Icons';
 import { Glyph } from '../icons/Glyph';
 import { Icons, costToks, discountedCostToks, effToks } from '../icons/EffIcons';
 import { pieceCostAt } from '../../game/engine';
-import { CHAR_ABILITY_TOKS, skillToks } from '../icons/specs';
+import { CHAR_ABILITY_TOKS, CHAR_ABILITY_TOKS_BUFF, skillToks } from '../icons/specs';
 
 const ROW_NAME: Record<Row, string> = { agr: '農業', for: '林業', min: '鉱業' };
 const CHAR_KEYS: Record<string, [string, string][]> = {
@@ -28,12 +28,17 @@ const CHAR_KEYS: Record<string, [string, string][]> = {
   'サクラ・モチ': [['sakura', '手札1枚 → ディスク1枚']],
 };
 
-function CharAbility({ k, label, used }: { k: string; label: string; used: boolean }) {
+/** キャラクターの上方修正（docs/decisions_16）で書き換わる、キャラクター固有のフリーアクションの表記 */
+const CHAR_KEYS_BUFF: Record<string, string> = { biscuit: '研究所1個につき工業1歩' };
+
+function CharAbility({ k, label, used, buff }: { k: string; label: string; used: boolean; buff: boolean }) {
   const t = useTarget(`char:${k}`, { k: 'free', slot: k });
+  const text = (buff && CHAR_KEYS_BUFF[k]) || label;
+  const toks = (buff && CHAR_ABILITY_TOKS_BUFF[k]) || CHAR_ABILITY_TOKS[k];
   return (
-    <span className={`ability ${t.lit ? 'lit' : ''} ${used ? 'used' : ''}`} {...t.props} tabIndex={0} title={used ? `${label}（このラウンドは使用済み）` : label}>
+    <span className={`ability ${t.lit ? 'lit' : ''} ${used ? 'used' : ''}`} {...t.props} tabIndex={0} title={used ? `${text}（このラウンドは使用済み）` : text}>
       <Glyph g="once" size={10} />
-      <Icons toks={CHAR_ABILITY_TOKS[k]} size={14} label={label} />
+      <Icons toks={toks} size={14} label={text} />
     </span>
   );
 }
@@ -194,7 +199,7 @@ function ClockPiece({ p }: { p: PlayerState }) {
 
 function RowDrop({ s, p, row }: { s: GameState; p: PlayerState; row: Row }) {
   const t = useTarget(`row:${row}`, { k: 'other' });
-  const printed = p.character ? PRINTED_AUTO[CHAR_BOARD[p.character]][row] : [];
+  const printed = p.character ? printedAuto(CHAR_BOARD[p.character], row, isBuffed(s.config, p.character)) : [];
   const z = useZoomBind(() => (
     <div>
       <b>{ROW_NAME[row]}の産業列</b>
@@ -331,14 +336,24 @@ function TallyLine({ p }: { p: PlayerState }) {
 
 export function PersonalBoard({ s, p, withTableau = true }: { s: GameState; p: PlayerState; withTableau?: boolean }) {
   const ch = p.character ? CHARACTERS[p.character] : null;
+  const buff = isBuffed(s.config, p.character);
   const skillsDrop = useTarget('skills', { k: 'other' });
   const tableau = useTarget('tableau', { k: 'other' });
   const charZoom = useZoomBind(() =>
     ch ? (
       <div>
         <b>{ch.name}</b>
-        <div className="sec">基本能力：{ch.basicText}</div>
+        {buff && <span className="buff-mark">上方修正</span>}
+        <div className="sec">基本能力：{basicTextOf(s.config, ch.name)}</div>
         <div className="sec">時計塔能力：{ch.clockText}</div>
+        {buff && (
+          <div className="sec">
+            上方修正の変更点：
+            {BUFF_NOTES[ch.name].map((x) => (
+              <div key={x}>・{x}</div>
+            ))}
+          </div>
+        )}
       </div>
     ) : null,
   );
@@ -346,8 +361,13 @@ export function PersonalBoard({ s, p, withTableau = true }: { s: GameState; p: P
     <div className="personal">
       <div className="charline" {...charZoom.props}>
         <b>{p.character ?? 'キャラクター未選択'}</b>
+        {buff && (
+          <span className="buff-mark" title={`上方修正：${BUFF_NOTES[p.character!].join('／')}`}>
+            上方修正
+          </span>
+        )}
         {(CHAR_KEYS[p.character ?? ''] ?? []).map(([k, label]) => (
-          <CharAbility key={k} k={k} label={label} used={p.usedFree.includes(k)} />
+          <CharAbility key={k} k={k} label={label} used={p.usedFree.includes(k)} buff={buff} />
         ))}
         <span className="stat" title={`解放したワンダーアイコン ${p.wonders}個（1個目で時計塔の条件、2個目以降はスキルタイル）`}>
           <Glyph g="wonder" size={14} />

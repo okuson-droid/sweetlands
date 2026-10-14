@@ -173,8 +173,9 @@ export interface GameConfig {
   players: number; // 2〜4
   names: string[];
   /** freeChar：キャラクターの自由選択（rules v1.1 §10.4）。setupDraft：準備のドラフト（§10.5）。
-   *  2つは後から足したため省略可（以前の記録では未定義＝不採用） */
-  variants: { turnOrder: boolean; draft: boolean; advSkills: boolean; freeChar?: boolean; setupDraft?: boolean };
+   *  charBuff：キャラクターの上方修正（docs/decisions_16）。
+   *  3つは後から足したため省略可（以前の記録では未定義＝不採用） */
+  variants: { turnOrder: boolean; draft: boolean; advSkills: boolean; freeChar?: boolean; setupDraft?: boolean; charBuff?: boolean };
 }
 
 export type Phase = 'setup' | 'start' | 'income' | 'action' | 'cleanup' | 'end';

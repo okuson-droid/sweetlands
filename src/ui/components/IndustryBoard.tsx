@@ -1,5 +1,6 @@
 // 工業発展ボード（ui_design §4.1）：工業トラック・食料トラック・研究所駒・クッキーラビット駒
-import { FOOD_BONUS, FOOD_END, INDUSTRY_TRACK, IP_ICONS, LAB_COST, LAB_GAPS, RABBIT_BONUS } from '../../game/boards';
+import { FOOD_BONUS, FOOD_END, INDUSTRY_TRACK, IP_ICONS, IP_VALUES_NATA_BUFF, LAB_COST, LAB_GAPS, RABBIT_BONUS } from '../../game/boards';
+import { isBuffed } from '../../game/characters';
 import { describe } from '../../game/engine';
 import type { PlayerState } from '../../game/types';
 import { useSource, useTarget, useZoomBind } from '../interaction';
@@ -69,7 +70,8 @@ function labState(p: PlayerState, after: number) {
 /** マスの外側の帯に置く、研究所駒と工業点アイコン（マスとマスの境目の位置に揃える） */
 function GapPieces({ s, p, after, row }: { s: GameState; p: PlayerState; after: number; row: number }) {
   const { lab, present, next } = labState(p, after);
-  const ip = IP_ICONS.find((x) => x.gap === after);
+  const ipIdx = IP_ICONS.findIndex((x) => x.gap === after);
+  const ip = ipIdx < 0 ? null : { value: isBuffed(s.config, p.character) && p.character === 'ナタ・パステル' ? IP_VALUES_NATA_BUFF[ipIdx] : IP_ICONS[ipIdx].value };
   const src = useSource('piece:lab', '研究所駒', { k: 'other' });
   const col = gapColumn(after);
   if (col === null || (!present && !ip)) return null;
@@ -156,8 +158,8 @@ export function IndustryBoard({ s, p }: { s: GameState; p: PlayerState }) {
   const bottomGaps = Array.from({ length: 8 }, (_, i) => 9 + i);
   return (
     <div className="industry">
-      <div className="istats" title={`工業マーカーが通過した工業点アイコンの合計：パス時に${passedIp(p)}工業点を得る`}>
-        <Icons toks={[{ g: 'pass' }, { g: 'ipThisPass', n: passedIp(p) }]} size={14} />
+      <div className="istats" title={`工業マーカーが通過した工業点アイコンの合計：パス時に${passedIp(p, isBuffed(s.config, p.character))}工業点を得る`}>
+        <Icons toks={[{ g: 'pass' }, { g: 'ipThisPass', n: passedIp(p, isBuffed(s.config, p.character)) }]} size={14} />
         <Icons toks={[{ g: 'carriage', n: p.carriage + 1 }, ...(p.loco !== null ? [{ g: 'loco' as const, n: p.loco + 1 }] : [])]} size={14} />
       </div>
       <Track s={s} p={p} squares={top} gaps={topGaps} stripRow={1} />

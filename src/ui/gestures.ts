@@ -209,7 +209,7 @@ function place(s: GameState, a: Affordances, t: Target, opt: Option, step: strin
     }
     case 'woodSplit':
       if (!a.declare) a.declare = { kind: 'woodSplit', moves: [] };
-      a.declare.moves.push({ move: one(), split: { wheat: t.wheat, wood: t.wood } });
+      a.declare.moves.push({ move: one(), split: { wheat: t.wheat, wood: t.wood, gold: t.gold } });
       return true;
     case 'choice':
       if (!a.declare) a.declare = { kind: 'choice', moves: [] };

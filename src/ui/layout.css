@@ -756,6 +756,25 @@ svg .lit-svg {
   font-size: 10.5px;
   color: var(--cocoa-soft);
 }
+/* キャラクターの上方修正（docs/decisions_16）の印 */
+.buff-mark {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 16px;
+  vertical-align: middle;
+  color: var(--sugar);
+  background: var(--special-deep);
+}
+.buff-mark.lead {
+  margin: 0 6px 0 0;
+}
+.charcard .txt.buff {
+  color: var(--special-deep);
+}
 .setting {
   display: block;
   padding: 4px 0;

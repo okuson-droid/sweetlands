@@ -6,9 +6,10 @@
 import type { GameState } from '../../src/game/types';
 import { Rng, determinize, legal, scoreTotal, step } from './core';
 import { WEIGHT_NAMES, baseEval, features, passesLeft, type Weights } from './evaluate';
+import { applyTemplate, templateByName, type Template } from './templates';
 
 export interface AgentConfig {
-  kind: 'v0' | 'v1' | 'v2';
+  kind: 'v0' | 'v1' | 'v2' | 'v1r';
   weights: Weights;
   /** 決め打ちのフリーアクション（§6.3）。clock：時計塔駒を置けるなら置く。prePass：パスの前にディスクと手札（1枚を残す）を基礎資源に替える */
   rules: { clock: boolean; prePass: boolean };
@@ -23,6 +24,13 @@ export interface AgentConfig {
   determinizations: number;
   /** v2 で深く読む最初の手の数（v1 と同じ方法で解決した評価の上位） */
   beamRoot: number;
+  /** 打ち方の型（templates.ts）。template は固定の型、templates は候補の型（ラウンドの頭ごとに対局の終わりまで模擬して選ぶ） */
+  template?: string;
+  templates?: string[];
+  /** 型を選ぶときの模擬の回数（型ごと。決定化を変えて平均する） */
+  templateK?: number;
+  /** v1r：主行動の候補のうち、対局の終わりまで模擬して比べる数（v1 の評価の上位。パスは常に含める） */
+  rolloutRoot?: number;
 }
 
 /** v2 のスキル梯子（第5版 §5.5・§6.5）：探索の量だけを変える3段階。中が調整に使う設定 */
@@ -54,6 +62,46 @@ export class Agent {
   constructor(cfg: AgentConfig, seed: number) {
     this.cfg = cfg;
     this.rng = new Rng(seed);
+    this.tpl = cfg.template ? templateByName(cfg.template) : undefined;
+    this.w = cfg.weights;
+  }
+
+  /** いま使っている型と、それを当てはめた重み・得点の倍率（ラウンドが変わるたびに作り直す） */
+  private tpl: Template | undefined;
+  private w: Weights;
+  private scoreMul = 1;
+  private goldVp = 1;
+  private wRound = -1;
+  /** 型を選んだラウンド */
+  private selRound = -1;
+  /** 計測：ラウンドごとに選んだ型 */
+  readonly picks: string[] = [];
+
+  private setRound(round: number): void {
+    if (round === this.wRound) return;
+    this.wRound = round;
+    const a = applyTemplate(this.cfg.weights, this.tpl, round);
+    this.w = a.w;
+    this.scoreMul = a.score;
+    this.goldVp = a.goldVp;
+  }
+
+  /** 型の候補ごとに、決定化した局面から対局の終わりまで（型を固定した v1 で）模擬し、最終得点の平均が最も高い型を選ぶ */
+  private selectTemplate(s: GameState): void {
+    const names = this.cfg.templates!;
+    const K = this.cfg.templateK ?? 2;
+    const dets = Array.from({ length: K }, () => determinize(s, this.rng));
+    const seeds = dets.map(() => this.rng.int(2 ** 31));
+    let best = names[0];
+    let bv = -Infinity;
+    for (const name of names) {
+      let sum = 0;
+      for (let k = 0; k < K; k++) sum += this.rollout(dets[k], seeds[k], name);
+      if (sum / K > bv + EPS) (bv = sum / K), (best = name);
+    }
+    this.tpl = templateByName(best);
+    this.wRound = -1;
+    this.picks.push(`R${s.round}:${best}`);
   }
 
   /** 主行動の前に使った両替（同じ手番の中で、逆向きの両替と行き来しないために覚える） */
@@ -65,6 +113,12 @@ export class Agent {
     if (opts.length === 0) throw new Error('合法手がない');
     if (opts.length === 1) return opts[0].id;
     if (this.cfg.kind === 'v0') return opts[this.rng.int(opts.length)].id;
+    const round = s.phase === 'setup' ? 1 : s.round;
+    if (this.cfg.templates && s.phase !== 'setup' && round !== this.selRound) {
+      this.selRound = round;
+      this.selectTemplate(s);
+    }
+    this.setRound(round);
     const det = determinize(s, this.rng);
     if (s.pending!.step !== 'turn') return this.chooseSub(det, true);
     const id = this.chooseTurn(det);
@@ -82,7 +136,11 @@ export class Agent {
 
   private ev(s: GameState): number {
     this.evals++;
-    return baseEval(s, this.cfg.weights);
+    let v = baseEval(s, this.w);
+    if (s.finished) return v;
+    if (this.scoreMul !== 1) v += (this.scoreMul - 1) * scoreTotal(s);
+    if (this.goldVp !== 1) v += (this.goldVp - 1) * this.scoreMul * Math.floor(s.players[0].res.gold / 5);
+    return v;
   }
 
   /** 同点を AI の乱数で崩して最大のものを選ぶ */
@@ -148,7 +206,7 @@ export class Agent {
   private fullEval(s: GameState): number {
     const base = this.ev(s);
     if (s.finished) return base;
-    return base + this.cfg.weights[11] * this.passGain(s) * passesLeft(s);
+    return base + this.w[11] * this.passGain(s) * passesLeft(s);
   }
 
   /** 事例分析用（判断には使わない）：ある手を選んで解決まで進めた局面の評価値と、特徴量ごとの寄与 */
@@ -158,10 +216,10 @@ export class Agent {
     const f = features(c);
     const parts: Record<string, number> = {};
     WEIGHT_NAMES.forEach((n, i) => {
-      if (i !== 11 && f[i] !== 0) parts[n] = this.cfg.weights[i] * f[i];
+      if (i !== 11 && f[i] !== 0) parts[n] = this.w[i] * f[i];
     });
     const pg = this.passGain(c) * passesLeft(c);
-    if (pg !== 0) parts.passGain = this.cfg.weights[11] * pg;
+    if (pg !== 0) parts.passGain = this.w[11] * pg;
     const score = scoreTotal(c);
     return { value: score + Object.values(parts).reduce((a, b) => a + b, 0), score, parts };
   }
@@ -171,7 +229,8 @@ export class Agent {
   private chooseTurn(det: GameState): string {
     const ids = legal(det).map((o) => o.id);
     if (this.cfg.rules.clock && ids.includes('fa8')) return 'fa8';
-    let pick = this.cfg.kind === 'v2' && !det.turnMainDone ? this.beamK(det) : this.oneTurn(det, true);
+    let pick =
+      this.cfg.kind === 'v2' && !det.turnMainDone ? this.beamK(det) : this.cfg.kind === 'v1r' && !det.turnMainDone ? this.rolloutPick(det) : this.oneTurn(det, true);
     if (pick === 'pass' && this.cfg.rules.prePass) {
       if (ids.includes('fa7d')) pick = 'fa7d';
       else if (ids.includes('fa7h') && det.players[0].hand.length >= 2) pick = 'fa7h';
@@ -213,7 +272,34 @@ export class Agent {
     }
     cands.sort((a, b) => b.value - a.value);
     const top = cands.slice(0, this.cfg.topK);
-    return this.argmax(top, (c) => c.value + this.cfg.weights[11] * this.passGain(c.s) * passesLeft(c.s)).first;
+    return this.argmax(top, (c) => c.value + this.w[11] * this.passGain(c.s) * passesLeft(c.s)).first;
+  }
+
+  /** 決定化した局面から、型を固定した v1 で対局の終わりまで打ち切り、最終得点を返す */
+  private rollout(s: GameState, seed: number, template?: string): number {
+    const sub = new Agent({ ...this.cfg, kind: 'v1', template, templates: undefined }, seed);
+    let n = 0;
+    while (s.pending && !s.finished) {
+      if (++n > 3000) break;
+      s = step(s, sub.choose(s));
+    }
+    this.evals += sub.evals;
+    return scoreTotal(s);
+  }
+
+  /** v1r：v1 の評価の上位 rolloutRoot 個（とパス）を、それぞれ対局の終わりまで v1 で模擬し、最終得点が最も高いものを選ぶ。
+   *  1手だけ方策を改善する模擬（ロールアウト）であり、収入への投資のように何ラウンドも先に実る手を、評価関数の形によらず比べられる */
+  private rolloutPick(det: GameState): string {
+    const root = this.candidates(det, true).sort((a, b) => b.value - a.value);
+    const firsts: typeof root = [];
+    for (const c of root) if (!firsts.some((x) => x.first === c.first)) firsts.push(c);
+    const top = firsts.slice(0, this.cfg.rolloutRoot ?? 3);
+    const pass = firsts.find((c) => c.first === 'pass');
+    if (pass && !top.includes(pass)) top.push(pass);
+    if (top.length <= 1) return this.oneTurn(det, true);
+    // 候補の間で AI の乱数をそろえる（共通乱数。デッキの並びは det で既にそろっている）
+    const seed = this.rng.int(2 ** 31);
+    return this.argmax(top, (c) => this.rollout(c.s, seed)).first;
   }
 
   // ---- v2：ラウンドの終わりまでの列挙 ----
@@ -229,7 +315,7 @@ export class Agent {
   private leafValue(before: GameState, leaf: GameState): number {
     const v = this.ev(leaf);
     if (leaf.finished) return v;
-    return v + this.cfg.weights[11] * (scoreTotal(leaf) - scoreTotal(before)) * passesLeft(leaf);
+    return v + this.w[11] * (scoreTotal(leaf) - scoreTotal(before)) * passesLeft(leaf);
   }
 
   /** ある局面（最初の手を指したあと）から、ラウンドの終わりまでの列をビームで列挙し、最良の葉の評価値を返す。

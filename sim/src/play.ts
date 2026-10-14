@@ -29,6 +29,8 @@ export interface GameResult {
   anomalies: string[];
   /** ラウンドごとの記録（棋譜用） */
   rounds: { round: number; actions: string[]; scoreAtEnd: number }[];
+  /** 打ち方の型を選ぶ AI で、ラウンドごとに選んだ型 */
+  picks: string[];
 }
 
 function negatives(s: GameState): string | null {
@@ -113,6 +115,7 @@ export function playGame(cond: Condition, seed: number, cfg: AgentConfig, aiSeed
     milestoneMoves,
     anomalies,
     rounds,
+    picks: agent.picks,
   };
 }
 

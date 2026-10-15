@@ -496,7 +496,7 @@ function drawCards(s: GameState, p: PlayerState, n: number): number {
 export function cardCost(s: GameState, p: PlayerState, id: string): number {
   const c = CARDS[id];
   let cost = c.cost;
-  if (c.brownie || hasSkill(p, 10, true)) cost -= tagCounts(p).ブラウニー; // 自身のタグは含めない（手札にあるため）
+  if (c.brownie || hasSkill(p, 10, true)) cost -= tagCounts(p, buffOn(s, p)).ブラウニー; // 自身のタグは含めない（手札にあるため）
   if (supportActive(s, p, 13)) cost -= 3;
   return Math.max(0, cost);
 }
@@ -2088,7 +2088,7 @@ function skillPassVp(s: GameState, p: PlayerState, id: number, adv: boolean): nu
     return c >= 5 ? 15 : c >= 3 ? 7 : c >= 1 ? 3 : 0;
   }
   if (id === 2) return [0, 2, 6, 12, 20][connectedPorts(p)];
-  if (id === 3) return 2 * Math.max(...Object.values(tagCounts(p)));
+  if (id === 3) return 2 * Math.max(...Object.values(tagCounts(p, buffOn(s, p))));
   return 0;
 }
 

@@ -1,7 +1,7 @@
 // 盤面の数え上げ・判定（rules §6.2〜§6.11, §9）
 import mapsRaw from '../data/maps.json';
 import { CARDS } from './cards';
-import { CHARACTERS, isBuffed } from './characters';
+import { BUFF_TRAIT_TAGS, CHARACTERS, isBuffed } from './characters';
 import { hexEdges, hexKey, hexVertices, neighborCoords, parseHexKey, sharedEdge, edgeVertices } from './geometry';
 import type { HexKey } from './geometry';
 import { IP_ICONS, IP_VALUES_NATA_BUFF, PROS_TRACKS } from './boards';
@@ -321,9 +321,10 @@ export function allPlayed(p: PlayerState): string[] {
   return [...p.played, ...p.automated.agr, ...p.automated.for, ...p.automated.min];
 }
 
-export function tagCounts(p: PlayerState): Record<Tag, number> {
+/** 所持しているスイーツタグの数。buff はキャラクターの上方修正を採用しているか（サクラ・モチの特性の和菓子タグが2個になる。docs/decisions_16） */
+export function tagCounts(p: PlayerState, buff = false): Record<Tag, number> {
   const out = Object.fromEntries(TAGS.map((t) => [t, 0])) as Record<Tag, number>;
-  const trait = p.character ? CHARACTERS[p.character].traitTags : undefined;
+  const trait = p.character ? (buff && BUFF_TRAIT_TAGS[p.character]) || CHARACTERS[p.character].traitTags : undefined;
   if (trait) for (const [t, n] of Object.entries(trait)) out[t as Tag] += n ?? 0;
   for (const id of allPlayed(p)) for (const [t, n] of Object.entries(CARDS[id].tags)) out[t as Tag] += n ?? 0;
   return out;
@@ -380,7 +381,7 @@ export function passedIp(p: PlayerState, buff = false): number {
 export function count(state: GameState, p: PlayerState, c: Counter): number {
   switch (c.k) {
     case 'tag':
-      return tagCounts(p)[c.tag];
+      return tagCounts(p, isBuffed(state.config, p.character))[c.tag];
     case 'terrain':
       return terrainCount(p, c.kind, c.backOnly);
     case 'bldOn':

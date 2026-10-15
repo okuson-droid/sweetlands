@@ -13,6 +13,35 @@ export interface ViewSettings {
   log: boolean;
 }
 
+const VIEW_SETTINGS_KEY = 'sweetlands.view.v1';
+
+/** 表示の設定の初期値。音とアニメーションの入／切は、この端末のブラウザに保存した値を使う
+ *  （以前は対局画面を開くたびに入に戻り、ゲーム開始のお知らせ音が鳴っていた）。
+ *  検査用の ?noanim は、保存した値より優先して両方を切にする */
+export function loadViewSettings(): ViewSettings {
+  const noanim = new URLSearchParams(location.search).has('noanim');
+  let saved: Partial<ViewSettings> = {};
+  try {
+    saved = JSON.parse(localStorage.getItem(VIEW_SETTINGS_KEY) ?? '{}') as Partial<ViewSettings>;
+  } catch {
+    /* 読めない環境では既定値を使う */
+  }
+  return {
+    animation: !noanim && saved.animation !== false,
+    sound: !noanim && saved.sound !== false,
+    log: true,
+  };
+}
+
+/** 音とアニメーションの入／切を、この端末のブラウザに保存する（失敗しても遊べる） */
+export function saveViewSettings(v: ViewSettings): void {
+  try {
+    localStorage.setItem(VIEW_SETTINGS_KEY, JSON.stringify({ animation: v.animation, sound: v.sound }));
+  } catch {
+    /* 保存できない環境でも遊べる */
+  }
+}
+
 export interface LogLine {
   group: number; // その行を出した手の番号（手の列の長さ）。取り消しで手の列が縮んだら、それより後の行を消す
   text: string;

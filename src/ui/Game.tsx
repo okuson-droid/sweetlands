@@ -1,5 +1,5 @@
 // 対局画面（ui_design §4, §7, §10, §12, §21, §22）
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { viewFor } from '../game/engine';
 import { NOTICE_MS } from './constants';
 import { buildAffordances } from './gestures';
@@ -16,7 +16,7 @@ import { IndustryBoard } from './components/IndustryBoard';
 import { FreeActions, MainBoard, ProsBoard, SideStrip, SkillPiles, SupportBoard } from './components/MainBoard';
 import { MapBoard } from './components/MapBoard';
 import { PersonalBoard, TableauBar } from './components/PersonalBoard';
-import { LogPanel, mapFlash, Opponents, SettingsPanel, TopBar, usePanels, type LayoutProps, type LogLine, type ViewSettings } from './GameParts';
+import { loadViewSettings, LogPanel, mapFlash, Opponents, saveViewSettings, SettingsPanel, TopBar, usePanels, type LayoutProps, type LogLine, type ViewSettings } from './GameParts';
 import { LandscapeLayout, PortraitLayout, useLayoutMode } from './MobileLayout';
 
 export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { session: GameSession; hotseat: boolean; fixedViewer?: number; onExit: () => void; onFinished: () => void }) {
@@ -28,7 +28,15 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
   useEffect(() => {
     if (s.pending) setLastViewer(s.pending.player);
   }, [s.pending]);
-  const [settings, setSettings] = useState<ViewSettings>(() => ({ animation: !new URLSearchParams(location.search).has('noanim'), sound: !new URLSearchParams(location.search).has('noanim'), log: true }));
+  const [settings, setSettingsState] = useState<ViewSettings>(() => {
+    const v = loadViewSettings();
+    setSoundEnabled(v.sound); // 最初の描画の前に反映する（開始直後の演出の音も止める）
+    return v;
+  });
+  const setSettings = useCallback((v: ViewSettings) => {
+    setSettingsState(v);
+    if (!new URLSearchParams(location.search).has('noanim')) saveViewSettings(v);
+  }, []);
   useEffect(() => setSoundEnabled(settings.sound), [settings.sound]);
   const pb = usePlayback(s, session.prev, viewer, settings.animation, session.lastWasUndo);
   const display = pb.display;

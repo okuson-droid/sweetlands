@@ -41,6 +41,7 @@ export type Target =
   | { k: 'basicSplit'; wheat: number; wood: number; iron: number; mode: 'gain' | 'pay' }
   | { k: 'woodSplit'; wheat: number; wood: number; gold: number } // リッカ・ベリー：麦の代わりに木材（上方修正ではゴールド）で払う内訳
   | { k: 'choice'; idx: number; label: string }
+  | { k: 'payTimes'; n: number } // 「何回でも」の支払いの回数（回数の入力で選ぶ）
   | { k: 'button'; role: 'pass' | 'endTurn' | 'stop' | 'skip' | 'pay' };
 
 /** 合法手の対象参照。対応が分からないものは null（UI は安全網に落とす） */
@@ -127,6 +128,7 @@ export function targetOf(s: GameState, opt: Option): Target | null {
     case 'choice':
       return { k: 'choice', idx: Number(id.split(':')[1]), label: opt.label };
     case 'payConfirm':
+      if (d.times !== undefined) return { k: 'payTimes', n: Number(d.times) };
       return id === 'pay' ? { k: 'button', role: 'pay' } : null;
     case 'orderEffects':
       return { k: 'effectLine', idx: Number(id.split(':')[1]) };

@@ -467,6 +467,20 @@ function scaleEffs(effs: Eff[], k: number): Eff[] {
     return e;
   });
 }
+/** 効果を k 回分にする。得る資源だけなら数を k 倍にし、それ以外は k 回並べる */
+function repeatEffs(effs: Eff[], k: number): Eff[] {
+  if (effs.every((e) => e.k === 'gain' || e.k === 'anyBasic')) return scaleEffs(effs, k);
+  return Array.from({ length: k }, () => effs).flat();
+}
+/** コストを k 回分にする */
+function scaleCost(c: Cost, k: number): Cost {
+  const out: Cost = {};
+  for (const [key, v] of Object.entries(c) as [keyof Cost, Cost[keyof Cost]][]) {
+    if (key === 'income') out.income = Object.fromEntries(Object.entries(v as Partial<Res>).map(([r, n]) => [r, (n ?? 0) * k]));
+    else (out as Record<string, number>)[key] = (v as number) * k;
+  }
+  return out;
+}
 const comboLabel = (c: Record<Basic, number>) =>
   BASICS.filter((b) => c[b] > 0)
     .map((b) => `${RES_LABEL[b]}${c[b]}`)
@@ -1240,17 +1254,17 @@ function stepPay(s: GameState, t: Task): void {
     return;
   }
   if (!canAfford(s, p, e.cost)) return;
-  ask(
-    s,
-    t,
-    'payConfirm',
-    `${costLabel(e.cost)}を支払って「${describe(e.then)}」を得ますか`,
-    [
-      { id: 'pay', label: '支払う' },
-      { id: 'skip', label: e.repeat ? 'もう支払わない' : '支払わない' },
-    ],
-    'confirm',
-  );
+  const opts: Option[] = [
+    { id: 'pay', label: '支払う' },
+    { id: 'skip', label: e.repeat ? 'もう支払わない' : '支払わない' },
+  ];
+  // 「何回でも」の支払い（→*）は、回数を選んでまとめて支払える（pay:k は k 回分を払って終える）。
+  // 1回ずつの 'pay' も残すため、以前の手の列もそのまま再生できる
+  if (e.repeat) {
+    opts[0] = { id: 'pay', label: '1回支払う', data: { times: 1 } };
+    for (let k = 2; k <= 99 && canAfford(s, p, scaleCost(e.cost, k)); k++) opts.push({ id: `pay:${k}`, label: `${k}回支払う`, data: { times: k } });
+  }
+  ask(s, t, 'payConfirm', e.repeat ? `${costLabel(e.cost)}を支払って「${describe(e.then)}」を得る回数を選んでください` : `${costLabel(e.cost)}を支払って「${describe(e.then)}」を得ますか`, opts, 'confirm');
 }
 
 function resumePay(s: GameState, t: Task, step: string, opt: Option): void {
@@ -1261,9 +1275,13 @@ function resumePay(s: GameState, t: Task, step: string, opt: Option): void {
     // フリーアクション：固定分なし、内訳の選択から始める
   } else if (step === 'payConfirm') {
     if (opt.id === 'skip') return;
-    payFixed(s, p, { ...e.cost, anyBasic: 0, hand: 0 });
-    ctx.basicLeft = e.cost.anyBasic ?? 0;
-    ctx.handLeft = e.cost.hand ?? 0;
+    // pay:k は k 回分をまとめて支払い、そのあとは聞き直さない
+    const k = opt.id.startsWith('pay:') ? Number(opt.id.slice(4)) : 1;
+    const cost = k > 1 ? scaleCost(e.cost, k) : e.cost;
+    payFixed(s, p, { ...cost, anyBasic: 0, hand: 0 });
+    ctx.basicLeft = cost.anyBasic ?? 0;
+    ctx.handLeft = cost.hand ?? 0;
+    if (k > 1) (ctx.repeatTimes = k), (ctx.final = true);
   } else if (step === 'payBasic') {
     const c = opt.data as Record<Basic, number>;
     for (const b of BASICS) p.res[b] -= c[b];
@@ -1294,8 +1312,11 @@ function resumePay(s: GameState, t: Task, step: string, opt: Option): void {
     return;
   }
   const times = Number(ctx.times ?? 1);
-  const out = tasks(t.player, times > 1 ? scaleEffs(e.then, times) : e.then, t.src);
-  if (e.repeat) out.push({ player: t.player, eff: e, src: t.src });
+  const repeatTimes = Number(ctx.repeatTimes ?? 1);
+  let then = times > 1 ? scaleEffs(e.then, times) : e.then;
+  if (repeatTimes > 1) then = repeatEffs(then, repeatTimes);
+  const out = tasks(t.player, then, t.src);
+  if (e.repeat && !ctx.final) out.push({ player: t.player, eff: e, src: t.src });
   t.ctx = {};
   front(s, out);
 }

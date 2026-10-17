@@ -117,7 +117,8 @@ function totalRule(totals: number[]): string {
 }
 
 /** 基礎資源の内訳の入力。初期値は0とし、選択肢が1つしかないときだけその内訳を入れておく。
- *  合計は選択肢から読み取る（両替のフリーアクションの一括では合計が1通りに決まらない） */
+ *  合計は選択肢から読み取る（両替のフリーアクションの一括では合計が1通りに決まらない）。
+ *  数を変えても ＋／− の位置が動かないよう、見出しは数によらない文にし、合計と案内は ＋／− の後ろに置く */
 function SplitPanel({ moves, mode }: { moves: { move: Move; split?: Record<string, number> }[]; mode: 'gain' | 'pay' }) {
   const c = useInteraction();
   const [v, setV] = useState<Record<string, number>>(() => (moves.length === 1 ? { ...(moves[0].split ?? {}) } : {}));
@@ -126,10 +127,10 @@ function SplitPanel({ moves, mode }: { moves: { move: Move; split?: Record<strin
   const total = splitTotal(v);
   const step = (k: string, d: number) => setV((x) => ({ ...x, [k]: Math.max(0, (x[k] ?? 0) + d) }));
   const rule = totalRule(totals);
-  const word = mode === 'gain' ? '得る' : '払う';
   return (
     <div className="declare">
-      <span>{totals.length === 1 ? `${word}内訳（合計${rule}）` : `${word}内訳（合計${total}／${rule}）`}</span>
+      <span className="declare-title">{mode === 'gain' ? '得る内訳' : '払う内訳'}：合計{rule}</span>
+      <span className="steppers">
       {SPLIT_KEYS.map((k) => (
         <span key={k} className="stepper">
           <button aria-label={`${k}を減らす`} onClick={() => step(k, -1)}>
@@ -142,9 +143,41 @@ function SplitPanel({ moves, mode }: { moves: { move: Move; split?: Record<strin
           </button>
         </span>
       ))}
-      <button className="btn primary" disabled={!match} onClick={() => match && c.run(match.move)}>
-        {match ? '決定' : !totals.includes(total) ? `合計を${rule}にしてください` : '持っている数を超えています'}
+      </span>
+      <span className="declare-total">合計 {total}</span>
+      <button className="btn primary declare-ok" disabled={!match} onClick={() => match && c.run(match.move)}>
+        決定
       </button>
+      {!match && <span className="declare-hint">{!totals.includes(total) ? `合計を${rule}にしてください` : '持っている数を超えています'}</span>}
+    </div>
+  );
+}
+
+/** 「何回でも」の支払いの回数の入力。初期値は0とし、1回しか払えないときだけ1を入れておく */
+function TimesPanel({ moves }: { moves: { move: Move; n?: number }[] }) {
+  const c = useInteraction();
+  const max = Math.max(...moves.map((m) => m.n ?? 0));
+  const [n, setN] = useState(max === 1 ? 1 : 0);
+  const match = moves.find((m) => m.n === n);
+  return (
+    <div className="declare">
+      <span className="declare-title">支払う回数（最大{max}回）</span>
+      <span className="stepper">
+        <button aria-label="回数を減らす" onClick={() => setN(Math.max(0, n - 1))}>
+          −
+        </button>
+        <b>{n}</b>
+        <button aria-label="回数を増やす" onClick={() => setN(Math.min(max, n + 1))}>
+          ＋
+        </button>
+      </span>
+      <button className="btn" onClick={() => setN(max)}>
+        最大
+      </button>
+      <button className="btn primary declare-ok" disabled={!match} onClick={() => match && c.run(match.move)}>
+        決定
+      </button>
+      {!match && <span className="declare-hint">回数を選んでください</span>}
     </div>
   );
 }
@@ -152,6 +185,7 @@ function SplitPanel({ moves, mode }: { moves: { move: Move; split?: Record<strin
 function Declare({ aff }: { aff: Affordances }) {
   const c = useInteraction();
   const d = aff.declare!;
+  if (d.kind === 'times') return <TimesPanel key={`${d.moves.map((m) => m.move.ids[0]).join()}-${c.state.events.length}-${c.state.log.length}`} moves={d.moves} />;
   if (d.kind === 'basicGain' || d.kind === 'basicPay') {
     return <SplitPanel key={`${d.kind}-${d.moves.map((m) => m.move.ids[0]).join()}-${c.state.events.length}-${c.state.log.length}`} moves={d.moves} mode={d.kind === 'basicGain' ? 'gain' : 'pay'} />;
   }

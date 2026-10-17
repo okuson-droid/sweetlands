@@ -13,7 +13,7 @@ export interface Move {
   confirm?: string; // 取り消せない操作の確認文
 }
 
-export type DeclareKind = 'basicGain' | 'basicPay' | 'woodSplit' | 'choice';
+export type DeclareKind = 'basicGain' | 'basicPay' | 'woodSplit' | 'choice' | 'times';
 
 export interface Affordances {
   /** (a) 持って置く：出発点 → 置き先 → 所作 */
@@ -23,7 +23,7 @@ export interface Affordances {
   /** (c) 宣言する：ボタン */
   buttons: { role: string; move: Move }[];
   /** 内訳や選択肢のパネル */
-  declare: { kind: DeclareKind; moves: { move: Move; split?: Record<string, number> }[] } | null;
+  declare: { kind: DeclareKind; moves: { move: Move; split?: Record<string, number>; n?: number }[] } | null;
   /** コピー（特殊アクションL）：エリア → コピー先 → 所作 */
   copies: Map<string, Map<string, Move>>;
   /** 安全網：上のどれにも当たらなかった合法手 */
@@ -207,6 +207,10 @@ function place(s: GameState, a: Affordances, t: Target, opt: Option, step: strin
       a.declare.moves.push({ move: one(), split: { wheat: t.wheat, wood: t.wood, iron: t.iron } });
       return true;
     }
+    case 'payTimes':
+      if (!a.declare) a.declare = { kind: 'times', moves: [] };
+      a.declare.moves.push({ move: one(), n: t.n });
+      return true;
     case 'woodSplit':
       if (!a.declare) a.declare = { kind: 'woodSplit', moves: [] };
       a.declare.moves.push({ move: one(), split: { wheat: t.wheat, wood: t.wood, gold: t.gold } });

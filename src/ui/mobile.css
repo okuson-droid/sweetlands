@@ -648,3 +648,10 @@
     min-height: 340px;
   }
 }
+/* 準備の小窓を畳んだときの「開く」ボタン：スマートフォンでは上の帯の高さに合わせる */
+.game.mobile.portrait .setup-reopen {
+  top: calc(50px + env(safe-area-inset-top));
+}
+.game.mobile.landscape .setup-reopen {
+  top: 40px;
+}

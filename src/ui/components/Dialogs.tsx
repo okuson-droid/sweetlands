@@ -1,5 +1,5 @@
 // 小窓：市民デッキから探す・ドラフトの候補（§5.5）、準備のキャラクター・地図ボードの選択（§3）
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { BUFF_NOTES, CHARACTERS, basicTextOf, isBuffed } from '../../game/characters';
 import { CARDS } from '../../game/cards';
 import type { GameState } from '../../game/types';
@@ -185,6 +185,31 @@ function pickedOf(s: GameState, seat: number): Partial<Record<PickKind, string>>
   };
 }
 
+/** 準備の小窓の枠。「閉じて盤面を見る」で小窓を畳み、盤面（メインボード・個人ボードなど）を見られるようにする。
+ *  畳んでいる間は、画面の上に「開く」ボタンだけを出す。選ぶ人や段階が変わると、key が変わって開いた状態に戻る */
+function SetupShell({ label, heading, className = '', children }: { label: string; heading: string; className?: string; children: ReactNode }) {
+  const [folded, setFolded] = useState(false);
+  if (folded)
+    return (
+      <button className="btn primary setup-reopen" onClick={() => setFolded(false)} aria-label={`${label}を開く`}>
+        {label}を開く
+      </button>
+    );
+  return (
+    <div className="modal-back setup">
+      <div className={`modal wide ${className}`} role="dialog" aria-label={label}>
+        <div className="setup-head">
+          <h2>{heading}</h2>
+          <button className="btn setup-fold" onClick={() => setFolded(true)}>
+            閉じて盤面を見る
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 /** 準備のドラフト：まだ選んでいない種類をタブで切り替えて選ぶ */
 function DraftWindow({ s, viewer }: { s: GameState; viewer: number }) {
   const pd = s.pending!;
@@ -197,9 +222,7 @@ function DraftWindow({ s, viewer }: { s: GameState; viewer: number }) {
   const done = s.players.reduce((n, _, i) => n + Object.keys(pickedOf(s, i)).length, 0);
   const openChars = new Set(pd.options.filter((o) => o.id.startsWith('char:')).map((o) => o.id.slice(5)));
   return (
-    <div className="modal-back setup">
-      <div className="modal wide draft" role="dialog" aria-label="準備のドラフト">
-        <h2>{mine ? '準備のドラフト：まだ選んでいないものから1つを選んでください' : `${s.players[pd.player].name}さんが選んでいます`}</h2>
+    <SetupShell className="draft" label="準備のドラフト" heading={mine ? '準備のドラフト：まだ選んでいないものから1つを選んでください' : `${s.players[pd.player].name}さんが選んでいます`}>
         <TableTiles s={s} />
         <ol className="draft-order" aria-label="ピックの順番">
           {order.map((seat, i) => (
@@ -237,8 +260,7 @@ function DraftWindow({ s, viewer }: { s: GameState; viewer: number }) {
           {shown === 'map' && <MapGrid s={s} seat={pd.player} options={pd.options} />}
           {shown === 'support' && <SupportBoard s={s} />}
         </div>
-      </div>
-    </div>
+    </SetupShell>
   );
 }
 
@@ -251,24 +273,18 @@ export function SetupWindow({ s, viewer }: { s: GameState; viewer: number }) {
   if (pd.step === 'setupChar') {
     const open = new Set(pd.options.map((o) => o.id.slice(5)));
     return (
-      <div className="modal-back setup">
-        <div className="modal wide" role="dialog" aria-label="キャラクターの選択">
-          <h2>{mine ? 'キャラクターを選んでください' : `${s.players[pd.player].name}さんがキャラクターを選んでいます`}</h2>
-          <TableTiles s={s} />
-          <CharGrid s={s} seat={pd.player} open={open} />
-        </div>
-      </div>
+      <SetupShell key={`char:${pd.player}`} label="キャラクターの選択" heading={mine ? 'キャラクターを選んでください' : `${s.players[pd.player].name}さんがキャラクターを選んでいます`}>
+        <TableTiles s={s} />
+        <CharGrid s={s} seat={pd.player} open={open} />
+      </SetupShell>
     );
   }
   return (
-    <div className="modal-back setup">
-      <div className="modal wide" role="dialog" aria-label="地図ボードの選択">
-        <h2>{mine ? '地図ボードと面を選んでください' : `${s.players[pd.player].name}さんが地図ボードを選んでいます`}</h2>
+    <SetupShell key={`map:${pd.player}`} label="地図ボードの選択" heading={mine ? '地図ボードと面を選んでください' : `${s.players[pd.player].name}さんが地図ボードを選んでいます`}>
         <p>地図ボードは5枚で、表はどれも同じA面、裏はボードごとに違うB面です。A面を選ぶときも、どのボードを使うかを選びます（そのボードのB面はほかの人が選べなくなります）。最初のゲームでは、全員がA面を使うのがおすすめです。</p>
         <TableTiles s={s} />
         <MapGrid s={s} seat={pd.player} options={c.state.pending!.options} />
-      </div>
-    </div>
+    </SetupShell>
   );
 }
 

@@ -87,8 +87,9 @@ while (steps < Number(maxArg)) {
   // 選択待ちの人のページで、盤面の所作を1つ行う（autoplay.mjs と同じ選び方）
   const i = simultaneous && actors.length ? pick(actors) : sls.findIndex((x) => x.viewer === Number(JSON.parse(x.digest)[2]));
   const p = pages[i >= 0 ? i : 0];
-  const confirmBtn = await visibleLit(p, '.modal-back .modal .btn.primary');
-  if (confirmBtn.length && !(await p.$('.modal-back.setup'))) {
+  // 確認の小窓（準備の選択の確認を含む）は、準備の小窓が出ていても答える
+  const confirmBtn = (await visibleLit(p, '.modal-back.confirm .modal .btn.primary')).concat((await p.$('.modal-back.setup')) ? [] : await visibleLit(p, '.modal-back .modal .btn.primary'));
+  if (confirmBtn.length) {
     await p.mouse.click(...Object.values(await center(confirmBtn[0])));
     continue;
   }

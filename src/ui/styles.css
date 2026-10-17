@@ -740,3 +740,8 @@ svg .lit-svg {
 .steppers .stepper {
   padding: 2px 4px;
 }
+
+/* 確認の小窓は、準備の小窓やキャラボードの確認（z-index 75）より手前に出す */
+.modal-back.confirm {
+  z-index: 90;
+}

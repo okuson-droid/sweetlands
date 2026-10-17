@@ -132,8 +132,9 @@ while (steps < Number(maxArg)) {
   if (shotDir && steps % 150 === 1) await page.screenshot({ path: `${shotDir}/${mode}-${steps}.png` });
 
   // 確認ダイアログ
-  const confirmBtn = await visibleLit('.modal-back .modal .btn.primary');
-  if (confirmBtn.length && !(await page.$('.modal-back.setup'))) {
+  // 確認の小窓（準備の選択の確認を含む）は、準備の小窓が出ていても答える
+  const confirmBtn = (await visibleLit('.modal-back.confirm .modal .btn.primary')).concat(await page.$('.modal-back.setup') ? [] : await visibleLit('.modal-back .modal .btn.primary'));
+  if (confirmBtn.length) {
     const settingsOpen = await page.$('.modal h2:text("設定")');
     if (!settingsOpen) {
       await tapAt(await center(confirmBtn[0]));

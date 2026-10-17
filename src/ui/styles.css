@@ -687,3 +687,25 @@ svg .lit-svg {
   border-left: 3px solid transparent;
   padding-left: 6px;
 }
+
+/* 準備の小窓の見出しと「閉じて盤面を見る」。畳んだ間は「開く」ボタンだけを上の帯の下に出す */
+.setup-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.setup-head h2 {
+  flex: 1;
+}
+.setup-fold {
+  flex: none;
+  white-space: nowrap;
+}
+.setup-reopen {
+  position: fixed;
+  top: 42px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 70;
+  box-shadow: 0 4px 14px rgba(30, 18, 12, 0.35);
+}

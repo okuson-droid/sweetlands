@@ -1,0 +1,183 @@
+=== R1 score=0 res={"gold":0,"wheat":0,"wood":0,"iron":0} inc={"gold":0,"wheat":0,"wood":0,"iron":0} pros=0,0,0,0,0,0 food=0 hand=0 discs=0
+   [setupChar] エリ・マカロン
+   [setupMap] A面（B1のボード）
+   [support] 列3：鉄の収入値+1 ／ ゴールドの収入値+2
+area:J｜市民カードを2枚引く（手札1枚）
+   [handCost] アリス・アプリコット
+play:p01-r3c1｜アンディ・アーモンドアラガンをプレイ（10ゴールド）
+   [orderEffects] 鉄の収入+1
+   [orderEffects] 道駒1個
+   [road] 辺
+   [automateOffer] オートメーション化しない
+area:A｜麦6 → 地形タイル3枚まで（手札1枚）
+   [handCost] クセニア・ショコアトル
+   [terrain] ヘクス 5,7
+   [terrain] ヘクス 4,6
+   [terrain] ヘクス 3,5
+area:E｜既定のコスト → 建物駒2個まで（手札1枚）
+   [handCost] イザベル・アイシング
+   [bldPiece] テント駒（木材2・鉄3）
+   [bldSpot] ヘクス 6,8
+   [choice] incomeAny1
+   [incomeAny] 麦の収入
+   [bldPiece] テント駒（木材3・鉄3）
+   [bldSpot] ヘクス 6,10
+   [choice] incomeAny1
+   [incomeAny] 木材の収入
+   [terrain] ヘクス 2,6
+   [road] 辺
+play:p07-r3c5｜グランド・グミーベアをプレイ（5ゴールド）
+   [automateOffer] オートメーション化しない
+area:F｜鉄3 → 工業トラック2歩まで（手札1枚）
+   [handCost] ジェラート・ジーニアス
+   [mix] ヘクス 1,7
+   [mix] 辺
+area:K｜6ゴールドを得る（手札1枚）
+   [handCost] ジニー・ジュジューブ
+pass｜パスする
+   [passMove] 列4：麦の収入値+1 ／ 任意の基礎資源3
+=== R2 score=-35 res={"gold":11,"wheat":1,"wood":2,"iron":2} inc={"gold":20,"wheat":3,"wood":3,"iron":4} pros=0,0,0,0,0,0 food=1 hand=1 discs=0
+   [anyBasic] 麦3
+area:J｜市民カードを2枚引く（手札1枚）
+   [handCost] ゼルダ・ザバリオーネ
+play:p07-r3c4｜ウィラ・ホイップクリームをプレイ（6ゴールド）
+   [automateOffer] オートメーション化しない
+play:p05-r3c3｜グロリア・ガレットをプレイ（16ゴールド）
+   [payConfirm] 支払う
+   [automateOffer] オートメーション化しない
+area:A｜麦6 → 地形タイル3枚まで（手札1枚）
+   [handCost] ヴァネッサ・ヴァニラ
+   [terrain] ヘクス 0,8
+   [terrain] ヘクス 0,10
+   [terrain] ヘクス 0,6
+play:p14-r2c5｜グレン・グレイスをプレイ（11ゴールド）
+   [orderEffects] 条件に応じて麦の収入+1
+   [road] 辺
+   [road] 辺
+   [automateOffer] ダイヤ1で農業列にオートメーション化
+area:D｜木材6 → 道駒3個まで（手札1枚）
+   [handCost] フラニー・フランジパン
+   [road] 辺
+   [road] 辺
+   [road] 辺
+area:K｜6ゴールドを得る（手札1枚）
+   [handCost] ローザ・ラズベリー
+pass｜パスする
+   [passMove] 列3：鉄の収入値+1 ／ ゴールドの収入値+2
+=== R3 score=-8 res={"gold":33,"wheat":7,"wood":5,"iron":10} inc={"gold":25,"wheat":5,"wood":3,"iron":5} pros=0,0,0,0,0,0 food=1 hand=6 discs=0
+area:J｜市民カードを2枚引く（手札1枚）
+   [handCost] ペニー・プルーン
+play:p10-r1c5｜アンソニー・アプリコットをプレイ（16ゴールド）
+   [orderEffects] 麦の収入+2
+   [mix] ヘクス 1,11
+   [mix] 辺
+   [automateOffer] オートメーション化しない
+play:p05-r2c1｜ヴァンス・ヴァニラビーンをプレイ（5ゴールド）
+   [automateOffer] オートメーション化しない
+area:A｜麦6 → 地形タイル3枚まで（手札1枚）
+   [handCost] ウーナ・ウベ
+   [terrain] ヘクス 1,13
+   [terrain] ヘクス 6,12
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（工業点）
+   [terrain] ヘクス 0,4
+   [skill] 建物駒を1個置くたび2勝利点
+area:P｜既定のコスト＋木材1 → 建物駒3個まで（手札1枚）
+   [handCost] ジョスリン・ジョイ
+   [bldPiece] 家駒（木材2・鉄3）
+   [bldSpot] ヘクス 6,12
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（工業点）
+area:F｜鉄3 → 工業トラック2歩まで（手札1枚）
+   [handCost] ヤラ・ヨーグルトスワール
+area:K｜6ゴールドを得る（手札1枚）
+   [handCost] マヤ・メレンゲ
+play:p10-r3c5｜ハリー・ヘーゼルナッツをプレイ（12ゴールド）
+   [payConfirm] 支払う
+   [automateOffer] オートメーション化しない
+pass｜パスする
+   [passMove] 列6：パス時：都市1つにつき3勝利点 ／ 木材の収入値+1
+=== R4 score=3 res={"gold":32,"wheat":9,"wood":9,"iron":11} inc={"gold":26,"wheat":8,"wood":4,"iron":7} pros=0,0,0,0,0,2 food=5 hand=6 discs=0
+area:J｜市民カードを2枚引く（手札1枚）
+   [handCost] チャールズ・チェリーチャーム
+area:A｜麦6 → 地形タイル3枚まで（手札1枚）
+   [handCost] ロージー・ルバーブ
+   [terrain] ヘクス 0,2
+   [terrain] ヘクス 3,3
+   [terrain] ヘクス 3,1
+   [terrain] ヘクス 0,14
+play:p08-r2c2｜ニール・ナポレオンをプレイ（13ゴールド）
+   [payConfirm] 支払う
+   [payBasic] 鉄3
+   [terrain] ヘクス 2,0
+   [automateOffer] オートメーション化しない
+area:D｜木材6 → 道駒3個まで（手札1枚）
+   [handCost] レディ・ラズベリーリップス
+   [road] 辺
+   [road] 辺
+   [road] 辺
+play:p07-r1c2｜シルビア・シャーベットをプレイ（15ゴールド）
+   [payConfirm] 支払う
+   [terrain] ヘクス 0,12
+   [terrain] ヘクス 5,13
+   [road] 辺
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（地形タイル）
+   [road] 辺
+fa8｜時計塔駒を置く
+   [clockPlace] ヘクス 5,7
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（地形タイル）
+area:Q｜鉄5 → 工業トラック3歩まで（手札1枚）
+   [handCost] ユージーン・ユズ
+area:K｜6ゴールドを得る（手札1枚）
+   [handCost] ベス・ブラウニー
+pass｜パスする
+   [passMove] 列5：パス時：最も多い1種類の地形タイル1枚につき1勝利点 ／ このラウンド：カードのコスト-3ゴールド
+=== R5 score=28 res={"gold":41,"wheat":12,"wood":7,"iron":10} inc={"gold":26,"wheat":9,"wood":4,"iron":7} pros=2,0,0,0,0,2 food=5 hand=6 discs=0
+area:J｜市民カードを2枚引く（手札1枚）
+   [handCost] ベティ・ブリオッシュ
+play:p13-r1c2｜ヴィクター・ベルベットケーキをプレイ（3ゴールド）
+play:p03-r3c5｜ステファン・ストロベリースワールをプレイ（14ゴールド）
+   [orderEffects] 木材の収入+1
+   [orderEffects] 条件に応じて建物駒1個
+   [road] 辺
+   [road] 辺
+area:A｜麦6 → 地形タイル3枚まで（手札1枚）
+   [handCost] セス・ソルベ
+   [terrain] ヘクス 4,14
+   [terrain] ヘクス 4,2
+   [terrain] ヘクス 5,1
+area:D｜木材6 → 道駒3個まで（手札1枚）
+   [handCost] フィリップ・フォンダン
+   [road] 辺
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（地形タイル）
+   [road] 辺
+   [road] 辺
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（地形タイル）
+area:I｜ダイヤ1個を得る（手札1枚）
+   [handCost] オリーブ・オートケーキ
+area:E｜既定のコスト → 建物駒2個まで（手札1枚）
+   [handCost] マーティン・マカデミア
+   [bldPiece] 家駒（木材3・鉄3）
+   [bldSpot] ヘクス 4,6
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（地形タイル）：右端へ（ダイヤ1）
+   [terrain] ヘクス 1,3
+   [terrain] ヘクス 3,13
+   [bldPiece] ビル駒（木材2・鉄3）
+   [bldSpot] ヘクス 3,5
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（クッキーラビット駒）
+   [skill] 食料トラック3/6/9歩以上 → 3/5/7勝利点
+fa2｜15ゴールド → 市民カード1枚
+area:Q｜鉄5 → 工業トラック3歩まで（手札1枚）
+   [handCost] エリオット・エルダーベリー
+area:C｜麦4 → クッキーラビット駒1個（手札1枚）
+   [handCost] ハロルド・ヘーゼル
+   [rabbit] ヘクス 3,5
+pass｜パスする
+   [passMove] 列2：工業トラック1歩 ／ 6ゴールド
+final 85

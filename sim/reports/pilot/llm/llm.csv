@@ -1,0 +1,5 @@
+file,seed,ok,problems,score,s_vp,s_pros0,s_pros1,s_pros2,s_pros3,s_pros4,s_pros5,s_cp,s_tentBonus,s_houseBonus,s_bldgBonus,s_gold,s_diamond,s_ports
+seed2.json,2,1,"",85,34,24,4,0,0,0,2,8,0,0,0,1,2,10
+seed3.json,3,1,"",79,26,8,0,5,14,0,0,14,0,0,0,2,0,10
+seed4.json,4,1,"",121,30,22,28,5,10,0,0,12,0,0,0,2,2,10
+seed5.json,5,1,"",63,25,5,8,6,1,0,0,6,0,0,0,1,1,10

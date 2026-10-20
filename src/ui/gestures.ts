@@ -11,6 +11,7 @@ export interface Move {
   prefill?: { step: string; id: string };
   label: string;
   confirm?: string; // 取り消せない操作の確認文
+  confirmOk?: string; // 確認の小窓の実行ボタンの文（省略時は label）
 }
 
 export type DeclareKind = 'basicGain' | 'basicPay' | 'woodSplit' | 'choice' | 'times';
@@ -52,6 +53,11 @@ function lookahead(s: GameState, id: string): { s: GameState; opts: Option[] } |
   } catch {
     return null;
   }
+}
+
+/** 準備の選択（キャラクター・地図ボード・ドラフトのピック）は押しただけで確定すると誤操作しやすいため、確認を挟む */
+function setupConfirm(m: Move, what: string): Move {
+  return { ...m, confirm: `${what}を選びます。よろしいですか`, confirmOk: '選ぶ' };
 }
 
 export function buildAffordances(s: GameState): Affordances {
@@ -155,10 +161,13 @@ function place(s: GameState, a: Affordances, t: Target, opt: Option, step: strin
       }
       return true;
     }
-    case 'supportMarker':
-      addDrag(a, 'marker:support', `support:${t.col}`, one());
-      a.clicks.set(`support:${t.col}`, one());
+    case 'supportMarker': {
+      // 準備のドラフトでのラウンド支援駒の選択は、キャラクター・地図ボードと同じく確認を挟む
+      const m = step === 'setupPick' ? setupConfirm(one(), `ラウンド支援駒のスペース「${opt.label}」`) : one();
+      addDrag(a, 'marker:support', `support:${t.col}`, m);
+      a.clicks.set(`support:${t.col}`, m);
       return true;
+    }
     case 'skillTake': {
       const src = t.adv ? `advskill:${t.id}` : `skillpile:${t.id}`;
       addDrag(a, src, 'skills', one());
@@ -196,10 +205,10 @@ function place(s: GameState, a: Affordances, t: Target, opt: Option, step: strin
       a.clicks.set(`effect:${t.idx}`, one());
       return true;
     case 'setupChar':
-      a.clicks.set(`setupChar:${t.name}`, one());
+      a.clicks.set(`setupChar:${t.name}`, setupConfirm(one(), `キャラクター「${t.name}」`));
       return true;
     case 'setupMap':
-      a.clicks.set(`setupMap:${t.id}`, one());
+      a.clicks.set(`setupMap:${t.id}`, setupConfirm(one(), `地図ボード「${opt.label}」`));
       return true;
     case 'basicSplit': {
       const kind: DeclareKind = t.mode === 'gain' ? 'basicGain' : 'basicPay';

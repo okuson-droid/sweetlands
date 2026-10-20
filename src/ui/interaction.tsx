@@ -206,7 +206,7 @@ export function InteractionProvider(props: {
         </div>
       )}
       {confirm && (
-        <div className="modal-back" onPointerDown={() => setConfirm(null)}>
+        <div className="modal-back confirm" onPointerDown={() => setConfirm(null)}>
           <div className="modal" role="dialog" aria-modal="true" onPointerDown={(e) => e.stopPropagation()}>
             <p>{confirm.confirm}</p>
             <div className="modal-actions">
@@ -222,7 +222,7 @@ export function InteractionProvider(props: {
                   perform(m);
                 }}
               >
-                {confirm.label}
+                {confirm.confirmOk ?? confirm.label}
               </button>
             </div>
           </div>

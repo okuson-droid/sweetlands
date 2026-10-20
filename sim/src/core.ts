@@ -50,9 +50,29 @@ export function forcedSetupMove(s: GameState, cond: Condition): string | null {
   return null;
 }
 
-/** AI が選べる合法手：マイルストーンの獲得（fa4:*）を外す（§6.2） */
+/** 基礎資源の内訳の選択肢（basic:麦-木材-鉄）の合計 */
+function basicTotal(id: string): number | null {
+  const m = /^basic:(\d+)-(\d+)-(\d+)$/.exec(id);
+  return m ? Number(m[1]) + Number(m[2]) + Number(m[3]) : null;
+}
+
+/** AI が選べる合法手：マイルストーンの獲得（fa4:*）を外す（§6.2）。
+ *  あわせて、まとめて行う選択肢を外し、1単位ずつの選択肢だけにする（main の 1cce13d・e865e35 で加わったもの）：
+ *  両替（❸❺❻）の内訳は合計が最小のもの（1単位分）だけ、「何回でも」の支払いは pay:k（k 回分のまとめ払い）を外す。
+ *  まとめた手は1単位ずつの手を繰り返したのと同じ結果になる（エンジンの仕様）ため、AI の打てる結果は変わらず、
+ *  選択肢の数（内訳の組み合わせ）が爆発しない。1単位分の選択肢 ID は以前と同じなので、取り込み前の手の列と同じ動きになる */
 export function legal(s: GameState): Option[] {
-  return getOptions(s).filter((o) => !o.id.startsWith('fa4:'));
+  let opts = getOptions(s).filter((o) => !o.id.startsWith('fa4:'));
+  const st = s.pending?.step;
+  if (st === 'payConfirm') opts = opts.filter((o) => !/^pay:\d+$/.test(o.id));
+  if (st === 'payBasic' || st === 'anyBasic') {
+    const totals = opts.map((o) => basicTotal(o.id));
+    if (totals.every((t) => t !== null)) {
+      const min = Math.min(...(totals as number[]));
+      opts = opts.filter((_, i) => totals[i] === min);
+    }
+  }
+  return opts;
 }
 
 let keepLog = false;

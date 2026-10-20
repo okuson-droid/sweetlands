@@ -6,6 +6,8 @@ import { Rng, conditionByName, forcedSetupMove, newGame, step } from './core';
 import { DEFAULT_WEIGHTS } from './evaluate';
 import type { GameResult } from './play';
 import { Pool, type Job } from './pool';
+import { cardEffectCheck } from './cardcheck';
+import type { GameRecord } from '../../src/game/history';
 
 function same(a: GameResult, b: GameResult): string | null {
   if (a.moves.length !== b.moves.length || a.moves.some((m, i) => m !== b.moves[i])) {
@@ -80,6 +82,16 @@ export async function cmdCheck(o: Record<string, string>, file: string): Promise
     }
     report.leak = { decisions, diffs };
     console.log('leak', JSON.stringify(report.leak));
+  }
+
+  // 6. カードの効果（追補 2026-10-20 §4 段階0 の 0-3）：207枚を中盤の局面でプレイし、支払い確認で「支払わない」を選んだ枚数を数える。
+  //    合格の目安は「評価で見送り」と「得るものがない」以外の見送り（＝支払って得る効果が評価に現れない不具合）が0枚であること
+  if (o.cards !== '0') {
+    const record = JSON.parse(fs.readFileSync(o.cardsRecord ?? 'reports/pilot/human/seed1.json', 'utf8')) as GameRecord;
+    const cfg: AgentConfig = { ...DEFAULT_AGENT, kind: 'v1', weights: w };
+    const r = cardEffectCheck(cfg, record);
+    report.cards = { cards: r.rows.length - 1, unplayable: r.unplayable, skippedCards: r.skippedCards, reasons: r.reasons };
+    console.log('cards', JSON.stringify(report.cards));
   }
   const out = o.out ?? 'out/checks.json';
   fs.mkdirSync(path.dirname(out), { recursive: true });

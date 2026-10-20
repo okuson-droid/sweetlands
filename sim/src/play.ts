@@ -31,6 +31,31 @@ export interface GameResult {
   rounds: { round: number; actions: string[]; scoreAtEnd: number }[];
   /** 打ち方の型を選ぶ AI で、ラウンドごとに選んだ型 */
   picks: string[];
+  /** 段階0（追補 2026-10-20 §4）の検査用の数 */
+  stats: Stage0Stats;
+}
+
+export interface Stage0Stats {
+  /** 地形タイルを裏返したときの「収入1歩か繁栄1歩か」の選択の回数と、収入を選んだ回数 */
+  flipChoice: number;
+  flipIncome: number;
+  /** 支払い確認（payConfirm）に出会った回数と、支払った回数 */
+  payConfirm: number;
+  payTaken: number;
+  /** オートメーション化の申し出に出会った回数と、オートメーション化した回数 */
+  automateOffer: number;
+  automateTaken: number;
+  /** 手番の行動：手札を資源に替える（fa7h）、手札と資源でタイルか道駒（fa1）、ディスクを資源に替える（fa7d）、手番を終える（endTurn） */
+  fa7h: number;
+  fa1: number;
+  fa7d: number;
+  endTurn: number;
+}
+
+/** 地形タイルを裏返したときの選択か（選択肢が「〇の収入+1」と「〇色の繁栄トラック1歩」の2つ） */
+function isFlipChoice(s: GameState): boolean {
+  const labels = s.pending!.options.map((o) => o.label);
+  return labels.length === 2 && labels.some((l) => /^(麦|木材|鉄)の収入\+1$/.test(l)) && labels.some((l) => /^(オレンジ|緑|灰)の繁栄トラック1歩$/.test(l));
 }
 
 function negatives(s: GameState): string | null {
@@ -55,6 +80,7 @@ export function playGame(cond: Condition, seed: number, cfg: AgentConfig, aiSeed
   let advRound: number | null = null;
   let milestoneMoves = 0;
   const rounds: GameResult['rounds'] = [];
+  const stats: Stage0Stats = { flipChoice: 0, flipIncome: 0, payConfirm: 0, payTaken: 0, automateOffer: 0, automateTaken: 0, fa7h: 0, fa1: 0, fa7d: 0, endTurn: 0 };
   let cur: GameResult['rounds'][number] = { round: 1, actions: [], scoreAtEnd: 0 };
   while (s.pending && !s.finished) {
     if (moves.length >= MAX_MOVES) {
@@ -82,6 +108,19 @@ export function playGame(cond: Condition, seed: number, cfg: AgentConfig, aiSeed
       cur.actions.push(`  └ ${s.pending.options.find((o) => o.id === id)?.label ?? id}`);
     }
     if ((st === 'automateOffer' || st === 'freeAutomate') && id.startsWith('auto:')) automations++;
+    if (st === 'choice' && isFlipChoice(s)) {
+      stats.flipChoice++;
+      if (/の収入/.test(s.pending.options.find((o) => o.id === id)?.label ?? '')) stats.flipIncome++;
+    }
+    if (st === 'payConfirm') {
+      stats.payConfirm++;
+      if (id !== 'skip') stats.payTaken++;
+    }
+    if (st === 'automateOffer') {
+      stats.automateOffer++;
+      if (id.startsWith('auto:')) stats.automateTaken++;
+    }
+    if (st === 'turn' && (id === 'fa7h' || id === 'fa1' || id === 'fa7d' || id === 'endTurn')) stats[id]++;
     if (st === 'skill' && id.startsWith('adv:')) advRound = round;
     moves.push(id);
     s = step(s, id);
@@ -116,6 +155,7 @@ export function playGame(cond: Condition, seed: number, cfg: AgentConfig, aiSeed
     anomalies,
     rounds,
     picks: agent.picks,
+    stats,
   };
 }
 

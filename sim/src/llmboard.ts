@@ -17,7 +17,7 @@ for (let r = 0; r <= 6; r++) {
     if (!h) { line += (c % 2 === r % 2) ? '      ' : ''; continue; }
     const rd = hexEdges(r, c).filter((e) => roads.has(e)).length;
     const t = h.tile ? (h.tile.flipped ? 'X' : 'o') : '.';
-    const b = h.building ? (h.building.type ?? '?').toString().slice(0, 1) : '-';
+    const b = h.building ? h.building.slice(0, 1) : '-';
     line += `${String(c).padStart(2)}${h.terrain}${t}${b}${rd}${h.rabbit ? 'R' : ' '}`.padEnd(6);
   }
   console.log(String(r) + ' ' + line);

@@ -3,10 +3,12 @@ import { installFastClone } from '../fastclone';
 installFastClone();
 import { DEFAULT_AGENT } from './ai';
 import { conditionByName } from './core';
+import fs from 'node:fs';
 import { DEFAULT_WEIGHTS } from './evaluate';
 import { playGame } from './play';
 
-const [kind = 'v1', seedArg = '1', cond = 'A'] = process.argv.slice(2);
-const r = playGame(conditionByName(cond), Number(seedArg), { ...DEFAULT_AGENT, kind: kind as 'v1', weights: DEFAULT_WEIGHTS }, 1);
-console.log(JSON.stringify({ kind, seed: r.seed, score: r.score, bd: r.breakdown, moves: r.moves.length, ms: Math.round(r.ms), evals: r.evals, anomalies: r.anomalies, cards: r.cardsPlayed, auto: r.automations, clock: r.clockRound, ports: r.ports, area: r.areaUse }));
+const [kind = 'v1', seedArg = '1', cond = 'A', wfile] = process.argv.slice(2);
+const weights = wfile ? JSON.parse(fs.readFileSync(wfile, 'utf8')).weights : DEFAULT_WEIGHTS;
+const r = playGame(conditionByName(cond), Number(seedArg), { ...DEFAULT_AGENT, kind: kind as 'v1', weights, chainSub: process.env.CHAIN !== '0' }, Number(seedArg));
+console.log(JSON.stringify({ kind, seed: r.seed, score: r.score, bd: r.breakdown, moves: r.moves.length, ms: Math.round(r.ms), evals: r.evals, anomalies: r.anomalies, stats: r.stats, cards: r.cardsPlayed, auto: r.automations, clock: r.clockRound, ports: r.ports, area: r.areaUse }));
 for (const rd of r.rounds) console.log(`R${rd.round} score=${rd.scoreAtEnd}\n  ` + rd.actions.join('\n  '));

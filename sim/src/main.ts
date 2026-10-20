@@ -67,6 +67,7 @@ function agentConfig(o: Record<string, string>, w: Weights): AgentConfig {
     ...(o.template ? { template: o.template } : {}),
     ...(o.templates ? { templates: o.templates.split(',') } : {}),
     ...(o.templateK ? { templateK: Number(o.templateK) } : {}),
+    ...(o.chain ? { chainSub: o.chain === '1' } : {}),
   };
 }
 
@@ -121,7 +122,7 @@ async function cmdRun(o: Record<string, string>): Promise<void> {
     jobs.map((j) =>
       pool.run(j).then((r) => {
         fs.appendFileSync(out, csvRow(r, config) + '\n');
-        fs.appendFileSync(jsonl, JSON.stringify({ config, cond: r.cond, seed: r.seed, aiSeed: r.aiSeed, score: r.score, moves: r.moves, rounds: r.rounds, anomalies: r.anomalies, picks: r.picks }) + '\n');
+        fs.appendFileSync(jsonl, JSON.stringify({ config, cond: r.cond, seed: r.seed, aiSeed: r.aiSeed, score: r.score, moves: r.moves, rounds: r.rounds, anomalies: r.anomalies, picks: r.picks, stats: r.stats }) + '\n');
         n++;
         if (n % 20 === 0 || n === jobs.length) console.log(`  ${n}/${jobs.length}  ${((Date.now() - t0) / 1000).toFixed(0)}秒`);
       }),

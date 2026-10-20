@@ -31,6 +31,8 @@ export interface AgentConfig {
   templateK?: number;
   /** v1r：主行動の候補のうち、対局の終わりまで模擬して比べる数（v1 の評価の上位。パスは常に含める） */
   rolloutRoot?: number;
+  /** 細かい選択のうち CHAIN_STEPS を連鎖の終わりまで解決して比べるか（段階0 の 0-1。false で修正前の v1 と同じ動き） */
+  chainSub?: boolean;
 }
 
 /** v2 のスキル梯子（第5版 §5.5・§6.5）：探索の量だけを変える3段階。中が調整に使う設定 */
@@ -42,13 +44,16 @@ export const V2_LADDER = {
 
 const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
 
-export const DEFAULT_AGENT: Omit<AgentConfig, 'kind' | 'weights'> = { rules: { clock: true, prePass: true }, topK: 4, ...V2_LADDER.M };
+export const DEFAULT_AGENT: Omit<AgentConfig, 'kind' | 'weights'> = { rules: { clock: true, prePass: true }, topK: 4, ...V2_LADDER.M, chainSub: true };
 
 /** 両替にあたるフリーアクション（主行動の前に付けて候補を作る） */
 const CONVERSIONS = new Set(['fa2', 'fa3', 'fa5', 'fa6', 'fa7d', 'fa7h']);
 const isMain = (id: string) => id.startsWith('area:') || id.startsWith('play:') || id.startsWith('flip:');
 /** 細かい選択のうち、次のラウンドの収入まで読まないと価値が分からないもの（ラウンド支援駒の置き場所） */
 const DEEP_STEPS = new Set(['support', 'passMove']);
+/** 細かい選択のうち、効果が次の選択待ちで現れるもの（追補 2026-10-20 §4 段階0 の 0-1）。
+ *  1手だけ進めた局面では「支払ったがまだ得ていない」「裏返したが効果を選んでいない」になるため、連鎖の終わりまで解決して比べる */
+const CHAIN_STEPS = new Set(['road', 'bldSpot', 'payConfirm', 'automateOffer', 'choice']);
 const EPS = 1e-6;
 /** 主行動の前に使える両替の回数の上限（1手番あたり） */
 const MAX_CONVERSIONS = 6;
@@ -157,6 +162,22 @@ export class Agent {
 
   // ---- 細かい選択 ----
 
+  /** 連鎖の評価の入れ子の深さ（連鎖の中の選択待ちは1手の評価で解決する） */
+  private chainDepth = 0;
+  /** 連鎖の評価を一時的に止める（手番の候補を全部解決して順位を付ける段階では、計算量のため1手の評価で解決する） */
+  private chainOff = false;
+
+  /** 連鎖の評価を止めて f を実行する */
+  private fast<T>(f: () => T): T {
+    const prev = this.chainOff;
+    this.chainOff = true;
+    try {
+      return f();
+    } finally {
+      this.chainOff = prev;
+    }
+  }
+
   /** 手番以外の選択待ち：選択肢ごとに1手進めた局面を評価して選ぶ。deep はラウンド支援駒の置き場所を次の手番まで読むか */
   chooseSub(s: GameState, deep: boolean): string {
     const opts = legal(s);
@@ -165,7 +186,30 @@ export class Agent {
     if (deep && DEEP_STEPS.has(st)) return this.argmax(opts, (o) => this.ev(this.resolveToTurn(step(s, o.id)))).id;
     // スキルタイル（上級を含む）は、パス時の効果が価値の多くを占めるため、手番に戻るまで進めて passGain の項まで含めて比べる
     if (st === 'skill') return this.argmax(opts, (o) => this.fullEval(this.resolve(step(s, o.id)))).id;
+    if (this.cfg.chainSub && !this.chainOff && this.chainDepth === 0 && CHAIN_STEPS.has(st)) {
+      const base = s.queue.length;
+      this.chainDepth++;
+      try {
+        return this.argmax(opts, (o) => this.ev(this.resolveChain(step(s, o.id), base, st))).id;
+      } finally {
+        this.chainDepth--;
+      }
+    }
     return this.argmax(opts, (o) => this.ev(step(s, o.id))).id;
+  }
+
+  /** ある選択で始まった連鎖の終わりまで進める。選択待ちを立てたタスクは pending に移り、効果はキューの先頭に積まれ、
+   *  キューの末尾（選択の時点の base 個）はその後に解決される。そこで次のどちらかで止める：
+   *  キューが base 個より短くなった（選択の時点で積まれていた後続に入った）、
+   *  または base 個のまま同じ種類の選択待ちに戻った（同じ効果の続き。例：次の道駒の辺）。
+   *  手番の選択待ち・クリーンナップ・終局でも止める */
+  private resolveChain(s: GameState, base: number, st: string): GameState {
+    let n = 0;
+    while (s.pending && !s.finished && s.pending.step !== 'turn' && s.phase !== 'cleanup' && (s.queue.length > base || (s.queue.length === base && s.pending.step !== st))) {
+      if (++n > MAX_RESOLVE) throw new Error('解決が終わらない');
+      s = step(s, this.chooseSub(s, false));
+    }
+    return s;
   }
 
   /** 手番の選択待ちに戻るまで（またはクリーンナップ・終局まで）、細かい選択を1手ずつ評価して進める */
@@ -190,6 +234,10 @@ export class Agent {
 
   /** いまパスしたら得る得点（手番の選択待ちの局面でだけ計算する。主行動のあとなら手番を終えてからパスする） */
   passGain(s: GameState): number {
+    return this.fast(() => this.passGainRaw(s));
+  }
+
+  private passGainRaw(s: GameState): number {
     if (s.finished || s.phase !== 'action' || s.pending?.step !== 'turn') return 0;
     const before = scoreTotal(s);
     let t = s;
@@ -216,7 +264,7 @@ export class Agent {
     const f = features(c);
     const parts: Record<string, number> = {};
     WEIGHT_NAMES.forEach((n, i) => {
-      if (i !== 11 && f[i] !== 0) parts[n] = this.w[i] * f[i];
+      if (i !== 11 && i < f.length && f[i] !== 0) parts[n] = this.w[i] * f[i];
     });
     const pg = this.passGain(c) * passesLeft(c);
     if (pg !== 0) parts.passGain = this.w[11] * pg;
@@ -239,24 +287,36 @@ export class Agent {
   }
 
   /** 候補を1つずつ解決まで進めた局面（両替を前に付けた候補を含む）。value は passGain を含まない評価 */
-  private candidates(det: GameState, root = false): { first: string; s: GameState; value: number }[] {
+  private candidates(det: GameState, root = false): { first: string; path: string[]; s: GameState; value: number }[] {
     const ids = legal(det)
       .map((o) => o.id)
       .filter((id) => !root || det.turnMainDone || !CONVERSIONS.has(id) || this.conversionAllowed(id));
-    const out: { first: string; s: GameState; value: number }[] = [];
-    for (const id of ids) {
-      const c = this.resolve(step(det, id));
-      out.push({ first: id, s: c, value: this.ev(c) });
-      // 両替のあとにだけ選べるようになる主行動
-      if (CONVERSIONS.has(id) && !det.turnMainDone && c.pending?.step === 'turn') {
-        for (const m of legal(c).map((o) => o.id)) {
-          if (!isMain(m) || ids.includes(m)) continue;
-          const c2 = this.resolve(step(c, m));
-          out.push({ first: id, s: c2, value: this.ev(c2) });
+    const out: { first: string; path: string[]; s: GameState; value: number }[] = [];
+    this.fast(() => {
+      for (const id of ids) {
+        const c = this.resolve(step(det, id));
+        out.push({ first: id, path: [id], s: c, value: this.ev(c) });
+        // 両替のあとにだけ選べるようになる主行動
+        if (CONVERSIONS.has(id) && !det.turnMainDone && c.pending?.step === 'turn') {
+          for (const m of legal(c).map((o) => o.id)) {
+            if (!isMain(m) || ids.includes(m)) continue;
+            const c2 = this.resolve(step(c, m));
+            out.push({ first: id, path: [id, m], s: c2, value: this.ev(c2) });
+          }
         }
       }
-    }
+    });
     return out;
+  }
+
+  /** 上位の候補を、連鎖の評価を入れて解決し直す（1手の評価で順位を付けたあとの絞り込み。chainSub のときだけ） */
+  private refine<T extends { path: string[]; s: GameState; value: number }>(det: GameState, top: T[]): T[] {
+    if (!this.cfg.chainSub) return top;
+    return top.map((c) => {
+      let t = det;
+      for (const id of c.path) t = this.resolve(step(t, id));
+      return { ...c, s: t, value: this.ev(t) };
+    });
   }
 
   /** v1：1手番の先読み。root は実際の局面での判断か（両替の行き来の制限をかける） */
@@ -271,7 +331,7 @@ export class Agent {
       }
     }
     cands.sort((a, b) => b.value - a.value);
-    const top = cands.slice(0, this.cfg.topK);
+    const top = this.refine(det, cands.slice(0, this.cfg.topK));
     return this.argmax(top, (c) => c.value + this.w[11] * this.passGain(c.s) * passesLeft(c.s)).first;
   }
 

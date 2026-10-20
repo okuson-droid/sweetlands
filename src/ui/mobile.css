@@ -1,0 +1,657 @@
+/* スマートフォンのレイアウト（ui_design §22）。縦持ち＝.game.mobile.portrait、横持ち＝.game.mobile.landscape */
+
+/* アドレスバーの出入りで高さが変わる端末でも、画面の高さに合わせる */
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+  }
+}
+
+.game.mobile {
+  display: grid;
+  min-width: 0;
+}
+.game.mobile .lit {
+  outline-width: 3px;
+}
+/* タップだけで操作する（ドラッグはしない）。指を動かしたら、手札・盤面の枠・小窓がスクロールするようにする。
+   ダブルタップの拡大だけは止める。地図は2本指の拡大縮小と1本指の移動を自前で扱うので、ブラウザには渡さない */
+.game.mobile,
+.game.mobile * {
+  touch-action: manipulation;
+}
+.game.mobile .mapsvg,
+.game.mobile .mapsvg * {
+  touch-action: none;
+}
+
+/* ---- 上の札 ---- */
+.mtop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: env(safe-area-inset-top) 0 0 10px;
+  background: var(--bar);
+  color: var(--bar-ink);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.mtop .spacer {
+  flex: 1;
+}
+.mround {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 15px;
+  font-weight: 800;
+}
+.mround small {
+  font-size: 11px;
+  font-weight: 500;
+}
+.morder {
+  display: inline-flex;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+.morder .chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: 12px;
+  max-width: 7em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.morder .chip.now {
+  background: var(--pc);
+  border-color: var(--pc);
+  color: #fff;
+  font-weight: 700;
+}
+.morder .chip.passed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+.mmenu-btn {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: inherit;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+/* ---- 自分の資源と得点 ---- */
+.mstatus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 4px 10px;
+  background: var(--biscuit);
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.mstatus .icons {
+  flex-wrap: nowrap;
+  gap: 1px 7px;
+}
+.mstatus .itok .n {
+  font-size: 13px;
+}
+.mstatus .scores {
+  margin-left: auto;
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
+}
+
+/* ---- 帯 ---- */
+.game.mobile .band {
+  cursor: default;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding: 6px 8px;
+  min-height: 0;
+  max-height: 40dvh;
+  overflow-y: auto;
+  border-top: 0;
+  border-bottom: 2px solid var(--crust);
+}
+.game.mobile .band.mine {
+  border-bottom-color: var(--me);
+}
+.game.mobile .band .say {
+  flex: 1 1 100%;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.game.mobile .band .actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+.game.mobile .band .btn,
+.game.mobile .modal .btn {
+  min-height: 44px;
+}
+.held-chip {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--me);
+  color: #fff;
+  font-size: 11px;
+}
+.stack-fold {
+  flex: none;
+  max-width: 100%;
+}
+.stack-chip {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--crust);
+  background: var(--sugar);
+  font-size: 12px;
+  cursor: pointer;
+}
+.stack.stack-inline {
+  position: static;
+  max-width: none;
+  margin-top: 4px;
+  box-shadow: none;
+}
+.game.mobile .band > .stack.stack-inline {
+  flex: 1 1 100%;
+}
+
+/* ---- 盤面の枠 ---- */
+.fit {
+  width: 100%;
+  min-width: 0;
+}
+.fit-inner {
+  width: max-content;
+}
+.fit-inner.designed .mainboard {
+  height: auto;
+}
+.mshared {
+  display: grid;
+  gap: 6px;
+}
+.mshared .mainboard {
+  grid-template-columns: minmax(0, 1fr);
+  height: auto;
+}
+.mshared .sideboard {
+  background: var(--biscuit);
+  border: 2px solid var(--crust);
+  border-radius: 14px;
+  padding: 6px 8px;
+}
+.mhint {
+  margin: 4px 2px 8px;
+  font-size: 12px;
+  color: var(--cocoa-soft);
+}
+.game.mobile .people .opponents {
+  flex-direction: column;
+  align-items: stretch;
+  background: none;
+  padding: 0;
+}
+.game.mobile .people .opp {
+  min-height: 44px;
+  flex-wrap: wrap;
+  white-space: normal;
+}
+.game.mobile .viewing-banner {
+  position: sticky;
+  top: 0;
+  left: auto;
+  transform: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 0 0 12px 12px;
+  margin-bottom: 4px;
+}
+
+/* 地図の拡大縮小ボタン：タッチの端末だけに出す（マウスではホイールで拡大縮小できる） */
+.mapzoom {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 3;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+}
+.mapzoom .btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 6px;
+  font-size: 14px;
+}
+@media (pointer: coarse) {
+  .mapzoom {
+    display: flex;
+  }
+}
+
+/* ---- 手元（手札・ディスク・共通サプライ） ---- */
+.msupply {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  min-width: 0;
+  padding: 2px 4px 4px;
+}
+.msupply .mine-supply,
+.msupply .supply {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  flex: none;
+}
+.game.mobile .stackpile,
+.game.mobile .dropzone,
+.game.mobile .deck {
+  min-width: 44px;
+  min-height: 44px;
+}
+.game.mobile .fold-head {
+  min-height: 44px;
+}
+.mhand {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 2px 6px;
+  overflow-x: auto;
+  min-height: 0;
+}
+.mhand.hand .card,
+.mhand.hand:hover .card {
+  margin-left: 0;
+  zoom: 1.3;
+}
+.mhand.hand .card:hover {
+  transform: none;
+}
+.mhand .card.held {
+  transform: translateY(-6px);
+}
+.mhand .keep-slot {
+  flex: none;
+  min-height: 120px;
+}
+.mhand .empty {
+  color: var(--cocoa-soft);
+  font-size: 12px;
+  padding: 12px;
+}
+
+/* ---- 縦持ち（案A） ---- */
+.game.mobile.portrait {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+}
+.mpane {
+  min-height: 0;
+  overflow: auto;
+  position: relative;
+  padding: 4px;
+  overscroll-behavior: contain;
+}
+.mpane .mtown {
+  height: 100%;
+  min-height: 260px;
+}
+.msheet {
+  display: grid;
+  gap: 2px;
+  padding: 0 8px 4px;
+  background: var(--sugar);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -2px 10px rgba(74, 50, 38, 0.16);
+  min-width: 0;
+  position: relative;
+  z-index: 4;
+}
+.msheet-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  padding: 6px 4px 0;
+}
+.msheet-head .grip {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 40px;
+  height: 5px;
+  margin-left: -20px;
+  border-radius: 3px;
+  background: var(--line);
+}
+.msheet-head .caret {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cocoa-soft);
+}
+.msheet-head.wants::after,
+.mtabs button.wants::after,
+.mside-tabs button.wants::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--me);
+}
+.msheet-head.wants::after {
+  left: 66px;
+  top: 14px;
+}
+.msheet.open .mhand {
+  max-height: 34dvh;
+}
+.mtabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  background: var(--sugar);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+  position: relative;
+  z-index: 4;
+}
+.mtabs button {
+  min-height: 56px;
+  border: 0;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 11px;
+  color: var(--cocoa-soft);
+  cursor: pointer;
+  position: relative;
+}
+.mtabs button.on {
+  color: var(--me);
+  font-weight: 800;
+}
+.mtabs button.wants {
+  color: var(--cocoa);
+  background: color-mix(in srgb, var(--me) 10%, transparent);
+}
+.mtabs button.wants::after {
+  top: 6px;
+  left: calc(50% + 10px);
+}
+
+/* ---- 横持ち（案D） ---- */
+.game.mobile.landscape {
+  grid-template-columns: auto minmax(0, 0.95fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.game.mobile.landscape .mtop {
+  grid-column: 1 / -1;
+  min-height: 36px;
+}
+.game.mobile.landscape .mtop .mmenu-btn {
+  height: 36px;
+}
+.game.mobile.landscape .mstatus {
+  border: 0;
+  border-radius: 999px;
+  padding: 2px 10px;
+  overflow: hidden;
+  flex: 0 1 auto;
+}
+.game.mobile.landscape .band .say {
+  flex: 1 1 260px;
+}
+.mtray {
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 64px;
+  padding: 4px;
+  overflow-y: auto;
+  background: var(--biscuit-deep);
+}
+.mtray .mine-supply,
+.mtray .supply {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+.mtray .stackpile,
+.mtray .dropzone,
+.mtray .deck {
+  width: 54px;
+  justify-content: center;
+}
+.mtray .fold-head {
+  width: 54px;
+  justify-content: center;
+  padding: 2px;
+}
+.mmap {
+  grid-row: 2;
+  position: relative;
+  min-height: 0;
+  padding: 4px;
+}
+.mmap .mapboard {
+  height: 100%;
+}
+.mside {
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--sugar);
+  border-left: 1px solid var(--line);
+}
+.mside-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+.mside-tabs button {
+  min-height: 44px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  font-size: 12px;
+  color: var(--cocoa-soft);
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+}
+.mside-tabs button.on {
+  color: var(--me);
+  border-bottom-color: var(--me);
+  font-weight: 800;
+}
+.mside-tabs button.wants {
+  color: var(--cocoa);
+  background: color-mix(in srgb, var(--me) 10%, transparent);
+}
+.mside-tabs button.wants::after {
+  top: 5px;
+  right: 5px;
+}
+.mside-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px;
+  position: relative;
+  overscroll-behavior: contain;
+}
+.mside-body .mhand {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+.mside-body .mhand.hand .card {
+  zoom: 1.15;
+}
+.game.mobile.landscape .band {
+  grid-column: 1 / -1;
+  border-top: 2px solid var(--crust);
+  border-bottom: 0;
+  max-height: 34dvh;
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
+}
+.game.mobile.landscape .band.mine {
+  border-top-color: var(--me);
+}
+
+/* ---- メニューとログ ---- */
+.mmenu-back {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+}
+.mmenu {
+  position: absolute;
+  top: calc(44px + env(safe-area-inset-top));
+  right: 8px;
+  display: grid;
+  gap: 6px;
+  min-width: 180px;
+  padding: 10px;
+  background: var(--sugar);
+  border: 2px solid var(--crust);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+.mmenu .btn {
+  min-height: 44px;
+}
+.game.mobile .logpanel {
+  left: 8px;
+  right: 8px;
+  top: calc(48px + env(safe-area-inset-top));
+  width: auto;
+  max-height: 70dvh;
+}
+
+/* ---- 準備の小窓・ダイアログ ---- */
+/* 準備の小窓のあいだも、上の札（メニュー → ロビー）は押せるようにする（横長レイアウトの .topbar と同じ扱い） */
+.game.mobile:has(.modal-back.setup) .mtop {
+  position: relative;
+  z-index: 75;
+}
+.game.mobile.portrait .modal-back.setup {
+  top: calc(44px + env(safe-area-inset-top));
+}
+.game.mobile.landscape .modal-back.setup {
+  top: 36px;
+}
+.game.mobile .modal {
+  max-width: 96vw;
+  max-height: calc(100dvh - 56px);
+  padding: 12px 14px;
+}
+/* 準備のドラフト：横長では小窓の中で候補の欄だけをスクロールするが、背の低い画面ではその欄が潰れて0になるため、小窓全体をスクロールする */
+.game.mobile .modal.draft {
+  display: block;
+}
+.game.mobile .modal.draft > * + * {
+  margin-top: 8px;
+}
+.game.mobile .modal.draft .draft-body {
+  overflow: visible;
+}
+.game.mobile .chargrid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+/* ---- ロビー（狭い画面） ---- */
+@media (max-width: 700px) {
+  .lobby {
+    padding: 20px 12px calc(20px + env(safe-area-inset-bottom));
+  }
+  .lobby h1 {
+    font-size: 30px;
+  }
+  .names > * {
+    min-width: 0;
+  }
+  .names input {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* ---- リザルトとリプレイ（狭い画面） ---- */
+@media (max-width: 700px) {
+  .result {
+    padding: 16px 10px calc(16px + env(safe-area-inset-bottom));
+  }
+  /* 列の幅は Result.tsx が style で指定している（PC 向け）。狭い画面では項目名の列を詰める */
+  .result-grid {
+    grid-template-columns: minmax(96px, 1.2fr) repeat(var(--n), minmax(52px, 1fr)) !important;
+    gap: 2px 6px;
+    font-size: 12px;
+  }
+  .result .modal-actions {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 1000px) {
+  .replay-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    overflow: auto;
+  }
+  .replay-body > .board {
+    min-height: 280px;
+  }
+  .replay-body .mapboard {
+    min-height: 340px;
+  }
+}
+/* 準備の小窓を畳んだときの「開く」ボタン：スマートフォンでは上の帯の高さに合わせる */
+.game.mobile.portrait .setup-reopen {
+  top: calc(50px + env(safe-area-inset-top));
+}
+.game.mobile.landscape .setup-reopen {
+  top: 40px;
+}

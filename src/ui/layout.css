@@ -756,6 +756,25 @@ svg .lit-svg {
   font-size: 10.5px;
   color: var(--cocoa-soft);
 }
+/* キャラクターの上方修正（docs/decisions_16）の印 */
+.buff-mark {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 16px;
+  vertical-align: middle;
+  color: var(--sugar);
+  background: var(--special-deep);
+}
+.buff-mark.lead {
+  margin: 0 6px 0 0;
+}
+.charcard .txt.buff {
+  color: var(--special-deep);
+}
 .setting {
   display: block;
   padding: 4px 0;
@@ -906,65 +925,6 @@ fieldset {
   min-height: 0;
 }
 
-/* ---- 狭い画面 ---- */
-.game.narrow .narrow-pane {
-  grid-column: 2;
-  grid-row: 2;
-}
-.game.narrow .band {
-  grid-column: 2;
-  grid-row: 3;
-  flex-wrap: wrap;
-}
-.game.narrow .handbar {
-  height: 100%;
-  grid-template-columns: 90px minmax(0, 1fr);
-  grid-template-rows: 1fr auto;
-}
-.game.narrow .handbar .supply {
-  grid-column: 1 / -1;
-  flex-wrap: wrap;
-}
-.narrow-stack {
-  display: grid;
-  gap: 4px;
-}
-.narrow-stack .mainboard {
-  grid-template-columns: 1fr;
-}
-.narrow-mine {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 4px;
-  height: 100%;
-}
-.narrow-mine .mapboard {
-  grid-row: span 2;
-  min-height: 240px;
-}
-.people {
-  display: grid;
-  gap: 6px;
-}
-.people .opponents {
-  flex-direction: column;
-  align-items: stretch;
-  background: none;
-}
-.people .logpanel {
-  position: static;
-  width: auto;
-  max-height: none;
-}
-.game.narrow .topbar {
-  font-size: 11px;
-  gap: 6px;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.game.narrow .topbar .order {
-  display: none;
-}
 .mycolor {
   width: 14px;
   height: 14px;
@@ -1500,6 +1460,11 @@ fieldset {
   stroke: var(--me);
   stroke-width: 0.12;
   stroke-dasharray: 0.25 0.15;
+}
+/* 隣接した都市を見分けるための2本目の線（アリス・ティーローズの上方修正、docs/decisions_16） */
+.cityline.alt polygon {
+  stroke: var(--special-deep);
+  stroke-dasharray: 0.08 0.1;
 }
 .sq {
   position: relative;

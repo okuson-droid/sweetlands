@@ -18,7 +18,7 @@ import {
   LAB_GAPS,
   LOTUS_CITY_RATE,
   MAP_ICON,
-  PRINTED_AUTO,
+  printedAuto,
   PROS_TRACKS,
   RABBIT_BONUS,
   RABBIT_POS,
@@ -36,7 +36,7 @@ import {
   supportColumns,
 } from './boards';
 import { CARDS, CARD_IDS } from './cards';
-import { BOARD_PAIRS, CHARACTERS } from './characters';
+import { BOARD_PAIRS, CHARACTERS, isBuffed } from './characters';
 import { shuffle, nextRandom } from './rng';
 import {
   automatedCount,
@@ -126,7 +126,8 @@ export function createGame(config: GameConfig, seed: number): GameState {
   if (config.variants.advSkills) {
     const [adv, r7] = shuffle(ADV_SKILLS.map((a) => a.id), rng);
     rng = r7;
-    advSkills = adv.slice(0, n + 1);
+    // 人数＋1枚を並べる。1人のときは3枚（持ち主の指示、docs/decisions_13 §13.5）
+    advSkills = adv.slice(0, n === 1 ? 3 : n + 1);
   }
 
   const areas: GameState['areas'] = {};
@@ -385,6 +386,14 @@ function ask(s: GameState, task: Task, step: string, prompt: string, options: Op
 }
 const P = (s: GameState, t: Task) => s.players[t.player];
 const hasChar = (p: PlayerState, name: string) => p.character === name;
+/** キャラクターの上方修正（ヴァリアント、docs/decisions_16）がこのプレイヤーに効いているか */
+const buffOn = (s: GameState, p: PlayerState) => isBuffed(s.config, p.character);
+/** 自分の研究所駒の数 */
+const labCount = (p: PlayerState) => Object.values(p.hexes).filter((h) => h.building === 'lab').length;
+/** ビスキュイ・バステトのフリーアクションで進む歩数。上方修正では研究所駒1個につき、通常は研究所駒のある都市1つにつき */
+const biscuitSteps = (s: GameState, p: PlayerState) => (buffOn(s, p) ? labCount(p) : cities(p).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length);
+/** リッカ・ベリーが麦の代わりに払える資源。上方修正ではゴールド、通常は木材 */
+const rikkaSub = (s: GameState, p: PlayerState): 'gold' | 'wood' => (buffOn(s, p) ? 'gold' : 'wood');
 const clockOf = (p: PlayerState, name: string) => p.character === name && p.clockPlaced;
 const hasSkill = (p: PlayerState, id: number, adv = false) => p.skills.some((x) => x.id === id && x.adv === adv);
 
@@ -443,6 +452,35 @@ function basicCombos(n: number, limit?: Res): Record<Basic, number>[] {
     }
   return out;
 }
+/** 合計が unit の倍数（unit 以上 max 以下）になる内訳の候補。両替のフリーアクションを一括で行うために使う */
+function bulkCombos(unit: number, max: number, limit?: Res): Record<Basic, number>[] {
+  const out: Record<Basic, number>[] = [];
+  for (let n = unit; n <= max; n += unit) out.push(...basicCombos(n, limit));
+  return out;
+}
+const comboTotal = (c: Record<Basic, number>) => c.wheat + c.wood + c.iron;
+/** 両替の効果を k 回分にまとめる（得る基礎資源・ゴールドの数を k 倍にする） */
+function scaleEffs(effs: Eff[], k: number): Eff[] {
+  return effs.map((e) => {
+    if (e.k === 'anyBasic') return { ...e, n: e.n * k };
+    if (e.k === 'gain') return { ...e, res: Object.fromEntries(Object.entries(e.res).map(([r, v]) => [r, (v ?? 0) * k])) };
+    return e;
+  });
+}
+/** 効果を k 回分にする。得る資源だけなら数を k 倍にし、それ以外は k 回並べる */
+function repeatEffs(effs: Eff[], k: number): Eff[] {
+  if (effs.every((e) => e.k === 'gain' || e.k === 'anyBasic')) return scaleEffs(effs, k);
+  return Array.from({ length: k }, () => effs).flat();
+}
+/** コストを k 回分にする */
+function scaleCost(c: Cost, k: number): Cost {
+  const out: Cost = {};
+  for (const [key, v] of Object.entries(c) as [keyof Cost, Cost[keyof Cost]][]) {
+    if (key === 'income') out.income = Object.fromEntries(Object.entries(v as Partial<Res>).map(([r, n]) => [r, (n ?? 0) * k]));
+    else (out as Record<string, number>)[key] = (v as number) * k;
+  }
+  return out;
+}
 const comboLabel = (c: Record<Basic, number>) =>
   BASICS.filter((b) => c[b] > 0)
     .map((b) => `${RES_LABEL[b]}${c[b]}`)
@@ -472,7 +510,7 @@ function drawCards(s: GameState, p: PlayerState, n: number): number {
 export function cardCost(s: GameState, p: PlayerState, id: string): number {
   const c = CARDS[id];
   let cost = c.cost;
-  if (c.brownie || hasSkill(p, 10, true)) cost -= tagCounts(p).ブラウニー; // 自身のタグは含めない（手札にあるため）
+  if (c.brownie || hasSkill(p, 10, true)) cost -= tagCounts(p, buffOn(s, p)).ブラウニー; // 自身のタグは含めない（手札にあるため）
   if (supportActive(s, p, 13)) cost -= 3;
   return Math.max(0, cost);
 }
@@ -537,6 +575,14 @@ function exec(s: GameState, t: Task): void {
       return;
     case 'anyBasic': {
       if (e.n <= 0) return;
+      const goldEach = Number(t.ctx?.goldEach ?? 0);
+      if (goldEach > 0) {
+        // フリーアクション❸の一括：goldEach ゴールドにつき1個、払える分まで何個でも得る
+        const max = Math.floor(p.res.gold / goldEach);
+        const opts = bulkCombos(1, max).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
+        ask(s, t, 'anyBasic', `得る基礎資源の内訳を選んでください（${goldEach}ゴールドにつき1個、最大${max}個）`, opts);
+        return;
+      }
       const opts = basicCombos(e.n).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
       ask(s, t, 'anyBasic', `任意の基礎資源を${e.n}個得る：内訳を選んでください`, opts);
       return;
@@ -624,6 +670,7 @@ function resume(s: GameState, t: Task, step: string, opt: Option): void {
   switch (step) {
     case 'anyBasic': {
       const c = d as Record<Basic, number>;
+      p.res.gold -= Number(t.ctx?.goldEach ?? 0) * comboTotal(c);
       addRes(s, p, c);
       return;
     }
@@ -1184,7 +1231,7 @@ function runIb(s: GameState, t: Task, row: Row): void {
   emit(s, { t: 'ib', p: t.player, row });
   const board = CHARACTERS[p.character!].board;
   const chain: Task[] = [sp(t.player, 'ibStart')];
-  chain.push(...tasks(t.player, PRINTED_AUTO[board][row], '産業列'));
+  chain.push(...tasks(t.player, printedAuto(board, row, buffOn(s, p)), '産業列'));
   for (const id of p.automated[row]) chain.push(...tasks(t.player, CARDS[id].auto ?? [], CARDS[id].nameJa));
   chain.push(sp(t.player, 'ibEnd'));
   front(s, chain);
@@ -1207,17 +1254,17 @@ function stepPay(s: GameState, t: Task): void {
     return;
   }
   if (!canAfford(s, p, e.cost)) return;
-  ask(
-    s,
-    t,
-    'payConfirm',
-    `${costLabel(e.cost)}を支払って「${describe(e.then)}」を得ますか`,
-    [
-      { id: 'pay', label: '支払う' },
-      { id: 'skip', label: e.repeat ? 'もう支払わない' : '支払わない' },
-    ],
-    'confirm',
-  );
+  const opts: Option[] = [
+    { id: 'pay', label: '支払う' },
+    { id: 'skip', label: e.repeat ? 'もう支払わない' : '支払わない' },
+  ];
+  // 「何回でも」の支払い（→*）は、回数を選んでまとめて支払える（pay:k は k 回分を払って終える）。
+  // 1回ずつの 'pay' も残すため、以前の手の列もそのまま再生できる
+  if (e.repeat) {
+    opts[0] = { id: 'pay', label: '1回支払う', data: { times: 1 } };
+    for (let k = 2; k <= 99 && canAfford(s, p, scaleCost(e.cost, k)); k++) opts.push({ id: `pay:${k}`, label: `${k}回支払う`, data: { times: k } });
+  }
+  ask(s, t, 'payConfirm', e.repeat ? `${costLabel(e.cost)}を支払って「${describe(e.then)}」を得る回数を選んでください` : `${costLabel(e.cost)}を支払って「${describe(e.then)}」を得ますか`, opts, 'confirm');
 }
 
 function resumePay(s: GameState, t: Task, step: string, opt: Option): void {
@@ -1228,13 +1275,18 @@ function resumePay(s: GameState, t: Task, step: string, opt: Option): void {
     // フリーアクション：固定分なし、内訳の選択から始める
   } else if (step === 'payConfirm') {
     if (opt.id === 'skip') return;
-    payFixed(s, p, { ...e.cost, anyBasic: 0, hand: 0 });
-    ctx.basicLeft = e.cost.anyBasic ?? 0;
-    ctx.handLeft = e.cost.hand ?? 0;
+    // pay:k は k 回分をまとめて支払い、そのあとは聞き直さない
+    const k = opt.id.startsWith('pay:') ? Number(opt.id.slice(4)) : 1;
+    const cost = k > 1 ? scaleCost(e.cost, k) : e.cost;
+    payFixed(s, p, { ...cost, anyBasic: 0, hand: 0 });
+    ctx.basicLeft = cost.anyBasic ?? 0;
+    ctx.handLeft = cost.hand ?? 0;
+    if (k > 1) (ctx.repeatTimes = k), (ctx.final = true);
   } else if (step === 'payBasic') {
     const c = opt.data as Record<Basic, number>;
     for (const b of BASICS) p.res[b] -= c[b];
     ctx.basicLeft = 0;
+    if (ctx.bulk) ctx.times = comboTotal(c) / Number(ctx.bulk);
   } else if (step === 'payHand') {
     const id = String(opt.data!.card);
     p.hand = p.hand.filter((x) => x !== id);
@@ -1243,6 +1295,13 @@ function resumePay(s: GameState, t: Task, step: string, opt: Option): void {
     ctx.handLeft = Number(ctx.handLeft) - 1;
   }
   if (Number(ctx.basicLeft) > 0) {
+    if (ctx.bulk) {
+      // 両替のフリーアクション（❺❻）の一括：bulk 個を1単位として、持っている分まで何単位でも払える
+      const unit = Number(ctx.bulk);
+      const opts = bulkCombos(unit, BASICS.reduce((a, b) => a + p.res[b], 0), p.res).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
+      ask(s, t, 'payBasic', `支払う基礎資源の内訳を選んでください（${unit}個につき${describe(e.then)}）`, opts);
+      return;
+    }
     const opts = basicCombos(Number(ctx.basicLeft), p.res).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
     ask(s, t, 'payBasic', `支払う基礎資源${ctx.basicLeft}個の内訳を選んでください`, opts);
     return;
@@ -1252,8 +1311,12 @@ function resumePay(s: GameState, t: Task, step: string, opt: Option): void {
     ask(s, t, 'payHand', `捨てる手札を選んでください（あと${ctx.handLeft}枚）`, opts, 'card');
     return;
   }
-  const out = tasks(t.player, e.then, t.src);
-  if (e.repeat) out.push({ player: t.player, eff: e, src: t.src });
+  const times = Number(ctx.times ?? 1);
+  const repeatTimes = Number(ctx.repeatTimes ?? 1);
+  let then = times > 1 ? scaleEffs(e.then, times) : e.then;
+  if (repeatTimes > 1) then = repeatEffs(then, repeatTimes);
+  const out = tasks(t.player, then, t.src);
+  if (e.repeat && !ctx.final) out.push({ player: t.player, eff: e, src: t.src });
   t.ctx = {};
   front(s, out);
 }
@@ -1733,13 +1796,15 @@ export function areaCost(s: GameState, p: PlayerState, id: string): Cost {
   return c;
 }
 
-/** リッカ・ベリー：麦を木材で払える */
+/** リッカ・ベリー：麦を木材（上方修正ではゴールド）で払える */
 function areaCostAffordable(s: GameState, p: PlayerState, id: string, extra: Cost = {}): boolean {
   const c = areaCost(s, p, id);
   const total: Cost = { ...c, gold: (c.gold ?? 0) + (extra.gold ?? 0) };
   if (hasChar(p, 'リッカ・ベリー') && (id === 'C' || id === 'O')) {
     const w = c.wheat ?? 0;
-    return p.res.wheat + p.res.wood >= w && canAfford(s, p, { ...total, wheat: 0 });
+    const sub = rikkaSub(s, p);
+    // 代わりに払える数は、ほかのコストに充てた残り
+    return p.res.wheat + p.res[sub] - (total[sub] ?? 0) >= w && canAfford(s, p, { ...total, wheat: 0 });
   }
   return canAfford(s, p, total);
 }
@@ -1891,13 +1956,16 @@ function payAreaCost(s: GameState, t: Task): void {
   const c = areaCost(s, p, exec);
   if (hasChar(p, 'リッカ・ベリー') && (exec === 'C' || exec === 'O') && (c.wheat ?? 0) > 0) {
     const w = c.wheat!;
+    const sub = rikkaSub(s, p);
+    const spare = p.res[sub] - (c[sub] ?? 0);
     const opts: Option[] = [];
-    for (let wood = 0; wood <= w; wood++) {
-      const wheat = w - wood;
-      if (wheat <= p.res.wheat && wood <= p.res.wood) opts.push({ id: `split:${wood}`, label: `麦${wheat}・木材${wood}`, data: { wood, wheat } });
+    // ID の数は代わりに払う個数。上方修正ではゴールド、通常は木材の個数を表す
+    for (let n = 0; n <= w; n++) {
+      const wheat = w - n;
+      if (wheat <= p.res.wheat && n <= spare) opts.push({ id: `split:${n}`, label: `麦${wheat}・${RES_LABEL[sub]}${n}`, data: { [sub]: n, wheat } });
     }
     t.ctx = { ...t.ctx, exec };
-    ask(s, t, 'areaCost', '麦の代わりに木材で払う個数を選んでください', opts);
+    ask(s, t, 'areaCost', `麦の代わりに${RES_LABEL[sub]}で払う個数を選んでください`, opts);
     return;
   }
   payFixed(s, p, c);
@@ -1908,7 +1976,8 @@ function resumeAreaCost(s: GameState, t: Task, opt: Option): void {
   const p = P(s, t);
   const exec = String(t.ctx!.exec);
   const c = areaCost(s, p, exec);
-  payFixed(s, p, { ...c, wheat: Number(opt.data!.wheat), wood: (c.wood ?? 0) + Number(opt.data!.wood) });
+  const d = opt.data!;
+  payFixed(s, p, { ...c, wheat: Number(d.wheat), wood: (c.wood ?? 0) + Number(d.wood ?? 0), gold: (c.gold ?? 0) + Number(d.gold ?? 0) });
   front(s, tasks(t.player, AREAS[exec].effect, AREAS[exec].label));
 }
 
@@ -1961,16 +2030,16 @@ function resumeAutomateOffer(s: GameState, t: Task, opt: Option): void {
 // ---- パス（§6.11） ----
 function passScoring(s: GameState, t: Task): void {
   const p = P(s, t);
-  const ip = passedIp(p);
+  const ip = passedIp(p, buffOn(s, p));
   p.ipThisPass = ip;
   const out: Task[] = [];
   const vp = (n: number) => n > 0 && addScore(s, p, 'vp', n);
   // ① キャラクター
-  if (clockOf(p, 'ビスキュイ・バステト')) addScore(s, p, 'ip', cities(p).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length);
+  if (clockOf(p, 'ビスキュイ・バステト')) addScore(s, p, 'ip', cities(p, buffOn(s, p)).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length);
   if (clockOf(p, 'ナタ・パステル')) vp(ip);
   if (clockOf(p, 'ソルビー・ショコラ')) vp(Object.values(p.hexes).filter((h) => h.rabbit).length);
-  if (clockOf(p, 'リッカ・ベリー')) addScore(s, p, 'cp', cities(p).filter((c) => c.some((k) => p.hexes[k].rabbit)).length);
-  if (clockOf(p, 'アリス・ティーローズ')) vp(cities(p).length);
+  if (clockOf(p, 'リッカ・ベリー')) addScore(s, p, 'cp', cities(p, buffOn(s, p)).filter((c) => c.some((k) => p.hexes[k].rabbit)).length);
+  if (clockOf(p, 'アリス・ティーローズ')) vp(cities(p, buffOn(s, p)).length);
   if (hasChar(p, 'エルサ・スカイル')) out.push(...tasks(t.player, [{ k: 'terrain', n: 1, kind: 'any' }], 'エルサ・スカイル'));
   if (clockOf(p, 'エルサ・スカイル')) vp(2 * connectedPorts(p));
   if (clockOf(p, 'エリ・マカロン')) vp(Math.min(p.income.wheat, p.income.wood, p.income.iron));
@@ -1988,11 +2057,11 @@ function passRest(s: GameState, t: Task): void {
   const p = P(s, t);
   const vp = (n: number) => n > 0 && addScore(s, p, 'vp', n);
   // ② 都市点
-  const nc = Math.min(6, cities(p).length);
+  const nc = Math.min(6, cities(p, buffOn(s, p)).length);
   const rate = clockOf(p, 'ロータス・チェー') || p.lotusRate ? LOTUS_CITY_RATE : CITY_RATE;
   addScore(s, p, 'cp', rate[nc]);
   // ③ 工業点（①でエルサ・スカイルが地形タイルを置いた場合に備えて数え直す）
-  p.ipThisPass = passedIp(p);
+  p.ipThisPass = passedIp(p, buffOn(s, p));
   addScore(s, p, 'ip', p.ipThisPass);
   // ④ パス時支援タイル
   const up = s.supportTiles[p.supportSpace!][0];
@@ -2009,7 +2078,7 @@ function passRest(s: GameState, t: Task): void {
 function passSupportVp(s: GameState, p: PlayerState, id: number): number {
   switch (id) {
     case 101:
-      return 3 * cities(p).length;
+      return 3 * cities(p, buffOn(s, p)).length;
     case 102:
       return playedCount(p);
     case 103:
@@ -2036,11 +2105,11 @@ function skillPassVp(s: GameState, p: PlayerState, id: number, adv: boolean): nu
     return 0;
   }
   if (id === 1) {
-    const c = cities(p).length;
+    const c = cities(p, buffOn(s, p)).length;
     return c >= 5 ? 15 : c >= 3 ? 7 : c >= 1 ? 3 : 0;
   }
   if (id === 2) return [0, 2, 6, 12, 20][connectedPorts(p)];
-  if (id === 3) return 2 * Math.max(...Object.values(tagCounts(p)));
+  if (id === 3) return 2 * Math.max(...Object.values(tagCounts(p, buffOn(s, p))));
   return 0;
 }
 
@@ -2063,7 +2132,8 @@ function freeActionOptions(s: GameState, p: PlayerState): Option[] {
   if (!p.clockPlaced && clockReady(s, p) && buildingSpots(p).length > 0) out.push({ id: 'fa8', label: '時計塔駒を置く' });
   // キャラクター固有
   const used = (k: string) => p.usedFree.includes(k);
-  if (hasChar(p, 'ビスキュイ・バステト') && !used('biscuit') && cities(p).some((c) => c.some((k) => p.hexes[k].building === 'lab'))) out.push({ id: 'faC:biscuit', label: '研究所のある都市1つにつき工業トラック1歩' });
+  if (hasChar(p, 'ビスキュイ・バステト') && !used('biscuit') && biscuitSteps(s, p) > 0)
+    out.push({ id: 'faC:biscuit', label: buffOn(s, p) ? '研究所1個につき工業トラック1歩' : '研究所のある都市1つにつき工業トラック1歩' });
   if (hasChar(p, 'ロータス・チェー') && !used('lotus') && Object.values(p.hexes).some((h) => h.tile && !h.tile.flipped))
     out.push({ id: 'faC:lotus', label: '表向きの地形タイルを1枚裏返す' });
   if (hasChar(p, 'ソルビー・ショコラ')) {
@@ -2089,7 +2159,7 @@ export function clockReady(s: GameState, p: PlayerState): boolean {
         case 'food':
           return p.food >= r.n;
         case 'ipPassed':
-          return passedIp(p) >= r.n;
+          return passedIp(p, buffOn(s, p)) >= r.n;
         case 'wonder':
           return p.wonders >= 1;
       }
@@ -2116,17 +2186,19 @@ function resumeFreeAction(s: GameState, t: Task, opt: Option): void {
       p.res.gold -= 15;
       q([{ k: 'draw', n: 1 }]);
       return;
+    // ❸❺❻の両替は、繰り返し使うのと同じ結果を1回の入力で得られるよう、何単位分でもまとめて行う。
+    // 1単位分の内訳の選択肢 ID は以前と同じため、以前の手の列もそのまま再生できる
     case 'fa3':
-      p.res.gold -= 4;
       q([{ k: 'anyBasic', n: 1 }]);
+      s.queue[s.queue.length - 1].ctx = { goldEach: 4 };
       return;
     case 'fa5':
       q([{ k: 'pay', cost: { anyBasic: 1 }, then: [{ k: 'gain', res: { gold: 1 } }] }]);
-      s.queue[s.queue.length - 1].ctx = { basicLeft: 1, handLeft: 0, direct: true };
+      s.queue[s.queue.length - 1].ctx = { basicLeft: 1, handLeft: 0, direct: true, bulk: 1 };
       return;
     case 'fa6':
       q([{ k: 'pay', cost: { anyBasic: 3 }, then: [{ k: 'anyBasic', n: 1 }] }]);
-      s.queue[s.queue.length - 1].ctx = { basicLeft: 3, handLeft: 0, direct: true };
+      s.queue[s.queue.length - 1].ctx = { basicLeft: 3, handLeft: 0, direct: true, bulk: 3 };
       return;
     case 'fa7d':
       p.discs -= 1;
@@ -2152,7 +2224,7 @@ function resumeFreeAction(s: GameState, t: Task, opt: Option): void {
   if (id.startsWith('faC:')) {
     const k = id.slice(4);
     p.usedFree.push(k);
-    if (k === 'biscuit') q([{ k: 'industry', n: cities(p).filter((c) => c.some((x) => p.hexes[x].building === 'lab')).length }]);
+    if (k === 'biscuit') q([{ k: 'industry', n: biscuitSteps(s, p) }]);
     if (k === 'lotus') q([{ k: 'flipAny' }]);
     if (k === 'solbee3') q([{ k: 'gain', res: { wheat: 1 } }]);
     if (k === 'solbee5') q([{ k: 'road', n: 1 }]);

@@ -1,10 +1,10 @@
 // 盤面の数え上げ・判定（rules §6.2〜§6.11, §9）
 import mapsRaw from '../data/maps.json';
 import { CARDS } from './cards';
-import { CHARACTERS } from './characters';
+import { BUFF_TRAIT_TAGS, CHARACTERS, isBuffed } from './characters';
 import { hexEdges, hexKey, hexVertices, neighborCoords, parseHexKey, sharedEdge, edgeVertices } from './geometry';
 import type { HexKey } from './geometry';
-import { IP_ICONS, PROS_TRACKS } from './boards';
+import { IP_ICONS, IP_VALUES_NATA_BUFF, PROS_TRACKS } from './boards';
 import type { BuildingType, CondItem, Counter, GameState, MapHex, PlayerState, Row, Tag, Terrain } from './types';
 import { TAGS } from './types';
 
@@ -141,7 +141,9 @@ export function portStatus(p: PlayerState): boolean[] {
 }
 
 // ---- 都市（§6.11-2） ----
-export function cities(p: PlayerState): HexKey[][] {
+/** 自分の都市。buff はキャラクターの上方修正を採用しているか（アリス・ティーローズの数え方が変わる。docs/decisions_16） */
+export function cities(p: PlayerState, buff = false): HexKey[][] {
+  if (buff && p.character === 'アリス・ティーローズ') return aliceBuffCities(p);
   const alice = p.character === 'アリス・ティーローズ';
   const aliceClock = alice && p.clockPlaced;
   const keys = Object.keys(p.hexes).filter((k) => p.hexes[k].building);
@@ -169,6 +171,140 @@ export function cities(p: PlayerState): HexKey[][] {
   return out;
 }
 
+/** 建物駒のつながった集まり（keys に含まれる建物駒だけでつなぐ） */
+function buildingGroups(p: PlayerState, keys: HexKey[]): HexKey[][] {
+  const inKeys = new Set(keys);
+  const seen = new Set<string>();
+  const out: HexKey[][] = [];
+  for (const k of keys) {
+    if (seen.has(k)) continue;
+    const comp: HexKey[] = [];
+    const stack = [k];
+    seen.add(k);
+    while (stack.length) {
+      const x = stack.pop()!;
+      comp.push(x);
+      for (const n of neighbors(p, x))
+        if (inKeys.has(n) && !seen.has(n)) {
+          seen.add(n);
+          stack.push(n);
+        }
+    }
+    out.push(comp);
+  }
+  return out;
+}
+
+/** アリス・ティーローズの上方修正（docs/decisions_16）：つながった建物駒の集まりを、
+ *  建物駒が3種類以上あるつながった組に分け、組の数が最も多くなる分け方を都市とする。
+ *  時計塔駒を置いていれば、時計塔駒は単独で1つの都市である（時計塔能力）。
+ *  どの組にも入らない建物駒は残してよい（隣の組に足しても条件は崩れないため、都市の数は変わらない） */
+function aliceBuffCities(p: PlayerState): HexKey[][] {
+  let keys = Object.keys(p.hexes).filter((k) => p.hexes[k].building);
+  const out: HexKey[][] = [];
+  if (p.clockPlaced) {
+    // 時計塔駒をほかの組に使っても、単独の都市にした場合より都市は増えない
+    for (const k of keys) if (p.hexes[k].building === 'clock') out.push([k]);
+    keys = keys.filter((k) => p.hexes[k].building !== 'clock');
+  }
+  for (const comp of buildingGroups(p, keys)) out.push(...packCities(p, comp));
+  return out;
+}
+
+const PACK_CACHE = new Map<string, HexKey[][]>();
+const PACK_CACHE_MAX = 2000;
+
+/** つながった建物駒の集まり comp から、3種類以上を含むつながった組を互いに重ならないように最も多く取り出す（厳密解）。
+ *  建物駒は1人23個までのため、組の候補を「3種類目が入った時点で広げるのをやめる」ことで絞れば十分に速い */
+function packCities(p: PlayerState, comp: HexKey[]): HexKey[][] {
+  const n = comp.length;
+  if (n < 3 || new Set(comp.map((k) => p.hexes[k].building)).size < 3) return [];
+  const cacheKey = comp.map((k) => `${k}=${p.hexes[k].building}`).sort().join('|');
+  const hit = PACK_CACHE.get(cacheKey);
+  if (hit) return hit;
+
+  const index = new Map(comp.map((k, i) => [k, i]));
+  const adj = comp.map((k) => neighbors(p, k).reduce((m, x) => (index.has(x) ? m | (1 << index.get(x)!) : m), 0));
+  const typeOf = comp.map((k) => p.hexes[k].building);
+  const bits = (m: number) => {
+    const out: number[] = [];
+    for (let i = 0; i < n; i++) if (m & (1 << i)) out.push(i);
+    return out;
+  };
+  const typeCount = (m: number) => new Set(bits(m).map((i) => typeOf[i])).size;
+  const popcount = (m: number) => bits(m).length;
+  /** avail から取り出せる組の数の上限。組は3個以上で、どの2種類にも属さない建物駒を少なくとも1個含む */
+  const upper = (m: number): number => {
+    const per = new Map<string | null, number>();
+    for (const i of bits(m)) per.set(typeOf[i], (per.get(typeOf[i]) ?? 0) + 1);
+    const counts = [...per.values()].sort((a, b) => b - a);
+    const total = counts.reduce((a, b) => a + b, 0);
+    return Math.min(Math.floor(total / 3), total - (counts[0] ?? 0) - (counts[1] ?? 0));
+  };
+
+  /** v を含む組の候補：つながった組を1個ずつ広げ、3種類以上になったところで広げるのをやめたもののうち、
+   *  ほかの候補を含まないもの（組は含まれる小さな組に縮めても都市の数が減らないため、極小の組だけを考えれば足りる）。
+   *  avail に左右されないため、v ごとに1回だけ求める */
+  const groupCache = new Map<number, number[]>();
+  const groupsOf = (v: number): number[] => {
+    const cached = groupCache.get(v);
+    if (cached) return cached;
+    const found: number[] = [];
+    const seen = new Set<number>();
+    const stack = [1 << v];
+    while (stack.length) {
+      const m = stack.pop()!;
+      if (seen.has(m)) continue;
+      seen.add(m);
+      if (typeCount(m) >= 3) {
+        found.push(m);
+        continue;
+      }
+      let frontier = 0;
+      for (const i of bits(m)) frontier |= adj[i];
+      frontier &= ~m;
+      for (const u of bits(frontier)) stack.push(m | (1 << u));
+    }
+    found.sort((a, b) => popcount(a) - popcount(b));
+    const minimal: number[] = [];
+    for (const g of found) if (!minimal.some((h) => (h & g) === h)) minimal.push(g);
+    groupCache.set(v, minimal);
+    return minimal;
+  };
+
+  const memo = new Map<number, number[]>();
+  /** avail の建物駒から取り出せる組（数が最大のもの） */
+  const best = (avail: number): number[] => {
+    const ub = upper(avail);
+    if (ub <= 0) return [];
+    const cached = memo.get(avail);
+    if (cached) return cached;
+    // 珍しい種類の建物駒は必ずどれかの組の決め手になるため、最も少ない種類の建物駒 v から分ける
+    const per = new Map<string | null, number>();
+    for (const i of bits(avail)) per.set(typeOf[i], (per.get(typeOf[i]) ?? 0) + 1);
+    const v = bits(avail).reduce((a, i) => (per.get(typeOf[i])! < per.get(typeOf[a])! ? i : a));
+    // v を含む組を1つ取る場合と、v をどの組にも入れない場合を比べる
+    let res: number[] = [];
+    for (const g of groupsOf(v)) {
+      if ((g & ~avail) !== 0) continue;
+      const rest = best(avail & ~g);
+      if (rest.length + 1 > res.length) res = [g, ...rest];
+      if (res.length >= ub) break; // これ以上は増えない
+    }
+    if (res.length < ub && upper(avail & ~(1 << v)) > res.length) {
+      const skip = best(avail & ~(1 << v));
+      if (skip.length > res.length) res = skip;
+    }
+    memo.set(avail, res);
+    return res;
+  };
+
+  const result = best((1 << n) - 1).map((m) => bits(m).map((i) => comp[i]));
+  if (PACK_CACHE.size >= PACK_CACHE_MAX) PACK_CACHE.clear();
+  PACK_CACHE.set(cacheKey, result);
+  return result;
+}
+
 // ---- 数え上げ ----
 // 地形タイルの数。表裏を問わず数える（ユーザー確認済み）。backOnly のときだけ裏向きに限る
 export function terrainCount(p: PlayerState, kind: Terrain | 'any', backOnly = false): number {
@@ -185,9 +321,10 @@ export function allPlayed(p: PlayerState): string[] {
   return [...p.played, ...p.automated.agr, ...p.automated.for, ...p.automated.min];
 }
 
-export function tagCounts(p: PlayerState): Record<Tag, number> {
+/** 所持しているスイーツタグの数。buff はキャラクターの上方修正を採用しているか（サクラ・モチの特性の和菓子タグが2個になる。docs/decisions_16） */
+export function tagCounts(p: PlayerState, buff = false): Record<Tag, number> {
   const out = Object.fromEntries(TAGS.map((t) => [t, 0])) as Record<Tag, number>;
-  const trait = p.character ? CHARACTERS[p.character].traitTags : undefined;
+  const trait = p.character ? (buff && BUFF_TRAIT_TAGS[p.character]) || CHARACTERS[p.character].traitTags : undefined;
   if (trait) for (const [t, n] of Object.entries(trait)) out[t as Tag] += n ?? 0;
   for (const id of allPlayed(p)) for (const [t, n] of Object.entries(CARDS[id].tags)) out[t as Tag] += n ?? 0;
   return out;
@@ -227,12 +364,16 @@ export function automatedCount(p: PlayerState): number {
   return p.automated.agr.length + p.automated.for.length + p.automated.min.length;
 }
 
-/** 工業マーカーが通過した工業点アイコンの合計（§6.11-3） */
-export function passedIp(p: PlayerState): number {
+/** 工業マーカーが通過した工業点アイコンの合計（§6.11-3）。buff はキャラクターの上方修正を採用しているか
+ *  （採用時、ナタ・パステルのアイコンの値は 1/2/3/4。docs/decisions_16） */
+export function passedIp(p: PlayerState, buff = false): number {
+  const values = buff && p.character === 'ナタ・パステル' ? IP_VALUES_NATA_BUFF : IP_ICONS.map((ic) => ic.value);
   let sum = 0;
   for (const pos of [p.carriage, p.loco]) {
     if (pos === null) continue;
-    for (const ic of IP_ICONS) if (pos > ic.gap) sum += ic.value;
+    IP_ICONS.forEach((ic, i) => {
+      if (pos > ic.gap) sum += values[i];
+    });
   }
   return sum;
 }
@@ -240,7 +381,7 @@ export function passedIp(p: PlayerState): number {
 export function count(state: GameState, p: PlayerState, c: Counter): number {
   switch (c.k) {
     case 'tag':
-      return tagCounts(p)[c.tag];
+      return tagCounts(p, isBuffed(state.config, p.character))[c.tag];
     case 'terrain':
       return terrainCount(p, c.kind, c.backOnly);
     case 'bldOn':
@@ -248,7 +389,7 @@ export function count(state: GameState, p: PlayerState, c: Counter): number {
     case 'bld':
       return buildingCount(p, c.type);
     case 'city':
-      return cities(p).length;
+      return cities(p, isBuffed(state.config, p.character)).length;
     case 'rabbit':
       return Object.values(p.hexes).filter((h) => h.rabbit).length;
     case 'played':

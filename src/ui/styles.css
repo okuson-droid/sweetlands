@@ -663,80 +663,6 @@ svg .lit-svg {
   font-size: 12px;
 }
 
-/* ---- 狭い画面（§4.2） ---- */
-.portrait-guard {
-  display: none;
-}
-@media (orientation: portrait) and (max-width: 700px) {
-  .portrait-guard {
-    display: grid;
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    place-items: center;
-    background: var(--cream);
-    padding: 24px;
-    text-align: center;
-    font-size: 18px;
-    font-weight: 700;
-  }
-}
-.game.narrow {
-  grid-template-columns: 64px minmax(0, 1fr);
-  grid-template-rows: 30px minmax(0, 1fr) auto;
-}
-.game.narrow .topbar {
-  grid-column: 1 / -1;
-}
-.vtabs {
-  grid-row: 2 / 4;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 4px;
-  background: var(--biscuit-deep);
-}
-.vtabs button {
-  flex: 1;
-  border: 0;
-  border-radius: 10px;
-  background: var(--sugar);
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  position: relative;
-  min-height: 44px;
-}
-.vtabs button.on {
-  background: var(--cocoa);
-  color: var(--cream);
-}
-.vtabs button.wants::after {
-  content: '';
-  position: absolute;
-  right: 4px;
-  top: 4px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--me);
-}
-.narrow-pane {
-  min-height: 0;
-  overflow: auto;
-  padding: 4px;
-}
-.game.narrow .band {
-  min-height: 40px;
-  padding: 4px 8px;
-}
-.game.narrow .band .say {
-  font-size: 13px;
-}
-.game.narrow .lit {
-  outline-width: 3px;
-}
-
 /* 準備の小窓（キャラクター・地図ボードの選択）のあいだも、上の帯（ロビー・設定など）は押せるようにする。
    小窓が帯まで覆うと、選択の途中で誰かが抜けたときにロビーへ戻れず、ゲームを終了できなくなる */
 .game:has(.modal-back.setup) .topbar {
@@ -760,4 +686,62 @@ svg .lit-svg {
 .logpanel .logline {
   border-left: 3px solid transparent;
   padding-left: 6px;
+}
+
+/* 準備の小窓の見出しと「閉じて盤面を見る」。畳んだ間は「開く」ボタンだけを上の帯の下に出す */
+.setup-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.setup-head h2 {
+  flex: 1;
+}
+.setup-fold {
+  flex: none;
+  white-space: nowrap;
+}
+.setup-reopen {
+  position: fixed;
+  top: 42px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 70;
+  box-shadow: 0 4px 14px rgba(30, 18, 12, 0.35);
+}
+
+/* 宣言パネル（内訳・回数の入力）：数を変えても ＋／− の位置が動かないよう、数の欄は等幅にする */
+.declare-title {
+  font-weight: bold;
+}
+.stepper b {
+  display: inline-block;
+  min-width: 2ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.declare-total {
+  min-width: 5.5em;
+  font-variant-numeric: tabular-nums;
+}
+.declare-ok {
+  min-width: 4.5em;
+}
+.declare-hint {
+  font-size: 12px;
+  color: var(--cocoa-soft);
+}
+/* 内訳の ＋／− は3組をまとめて1行に置き、途中で折り返さない */
+.steppers {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+.steppers .stepper {
+  padding: 2px 4px;
+}
+
+/* 確認の小窓は、準備の小窓やキャラボードの確認（z-index 75）より手前に出す */
+.modal-back.confirm {
+  z-index: 90;
 }

@@ -120,6 +120,17 @@ export const PRINTED_AUTO: Record<BoardType, Record<Row, Eff[]>> = {
   η: { agr: [gain({ wheat: 1 }), inc('gold', 1)], for: [{ k: 'score', kind: 'cp', n: 1 }], min: [inc('iron', 1)] },
 };
 
+/** キャラクターの上方修正（ヴァリアント、docs/decisions_16）で差し替える印刷オートメーション */
+const PRINTED_AUTO_BUFF: Partial<Record<BoardType, Partial<Record<Row, Eff[]>>>> = {
+  γ: { min: [{ k: 'road', n: 1 }] },
+  ε: { agr: [{ k: 'terrain', n: 1, kind: 'any' }] },
+  η: { for: [{ k: 'road', n: 1 }] },
+};
+/** 産業列の印刷オートメーション。buff はキャラクターの上方修正を採用しているか */
+export function printedAuto(board: BoardType, row: Row, buff: boolean): Eff[] {
+  return (buff && PRINTED_AUTO_BUFF[board]?.[row]) || PRINTED_AUTO[board][row];
+}
+
 // ---- 地形タイル（§6.3） ----
 export const TERRAIN_FLIP: Record<Terrain, Eff[]> = {
   W: [{ k: 'choice', options: [[inc('wheat', 1)], [{ k: 'pros', n: 1, color: 'O' }]] }],
@@ -192,6 +203,8 @@ export const IP_ICONS = [
   { gap: 11, value: 2 },
   { gap: 16, value: 2 },
 ];
+/** キャラクターの上方修正（docs/decisions_16）でのナタ・パステルの工業点アイコンの値（IP_ICONS と同じ順） */
+export const IP_VALUES_NATA_BUFF = [1, 2, 3, 4];
 export const INDUSTRY_END = 17;
 
 // ---- 食料トラック（§12.13） ----

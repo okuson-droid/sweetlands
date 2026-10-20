@@ -39,8 +39,9 @@ export type Target =
   | { k: 'setupMap'; id: string }
   // (c) 宣言する
   | { k: 'basicSplit'; wheat: number; wood: number; iron: number; mode: 'gain' | 'pay' }
-  | { k: 'woodSplit'; wheat: number; wood: number }
+  | { k: 'woodSplit'; wheat: number; wood: number; gold: number } // リッカ・ベリー：麦の代わりに木材（上方修正ではゴールド）で払う内訳
   | { k: 'choice'; idx: number; label: string }
+  | { k: 'payTimes'; n: number } // 「何回でも」の支払いの回数（回数の入力で選ぶ）
   | { k: 'button'; role: 'pass' | 'endTurn' | 'stop' | 'skip' | 'pay' };
 
 /** 合法手の対象参照。対応が分からないものは null（UI は安全網に落とす） */
@@ -123,10 +124,11 @@ export function targetOf(s: GameState, opt: Option): Target | null {
       return { k: 'basicSplit', wheat: c.wheat, wood: c.wood, iron: c.iron, mode: step === 'anyBasic' ? 'gain' : 'pay' };
     }
     case 'areaCost':
-      return { k: 'woodSplit', wheat: Number(d.wheat), wood: Number(d.wood) };
+      return { k: 'woodSplit', wheat: Number(d.wheat), wood: Number(d.wood ?? 0), gold: Number(d.gold ?? 0) };
     case 'choice':
       return { k: 'choice', idx: Number(id.split(':')[1]), label: opt.label };
     case 'payConfirm':
+      if (d.times !== undefined) return { k: 'payTimes', n: Number(d.times) };
       return id === 'pay' ? { k: 'button', role: 'pay' } : null;
     case 'orderEffects':
       return { k: 'effectLine', idx: Number(id.split(':')[1]) };

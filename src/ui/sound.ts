@@ -12,6 +12,8 @@ function tone(freq: number, ms: number, type: OscillatorType = 'sine', gain = 0.
   if (!enabled || typeof window === 'undefined') return;
   try {
     ctx = ctx ?? new AudioContext();
+    // 端末によっては、操作の前に作った AudioContext が止まったままになるため、鳴らすたびに再開を試みる
+    if (ctx.state === 'suspended') void ctx.resume();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.type = type;
@@ -54,10 +56,19 @@ export function sound(e: GameEvent): void {
   }
 }
 
-/** 選択権が来たとき（§7.2） */
+/** 自分の手番の知らせの音量（効果音よりはっきり大きくする。持ち主の指示 2026-10-17） */
+const TURN_GAIN = 0.35;
+
+/** 選択権が来たとき（§7.2）。手番が来たときは、上がる4音を2回、大きな音で鳴らす */
 export function chime(turn: boolean): void {
   if (turn) {
-    tone(660, 120, 'sine', 0.07);
-    window.setTimeout(() => tone(880, 180, 'sine', 0.07), 120);
-  } else tone(740, 160, 'triangle', 0.06);
+    const notes = [523, 659, 784, 1047];
+    for (let r = 0; r < 2; r++)
+      notes.forEach((f, i) => {
+        window.setTimeout(() => {
+          tone(f, 220, 'triangle', TURN_GAIN);
+          tone(f * 2, 160, 'sine', TURN_GAIN / 4); // 倍音を重ねて、小さなスピーカーでも聞こえやすくする
+        }, r * 650 + i * 120);
+      });
+  } else tone(740, 160, 'triangle', 0.08);
 }

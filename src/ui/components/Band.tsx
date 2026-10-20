@@ -1,6 +1,7 @@
 // 帯（ui_design §7）・宣言パネル（§5.6）・解決中／次の一覧（§9）・安全網（§5.7）
 import { useMemo, useState } from 'react';
 import { describe } from '../../game/engine';
+import { CARDS } from '../../game/cards';
 import type { GameState, Task } from '../../game/types';
 import type { Affordances, Move } from '../gestures';
 import { useInteraction, useTarget } from '../interaction';
@@ -60,30 +61,77 @@ function taskLabel(t: Task): string | null {
   return t.src ? `${t.src}：${d}` : d;
 }
 
-function EffectStack({ s }: { s: GameState }) {
+function EffectStack({ s, compact }: { s: GameState; compact?: boolean }) {
+  const [open, setOpen] = useState(false);
   const pd = s.pending!;
   const next = s.queue.map(taskLabel).filter((x): x is string => !!x).slice(0, 4);
   const ordering = pd.step === 'orderEffects';
   if (!ordering && next.length === 0 && (pd.step === 'turn' || !pd.resume.src)) return null;
-  return (
-    <div className={`stack ${ordering ? 'clickable' : ''}`} aria-live="polite">
+  const body = (
+    <div className={`stack ${ordering ? 'clickable' : ''} ${compact ? 'stack-inline' : ''}`} aria-live="polite">
       <div className="now">解決中：{pd.resume.src ?? '手番'}{ordering ? '（先に解決する効果を選んでください）' : ''}</div>
       {ordering && pd.options.map((o, i) => <StackLine key={o.id} i={i} label={o.label} />)}
       {next.length > 0 && <div className="next">次：{next.join('／')}</div>}
     </div>
   );
+  // スマートフォン（ui_design §22.4）：盤面を覆わないよう、帯の中の札に畳む。先に解決する効果を選ぶ場面だけは開いたまま出す
+  if (!compact || ordering) return body;
+  return (
+    <div className="stack-fold">
+      <button className="stack-chip" onClick={() => setOpen(!open)} aria-expanded={open}>
+        解決中{next.length > 0 ? `・次${next.length}` : ''} {open ? '▴' : '▾'}
+      </button>
+      {open && body}
+    </div>
+  );
 }
 
-function SplitPanel({ moves, mode, n }: { moves: { move: Move; split?: Record<string, number> }[]; mode: 'gain' | 'pay'; n: number }) {
+const TERRAIN_NAME: Record<string, string> = { W: '麦畑タイル', F: '森林タイル', M: '鉱山タイル', S: '海タイル' };
+const PIECE_NAME: Record<string, string> = { tent: 'テント駒', house: '家駒', bldg: 'ビル駒', lab: '研究所駒', shop: 'ショップ駒', clock: '時計塔駒', rabbit: 'クッキーラビット駒' };
+
+/** 持ち上げているものの名前（タップで持ち上げたとき、帯に出す） */
+export function heldLabel(key: string): string {
+  const [kind, rest = ''] = key.split(/:(.*)/s);
+  if (kind === 'tile') return TERRAIN_NAME[rest] ?? '地形タイル';
+  if (kind === 'special') return '特殊地形タイル';
+  if (kind === 'road') return '道駒';
+  if (kind === 'diamond') return 'ダイヤ';
+  if (key === 'disc:own') return '手元のディスク';
+  if (key === 'disc:supply') return 'アクションディスク';
+  if (key === 'marker:support') return 'ラウンド支援駒';
+  if (kind === 'piece') return PIECE_NAME[rest] ?? '駒';
+  if (kind === 'skillpile' || kind === 'advskill') return 'スキルタイル';
+  if (CARDS[rest]) return CARDS[rest].nameJa;
+  return '選んだもの';
+}
+
+const SPLIT_KEYS = ['wheat', 'wood', 'iron'] as const;
+const splitTotal = (v: Record<string, number> | undefined) => SPLIT_KEYS.reduce((a, k) => a + (v?.[k] ?? 0), 0);
+
+/** 合計の条件の文。合計が1通りならその数、等間隔なら「〜の倍数」、それ以外は範囲で示す */
+function totalRule(totals: number[]): string {
+  if (totals.length === 1) return `${totals[0]}`;
+  const unit = totals[0];
+  if (totals.every((t, i) => t === unit * (i + 1))) return unit === 1 ? `${totals[totals.length - 1]}以下` : `${unit}の倍数（${totals[totals.length - 1]}以下）`;
+  return `${totals[0]}〜${totals[totals.length - 1]}`;
+}
+
+/** 基礎資源の内訳の入力。初期値は0とし、選択肢が1つしかないときだけその内訳を入れておく。
+ *  合計は選択肢から読み取る（両替のフリーアクションの一括では合計が1通りに決まらない）。
+ *  数を変えても ＋／− の位置が動かないよう、見出しは数によらない文にし、合計と案内は ＋／− の後ろに置く */
+function SplitPanel({ moves, mode }: { moves: { move: Move; split?: Record<string, number> }[]; mode: 'gain' | 'pay' }) {
   const c = useInteraction();
-  const [v, setV] = useState<Record<string, number>>(() => ({ ...(moves[0].split ?? {}) }));
-  const match = moves.find((m) => ['wheat', 'wood', 'iron'].every((k) => (m.split?.[k] ?? 0) === (v[k] ?? 0)));
-  const total = (v.wheat ?? 0) + (v.wood ?? 0) + (v.iron ?? 0);
+  const [v, setV] = useState<Record<string, number>>(() => (moves.length === 1 ? { ...(moves[0].split ?? {}) } : {}));
+  const totals = useMemo(() => [...new Set(moves.map((m) => splitTotal(m.split)))].sort((a, b) => a - b), [moves]);
+  const match = moves.find((m) => SPLIT_KEYS.every((k) => (m.split?.[k] ?? 0) === (v[k] ?? 0)));
+  const total = splitTotal(v);
   const step = (k: string, d: number) => setV((x) => ({ ...x, [k]: Math.max(0, (x[k] ?? 0) + d) }));
+  const rule = totalRule(totals);
   return (
     <div className="declare">
-      <span>{mode === 'gain' ? `得る内訳（合計${n}）` : `払う内訳（合計${n}）`}</span>
-      {(['wheat', 'wood', 'iron'] as const).map((k) => (
+      <span className="declare-title">{mode === 'gain' ? '得る内訳' : '払う内訳'}：合計{rule}</span>
+      <span className="steppers">
+      {SPLIT_KEYS.map((k) => (
         <span key={k} className="stepper">
           <button aria-label={`${k}を減らす`} onClick={() => step(k, -1)}>
             −
@@ -95,9 +143,41 @@ function SplitPanel({ moves, mode, n }: { moves: { move: Move; split?: Record<st
           </button>
         </span>
       ))}
-      <button className="btn primary" disabled={!match} onClick={() => match && c.run(match.move)}>
-        {match ? '決定' : total !== n ? `合計を${n}にしてください` : '持っている数を超えています'}
+      </span>
+      <span className="declare-total">合計 {total}</span>
+      <button className="btn primary declare-ok" disabled={!match} onClick={() => match && c.run(match.move)}>
+        決定
       </button>
+      {!match && <span className="declare-hint">{!totals.includes(total) ? `合計を${rule}にしてください` : '持っている数を超えています'}</span>}
+    </div>
+  );
+}
+
+/** 「何回でも」の支払いの回数の入力。初期値は0とし、1回しか払えないときだけ1を入れておく */
+function TimesPanel({ moves }: { moves: { move: Move; n?: number }[] }) {
+  const c = useInteraction();
+  const max = Math.max(...moves.map((m) => m.n ?? 0));
+  const [n, setN] = useState(max === 1 ? 1 : 0);
+  const match = moves.find((m) => m.n === n);
+  return (
+    <div className="declare">
+      <span className="declare-title">支払う回数（最大{max}回）</span>
+      <span className="stepper">
+        <button aria-label="回数を減らす" onClick={() => setN(Math.max(0, n - 1))}>
+          −
+        </button>
+        <b>{n}</b>
+        <button aria-label="回数を増やす" onClick={() => setN(Math.min(max, n + 1))}>
+          ＋
+        </button>
+      </span>
+      <button className="btn" onClick={() => setN(max)}>
+        最大
+      </button>
+      <button className="btn primary declare-ok" disabled={!match} onClick={() => match && c.run(match.move)}>
+        決定
+      </button>
+      {!match && <span className="declare-hint">回数を選んでください</span>}
     </div>
   );
 }
@@ -105,23 +185,22 @@ function SplitPanel({ moves, mode, n }: { moves: { move: Move; split?: Record<st
 function Declare({ aff }: { aff: Affordances }) {
   const c = useInteraction();
   const d = aff.declare!;
+  if (d.kind === 'times') return <TimesPanel key={`${d.moves.map((m) => m.move.ids[0]).join()}-${c.state.events.length}-${c.state.log.length}`} moves={d.moves} />;
   if (d.kind === 'basicGain' || d.kind === 'basicPay') {
-    const sp = d.moves[0].split!;
-    const n = (sp.wheat ?? 0) + (sp.wood ?? 0) + (sp.iron ?? 0);
-    return <SplitPanel key={`${d.kind}-${n}-${d.moves.map((m) => m.move.ids[0]).join()}-${c.state.events.length}-${c.state.log.length}`} moves={d.moves} mode={d.kind === 'basicGain' ? 'gain' : 'pay'} n={n} />;
+    return <SplitPanel key={`${d.kind}-${d.moves.map((m) => m.move.ids[0]).join()}-${c.state.events.length}-${c.state.log.length}`} moves={d.moves} mode={d.kind === 'basicGain' ? 'gain' : 'pay'} />;
   }
   return (
     <div className="declare">
-      {d.moves.map(({ move, split }) => (
+      {d.moves.map(({ move }) => (
         <button key={move.ids.join()} className="btn" onClick={() => c.run(move)}>
-          {d.kind === 'woodSplit' ? `麦${split!.wheat}・木材${split!.wood}` : move.label}
+          {move.label}
         </button>
       ))}
     </div>
   );
 }
 
-export function Band(props: { s: GameState; viewer: number; canUndo: boolean; undo: () => void; undoCount: number; undoAll: () => void; pulse: boolean; onResize?: (dy: number) => void }) {
+export function Band(props: { s: GameState; viewer: number; canUndo: boolean; undo: () => void; undoCount: number; undoAll: () => void; pulse: boolean; onResize?: (dy: number) => void; compact?: boolean }) {
   const { s, viewer, canUndo, undo, undoCount, undoAll, pulse } = props;
   const c = useInteraction();
   const text = bandText(s, viewer, !!c.copyKey);
@@ -144,10 +223,11 @@ export function Band(props: { s: GameState; viewer: number; canUndo: boolean; un
       }}
     >
       <div className="say" aria-live="polite">
+        {props.compact && c.held && <span className="held-chip">持ち上げ中：{heldLabel(c.held)}</span>}
         {text.src && <span className="src">【{text.src}】</span>}
-        {text.say}
+        {props.compact && c.held ? '置き先をタップしてください' : text.say}
       </div>
-      {s.pending && c.active && <EffectStack s={s} />}
+      {s.pending && c.active && <EffectStack s={s} compact={props.compact} />}
       <div className="actions">
         {c.active && aff.declare && <Declare aff={aff} />}
         {c.active && aff.fallback.length > 0 && (
@@ -158,6 +238,11 @@ export function Band(props: { s: GameState; viewer: number; canUndo: boolean; un
               </button>
             ))}
           </div>
+        )}
+        {props.compact && c.held && (
+          <button className="btn" onClick={() => c.setHeld(null)}>
+            戻す
+          </button>
         )}
         {c.copyKey && (
           <button className="btn" onClick={c.cancelCopy}>

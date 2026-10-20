@@ -1,7 +1,7 @@
 // キャラクター（rules §12.2, §12.2b）
 import raw from '../data/characters.json';
 import { CHAR_BOARD, type BoardType } from './boards';
-import type { BuildingType, Res, Row, Tag, Terrain } from './types';
+import type { BuildingType, GameConfig, Res, Row, Tag, Terrain } from './types';
 
 /** 時計塔駒の配置条件。groups の各要素はすべて満たす必要があり、alt はそのどれか1つを満たせばよい（「A／B」＝AまたはB、ユーザー確認済み） */
 export type ClockReq =
@@ -67,6 +67,36 @@ const TEXT: Record<string, [string, string]> = {
   'ジャスミン・メイ': ['永続：「スキルタイルを1枚得る」ボーナスで2枚得る。', 'パス時：手元のスキルタイル1枚につき1勝利点。'],
   'コーラル・ライラ': ['収入時：繁栄の合計歩数が最も少ない1色を合計2歩進める。', 'パス時：最も少ない1色の合計歩数1歩につき2勝利点。'],
 };
+
+/** キャラクターの上方修正（ヴァリアント、docs/decisions_16）の対象と変更点。画面の説明に使う */
+export const BUFF_NOTES: Record<string, string[]> = {
+  'サクラ・モチ': ['特性：和菓子タグ1個 → 2個'],
+  'アリス・ティーローズ': ['基本能力：同じ種類を含んでも都市 → 隣接した建物駒を、3種類以上の組に分けて都市の数が最も多くなるように数える'],
+  'ナタ・パステル': ['鉱業列の印刷オートメーション：ゴールドの収入値+2 → 道駒1個', 'パス時の工業点アイコンの値：1/1/2/2 → 1/2/3/4'],
+  'ビスキュイ・バステト': ['鉱業列の印刷オートメーション：ゴールドの収入値+2 → 道駒1個', '基本能力：研究所駒がある都市1つにつき → 研究所駒1個につき工業トラック1歩'],
+  'ソルビー・ショコラ': ['農業列の印刷オートメーション：ゴールドの収入値+4 → 地形タイル1枚'],
+  'リッカ・ベリー': ['農業列の印刷オートメーション：ゴールドの収入値+4 → 地形タイル1枚', '基本能力：麦を木材で払える → 麦をゴールドで払える'],
+  'コーラル・ライラ': ['林業列の印刷オートメーション：1都市点 → 道駒1個'],
+  'ジャスミン・メイ': ['林業列の印刷オートメーション：1都市点 → 道駒1個'],
+};
+/** 上方修正で書き換わる特性のスイーツタグ */
+export const BUFF_TRAIT_TAGS: Record<string, Partial<Record<Tag, number>>> = { 'サクラ・モチ': { 和菓子: 2 } };
+/** 上方修正で書き換わる基本能力の文 */
+const BUFF_BASIC_TEXT: Record<string, string> = {
+  'サクラ・モチ': '特性：和菓子タグを2個持つ。フリーアクション（ラウンド1回）：手札1枚を捨ててアクションディスクを1枚取る。',
+  'アリス・ティーローズ': '永続：つながった建物駒を、建物駒が3種類以上あるつながった組に分けてよい。都市の数は、組の数が最も多くなる分け方で数える（都市どうしが隣接していてもよい）。',
+  'ビスキュイ・バステト': 'フリーアクション（ラウンド1回）：自分の研究所駒1個につき工業トラックを1歩進める。',
+  'リッカ・ベリー': '永続：「クッキーラビット駒を置く」アクションエリアのコストの麦を、好きな個数だけゴールドで払える（麦1個につき1ゴールド）。',
+};
+
+/** このキャラクターに上方修正が効いているか */
+export function isBuffed(config: GameConfig, name: string | null): boolean {
+  return !!config.variants.charBuff && name !== null && name in BUFF_NOTES;
+}
+/** 基本能力の文（上方修正を反映する） */
+export function basicTextOf(config: GameConfig, name: string): string {
+  return (isBuffed(config, name) && BUFF_BASIC_TEXT[name]) || CHARACTERS[name].basicText;
+}
 
 interface RawChar {
   name: string;

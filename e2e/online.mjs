@@ -7,6 +7,7 @@
 import { chromium } from '@playwright/test';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
+import { stepSplit } from './split.mjs';
 
 const [, , playersArg = '3', seedArg = '1', maxArg = '4000', variantsArg = ''] = process.argv;
 const n = Number(playersArg);
@@ -86,11 +87,14 @@ while (steps < Number(maxArg)) {
   // 選択待ちの人のページで、盤面の所作を1つ行う（autoplay.mjs と同じ選び方）
   const i = simultaneous && actors.length ? pick(actors) : sls.findIndex((x) => x.viewer === Number(JSON.parse(x.digest)[2]));
   const p = pages[i >= 0 ? i : 0];
-  const confirmBtn = await visibleLit(p, '.modal-back .modal .btn.primary');
-  if (confirmBtn.length && !(await p.$('.modal-back.setup'))) {
+  // 確認の小窓（準備の選択の確認を含む）は、準備の小窓が出ていても答える
+  const confirmBtn = (await visibleLit(p, '.modal-back.confirm .modal .btn.primary')).concat((await p.$('.modal-back.setup')) ? [] : await visibleLit(p, '.modal-back .modal .btn.primary'));
+  if (confirmBtn.length) {
     await p.mouse.click(...Object.values(await center(confirmBtn[0])));
     continue;
   }
+  // 基礎資源の内訳の入力（初期値は0）：決定が押せないあいだは、＋／−を押して数を合わせる
+  if (await stepSplit(p, rand, (c) => p.mouse.click(c.x, c.y))) continue;
   const tabs = await visibleLit(p, '.draft-tabs .btn:not([disabled]):not(.on)');
   if (tabs.length && rand() < 0.5) await tabs[0].click();
   const hints = await visibleLit(p, '.fold.hint:not(.open) .fold-head');

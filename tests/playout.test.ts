@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { applyMove, createGame, getOptions } from '../src/game/engine';
 import { finalScores } from '../src/game/scoring';
 import { nextRandom } from '../src/game/rng';
-import type { GameState, Option } from '../src/game/types';
+import type { GameConfig, GameState, Option } from '../src/game/types';
 
 function pick(s: GameState, opts: Option[], r: number): Option {
   const pd = s.pending!;
@@ -25,7 +25,7 @@ function pick(s: GameState, opts: Option[], r: number): Option {
   return opts[Math.floor(r * 991) % opts.length];
 }
 
-export function playRandom(players: number, seed: number, variants = { turnOrder: false, draft: false, advSkills: false }) {
+export function playRandom(players: number, seed: number, variants: GameConfig['variants'] = { turnOrder: false, draft: false, advSkills: false }) {
   let s = createGame({ players, names: ['A', 'B', 'C', 'D'].slice(0, players), variants }, seed);
   let rng = seed ^ 0x9e3779b9;
   let steps = 0;
@@ -65,5 +65,29 @@ describe('乱択プレイアウト', () => {
       const { s } = playRandom(2 + (seed % 3), seed * 31, { turnOrder: true, draft: true, advSkills: true });
       expect(s.finished).toBe(true);
     }
+  });
+  it('1人でも、ヴァリアントをすべて採用して最後まで進む', () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const all = { turnOrder: true, draft: true, advSkills: true, freeChar: true, setupDraft: true, charBuff: true };
+      const { s } = playRandom(1, seed * 41, seed % 2 ? all : { turnOrder: false, draft: false, advSkills: false });
+      expect(s.finished).toBe(true);
+    }
+  });
+
+  it('キャラクターの上方修正（自由選択と併用）でも最後まで進む', () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const { s } = playRandom(2 + (seed % 3), seed * 37, { turnOrder: false, draft: false, advSkills: false, freeChar: true, charBuff: true });
+      expect(s.finished).toBe(true);
+    }
+  });
+});
+
+describe('1人の上級スキルタイル', () => {
+  it('1人では3枚、2人では3枚、4人では5枚並ぶ', () => {
+    const adv = { turnOrder: false, draft: false, advSkills: true };
+    const names = ['A', 'B', 'C', 'D'];
+    expect(createGame({ players: 1, names, variants: adv }, 5).advSkills).toHaveLength(3);
+    expect(createGame({ players: 2, names, variants: adv }, 5).advSkills).toHaveLength(3);
+    expect(createGame({ players: 4, names, variants: adv }, 5).advSkills).toHaveLength(5);
   });
 });

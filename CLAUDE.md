@@ -1,6 +1,6 @@
 # スイーツランド デジタル版
 
-ボードゲーム「スイーツランド」（2〜4人）をブラウザで遊べるようにしたもの。友人とのオンライン対戦が目的である。ソロモードは対象外。
+ボードゲーム「スイーツランド」（2〜4人）をブラウザで遊べるようにしたもの。友人とのオンライン対戦が目的である。ソロモード（専用ルール）は対象外だが、ローカルでは通常のルールのまま1人でも遊べる。
 
 ## 構成
 
@@ -11,13 +11,13 @@
 - `src/data/`：市民カード207枚・キャラクター14人・地図6面の JSON。
 - `src/ui/`：React 18 の UI。
   - `gestures.ts` が「合法手の種類 → 所作（ドラッグ／クリック／ボタン）」の対応表。画面は合法性を計算しない。
-  - レイアウトは `wide.css`（PC 横長）と `layout.css`・`styles.css`。
+  - レイアウトは `Game.tsx` の `WideLayout`（PC 横長、`wide.css`）と、`MobileLayout.tsx` の `PortraitLayout`（スマートフォン縦持ち）・`LandscapeLayout`（横持ち）（`mobile.css`）。共通のスタイルは `layout.css`・`styles.css`、共通の部品は `GameParts.tsx`。
 - `src/net/`：オンライン同期。
   - `room.ts`：`Room` インターフェース（subscribe / write / clear / transact）と、検査用の偽 DB（`?fakedb=1&uid=名前`、localStorage 共有）。
   - `supabaseRoom.ts`：本番。Supabase の `public.games` テーブル（id text, doc jsonb）＋Realtime＋匿名ログイン。
   - `useOnlineGame.ts`：共有ドキュメントの手の列を各画面が再生する。書き込むのは選択待ちのプレイヤーだけ。取り消しは手の列の末尾を削る（チェックポイントまで）。
 - `src/ui/Online.tsx`：ロビー（ゲーム作成・席・名前・開始）と対局画面。
-- `tests/`：Vitest（66件）。`e2e/`：Playwright の自動対戦・同期検査。
+- `tests/`：Vitest（88件）。`e2e/`：Playwright の自動対戦・同期検査。
 - `deploy/`：Supabase の準備用 SQL（`supabase_setup.sql`）と手順書。
 
 ## コマンド
@@ -27,7 +27,7 @@
 - `npx vitest run`：テスト（全件通ること）
 - `npm run build`：`dist/index.html` に JS・CSS を埋め込んだ1枚の HTML を作る（vite-plugin-singlefile）
 - `node e2e/online.mjs 3 5 400`：3画面を偽 DB でつなぎ、400手まで同期・情報漏れ・操作権を検査する（要ビルド）
-- `node e2e/autoplay.mjs mouse <seed> <players> [maxSteps]`：盤面の所作だけで1局を打ち切る自動対戦（要ビルド）
+- `node e2e/autoplay.mjs mouse|portrait|landscape <seed> <players> [maxSteps] [shotDir] [variants]`：盤面の所作だけで1局を打ち切る自動対戦（要ビルド）。`portrait`（390×844）・`landscape`（844×390）はスマートフォンのタッチ操作
 - Playwright は `@playwright/test@1.56.1` に固定している。ローカルで初めて使うときは `npx playwright install chromium` が必要。
 
 ## 配布（GitHub Pages ＋ Supabase）
@@ -53,4 +53,4 @@
 
 ## 詳しい資料
 
-ルール全文（`SweetLands_rules.md`）、設計方針（`decisions.md`）、UI 設計書（`ui_design.md`）は claude.ai のプロジェクト「スイーツランドデジタル化」にある。`docs/` にはその追補（v1.1 ルール、ヴァリアント、横長レイアウト、不具合の改修、機能の追加）だけを置いている。ルールの判断が要るときは、推測で決めずに持ち主に確認すること。
+ルール全文（`SweetLands_rules.md`）、設計方針（`decisions.md`）、UI 設計書（`ui_design.md`）は claude.ai のプロジェクト「スイーツランドデジタル化」にある。`docs/` にはその追補（v1.1 ルール、ヴァリアント、横長レイアウト、スマートフォンのレイアウト、不具合の改修、機能の追加、両替の一括、キャラクターの上方修正）だけを置いている。ルールの判断が要るときは、推測で決めずに持ち主に確認すること。

@@ -56,6 +56,15 @@ const rng = new Rng(rec.seed * 104729 + 1);
 let s = createGame(rec.config as never, rec.seed);
 for (const id of rec.moves) s = step(s, id);
 
+/** 委任した選択待ち（置き場所など）を選ぶ。v1 の chooseSub は選択肢を1手だけ進めて評価するため、道駒や建物駒で地形タイルを裏返す選択（効果が次の選択待ちで現れる）を避けてしまう。
+ *  ここでは選択肢ごとに、同じ連鎖の選択待ちを手番に戻るまで解決した局面を評価して選ぶ（計画書追補 §4 段階0 の 0-1 と同じ考え方） */
+function chooseDelegated(st: GameState): string {
+  const det = determinize(st, rng);
+  const a = agent as unknown as { ev: (x: GameState) => number; resolve: (x: GameState, deep?: boolean) => GameState; argmax: <T>(items: T[], val: (x: T) => number) => T };
+  const opts = legal(det);
+  return a.argmax(opts, (o) => a.ev(a.resolve(step(det, o.id)))).id;
+}
+
 /** 自動で進められる選択待ちを進める。LLM の判断が要る局面か終局で止まる */
 function autoAdvance(st: GameState): GameState {
   for (let n = 0; n < 400; n++) {
@@ -66,7 +75,7 @@ function autoAdvance(st: GameState): GameState {
     if (pd.step === 'setupChar') id = 'char:エリ・マカロン';
     else if (pd.step === 'setupMap') id = opts.find((o) => o.id.startsWith('map:A@'))!.id;
     else if (opts.length === 1) id = opts[0].id;
-    else if (DELEGATE.has(pd.step)) id = (agent as unknown as { chooseSub: (x: GameState, d: boolean) => string }).chooseSub(determinize(st, rng), pd.step === 'support' || pd.step === 'passMove');
+    else if (DELEGATE.has(pd.step)) id = chooseDelegated(st);
     if (id === null) return st;
     rec.moves.push(id);
     st = step(st, id);

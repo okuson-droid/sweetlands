@@ -1,0 +1,449 @@
+=== R1 score=0 res={"gold":0,"wheat":0,"wood":0,"iron":0} inc={"gold":0,"wheat":0,"wood":0,"iron":0} pros=0,0,0,0,0,0 food=0 hand=0 discs=0
+   [setupChar] セナ・デライト
+   [setupMap] B5面
+   [support] 列4：このラウンド：建物駒1個ごとに鉄-1 ／ 市民カード1枚
+area:J｜市民カードを2枚引く（手札1枚）
+   [handCost] ニコラス・ネクタリン
+area:E｜既定のコスト → 建物駒2個まで（手札1枚）
+   [handCost] セバスチャン・スポンジ
+   [bldPiece] ビル駒（木材2・鉄2）
+   [bldSpot] ヘクス 6,10
+   [choice] incomeAny1
+   [incomeAny] 木材の収入
+   [bldPiece] ビル駒（木材3・鉄2）
+   [bldSpot] ヘクス 6,8
+   [choice] incomeAny1
+   [incomeAny] 木材の収入
+   [skill] 上級：すべてのカードにブラウニー割引（ダイヤ1）
+play:p07-r3c5｜グランド・グミーベアをプレイ（4ゴールド）
+   [automateOffer] オートメーション化しない
+area:K｜6ゴールドを得る（手札1枚）
+   [handCost] カイ・カシス
+play:p02-r2c3｜ヴィンセント・ヴェリーベリーをプレイ（13ゴールド）
+   [orderEffects] 地形タイル2枚
+   [terrain] ヘクス 5,7
+   [terrain] ヘクス 5,5
+   [road] 辺
+   [choice] 鉄の収入+1
+   [automateOffer] ダイヤ1で林業列にオートメーション化
+area:A｜麦6 → 地形タイル3枚まで（手札1枚）
+   [handCost] ローレン・ライチ
+   [terrain] ヘクス 5,3
+   [road] 辺
+   [choice] 木材の収入+1
+   [terrain] ヘクス 4,6
+   [terrain] ヘクス 4,4
+play:p14-r2c5｜グレン・グレイスをプレイ（8ゴールド）
+   [orderEffects] 道駒2個
+   [road] 辺
+   [choice] 鉄の収入+1
+   [road] 辺
+   [choice] 木材の収入+1
+   [automateOffer] オートメーション化しない
+area:F｜鉄3 → 工業トラック2歩まで（手札1枚）
+   [handCost] ローラ・ラベンダーラテ
+   [mix] ヘクス 6,12
+   [road] 辺
+   [choice] 麦の収入+1
+   [mix] 辺
+   [choice] 木材の収入+1
+pass｜パスする
+   [passMove] 列3：地形タイル1枚 ／ 6ゴールド
+=== R2 score=-37 res={"gold":6,"wheat":2,"wood":2,"iron":5} inc={"gold":19,"wheat":3,"wood":5,"iron":2} pros=0,0,0,0,0,0 food=0 hand=1 discs=0
+   [terrain] ヘクス 5,11
+   [choice] 麦の収入+1
+area:J｜市民カードを2枚引く（手札1枚）
+   [handCost] アイラ・インパルス
+play:p04-r3c4｜リタ・リッチリップをプレイ（11ゴールド）
+   [orderEffects] 鉄の収入+1
+   [terrain] ヘクス 3,7
+   [terrain] ヘクス 2,6
+   [automateOffer] オートメーション化しない
+area:K｜6ゴールドを得る（手札1枚）
+   [handCost] ヴィオラ・ヴィヴィッド
+area:A｜麦6 → 地形タイル3枚まで（手札1枚）
+   [handCost] セス・ソルベ
+   [terrain] ヘクス 4,2
+   [terrain] ヘクス 3,3
+   [road] 辺
+   [choice] 木材の収入+1
+   [road] 辺
+   [choice] 木材の収入+1
+   [terrain] ヘクス 3,1
+area:E｜既定のコスト → 建物駒2個まで（手札1枚）
+   [handCost] マックス・モカ
+   [bldPiece] 家駒（木材2・鉄3）
+   [bldSpot] ヘクス 5,7
+   [choice] 鉄の収入+1
+   [bldPiece] 研究所駒（木材3・鉄1）
+   [bldSpot] ヘクス 5,5
+   [choice] 木材の収入+1
+play:p04-r1c3｜フィリップ・フォンダンをプレイ（12ゴールド）
+play:p06-r3c5｜オスカー・オレンジピールをプレイ（7ゴールド）
+   [orderEffects] 食料トラック1歩
+   [orderEffects] 道駒1個
+   [road] 辺
+   [mix] 辺
+   [mix] ヘクス 6,4
+   [automateOffer] ダイヤ1で農業列にオートメーション化
+play:p01-r1c2｜イザヤ・アイスドラテをプレイ（10ゴールド）
+   [orderEffects] 食料トラック1歩
+   [automateOffer] ダイヤ1で鉱業列にオートメーション化
+fa4:0｜マイルストーン4aを獲得
+area:I｜ダイヤ1個を得る（手札1枚）
+   [handCost] シロップ・シュガートン卿
+pass｜パスする
+   [passMove] 列4：このラウンド：建物駒1個ごとに鉄-1 ／ 市民カード1枚
+=== R3 score=-31 res={"gold":34,"wheat":7,"wood":12,"iron":8} inc={"gold":33,"wheat":7,"wood":10,"iron":5} pros=0,0,0,0,0,0 food=3 hand=8 discs=0
+area:J｜市民カードを2枚引く（手札1枚）
+   [handCost] ジョアンナ・ジャム
+play:p13-r3c2｜ロロ・ラムをプレイ（2ゴールド）
+   [automateOffer] オートメーション化しない
+play:p14-r3c5｜エドガー・エクレアーズをプレイ（0ゴールド）
+area:N｜麦7 → 食料トラック3歩まで（手札1枚）
+   [handCost] ディアナ・ドラゴンフルーツ
+fa8｜時計塔駒を置く
+   [clockPlace] ヘクス 3,3
+   [choice] 緑の繁栄トラック1歩
+   [pros] 緑（建物駒）
+play:p14-r2c2｜ウォルター・ワイルドベリーをプレイ（11ゴールド）
+   [orderEffects] 木材4を払って地形タイル1枚（森林）、道駒2個
+   [payConfirm] 支払う
+   [terrain] ヘクス 2,4
+   [road] 辺
+   [road] 辺
+   [terrain] ヘクス 3,5
+   [choice] 緑の繁栄トラック1歩
+   [pros] 緑（建物駒）
+fa4:1｜マイルストーン2aを獲得
+play:p02-r2c4｜リタ・ラズベリーリップルをプレイ（6ゴールド）
+   [orderEffects] 木材1
+   [orderEffects] 鉄1
+   [orderEffects] 地形タイル1枚（森林）
+   [terrain] ヘクス 1,3
+   [terrain] ヘクス 1,1
+   [road] 辺
+   [choice] 緑の繁栄トラック1歩
+   [pros] 緑（建物駒）
+   [road] 辺
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（工業点）
+area:P｜既定のコスト＋木材1 → 建物駒3個まで（手札1枚）
+   [handCost] ノーマン・ヌガー
+   [bldPiece] 家駒（木材3・鉄2）
+   [bldSpot] ヘクス 2,4
+   [choice] 緑の繁栄トラック1歩
+   [pros] 緑（建物駒）
+   [bldPiece] 研究所駒（木材3・鉄2）
+   [bldSpot] ヘクス 3,5
+   [choice] 緑の繁栄トラック1歩
+   [pros] 緑（建物駒）
+   [bldPiece] ショップ駒（林業）（木材2・鉄2）
+   [bldSpot] ヘクス 4,2
+   [choice] 緑の繁栄トラック1歩
+   [pros] 緑（建物駒）
+   [road] 辺
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（工業点）
+   [road] 辺
+play:p01-r3c3｜フェイ・フランボワーズをプレイ（9ゴールド）
+   [orderEffects] ゴールドの収入+2
+   [orderEffects] 地形タイル1枚（森林）
+   [terrain] ヘクス 0,4
+   [skill] 建物駒を1個置くたび2勝利点
+   [road] 辺
+   [automateOffer] オートメーション化しない
+play:p04-r3c2｜ジニー・ジンジャーゲートをプレイ（1ゴールド）
+fa3｜4ゴールド → 任意の基礎資源1
+   [anyBasic] 麦1
+area:C｜麦4 → クッキーラビット駒1個（手札1枚）
+   [handCost] イヴリン・ストリベリー
+   [rabbit] ヘクス 6,10
+area:I:disc｜ダイヤ1個を得る（アクションディスク使用）
+pass｜パスする
+   [passMove] 列5：パス時：基礎資源の収入値のうち最小値の勝利点 ／ このラウンド：オートメーション化のダイヤ-1
+=== R4 score=-4 res={"gold":45,"wheat":8,"wood":13,"iron":16} inc={"gold":44,"wheat":8,"wood":13,"iron":10} pros=0,0,0,6,0,2 food=6 hand=7 discs=0
+area:J｜市民カードを2枚引く（手札1枚）
+   [handCost] オリバー・オートミール
+play:p11-r2c4｜キャプテン・クランチをプレイ（4ゴールド）
+   [automateOffer] オートメーション化しない
+play:p07-r1c2｜シルビア・シャーベットをプレイ（8ゴールド）
+   [payConfirm] 支払う
+   [terrain] ヘクス 2,8
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（工業点）
+   [terrain] ヘクス 1,7
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（工業点）
+   [road] 辺
+   [road] 辺
+   [automateOffer] オートメーション化しない
+area:N｜麦7 → 食料トラック3歩まで（手札1枚）
+   [handCost] モリー・ミント
+   [terrain] ヘクス 1,9
+   [special] ダイヤ2＋市民カード1枚
+   [terrain] ヘクス 1,11
+   [terrain] ヘクス 2,10
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（クッキーラビット駒）
+area:P｜既定のコスト＋木材1 → 建物駒3個まで（手札1枚）
+   [handCost] ヴァンス・ヴァニラビーン
+   [bldPiece] テント駒（木材1・鉄3）
+   [bldSpot] ヘクス 1,7
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（工業点）
+   [bldPiece] テント駒（木材2・鉄3）
+   [bldSpot] ヘクス 1,9
+   [bldPiece] テント駒（木材3・鉄3）
+   [bldSpot] ヘクス 2,8
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（工業点）
+   [terrain] ヘクス 2,12
+   [skill] 産業ボーナスを1回得るたび3勝利点
+play:p11-r2c1｜エリオット・エスプレッソをプレイ（9ゴールド）
+   [payConfirm] 支払う
+   [skill] クッキーラビット駒を1個置くたび3勝利点
+   [automateOffer] ダイヤ0で鉱業列にオートメーション化
+play:p04-r2c2｜オリビア・オーツをプレイ（3ゴールド）
+   [orderEffects] 条件に応じてゴールド1
+   [automateOffer] ダイヤ0で農業列にオートメーション化
+area:E｜既定のコスト → 建物駒2個まで（手札1枚）
+   [handCost] ネリー・ネクター
+   [bldPiece] 研究所駒（木材0・鉄6）
+   [bldSpot] ヘクス 2,10
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（クッキーラビット駒）
+   [bldPiece] ショップ駒（農業）（木材1・鉄3）
+   [bldSpot] ヘクス 6,12
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（クッキーラビット駒）
+   [road] 辺
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（クッキーラビット駒）
+fa3｜4ゴールド → 任意の基礎資源1
+   [anyBasic] 木材1
+area:D｜木材6 → 道駒3個まで（手札1枚）
+   [handCost] ブレンダ・ブランブルベア
+   [road] 辺
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（クッキーラビット駒）
+   [road] 辺
+   [road] 辺
+fa4:4｜マイルストーン6aを獲得
+play:p09-r2c4｜オパール・オレンジピールをプレイ（9ゴールド）
+   [payConfirm] 支払う
+   [pros] 緑（建物駒）
+   [pros] 緑（建物駒）
+   [anyBasic] 鉄3
+   [automateOffer] ダイヤ0で林業列にオートメーション化
+play:p08-r3c2｜クライド・クランベリークリフをプレイ（10ゴールド）
+   [pros] オレンジ（クッキーラビット駒）
+   [pros] オレンジ（クッキーラビット駒）
+area:Q｜鉄5 → 工業トラック3歩まで（手札1枚）
+   [handCost] パティ・プラリネ
+   [industry] 馬車駒を1歩進める
+   [industry] 馬車駒を1歩進める
+fa5｜基礎資源1 → 1ゴールド
+   [payBasic] 鉄4
+play:p09-r1c4｜ゼルダ・ザバリオーネをプレイ（11ゴールド）
+pass｜パスする
+   [passMove] 列6：パス時：プレイしたカード1枚につき1勝利点 ／ 工業トラック1歩
+=== R5 score=57 res={"gold":0,"wheat":2,"wood":0,"iron":5} inc={"gold":59,"wheat":9,"wood":12,"iron":11} pros=0,7,0,8,0,6 food=12 hand=1 discs=0
+   [skill] 緑色の繁栄トラックを合計3歩
+   [pros] 緑（道駒）
+   [pros] 緑（道駒）
+   [pros] 緑（道駒）
+area:J｜市民カードを2枚引く（手札1枚）
+   [handCost] ロンダ・リッチ
+play:p06-r3c2｜マーブル・マドレーヌをプレイ（0ゴールド）
+   [payConfirm] 支払う
+   [payHand] ティナ・トロピック
+   [search] オリヴァー・オプティム
+   [search] マーティー・マーシュ
+fa2｜15ゴールド → 市民カード1枚
+fa2｜15ゴールド → 市民カード1枚
+play:p05-r2c3｜オリヴァー・オプティムをプレイ（0ゴールド）
+   [payConfirm] 支払う
+   [payBasic] 木材2
+   [payHand] マダム・マカロン
+   [payHand] ヴィヴィアン・ヴェルヴェット
+play:p12-r1c4｜ジョスリン・ジョイをプレイ（0ゴールド）
+   [payConfirm] 支払う
+   [payHand] サイモン・サングリア
+   [payHand] クセニア・ショコアトル
+area:P｜既定のコスト＋木材1 → 建物駒3個まで（手札1枚）
+   [handCost] ローザ・ラズベリー
+   [bldPiece] ビル駒（木材1・鉄3）
+   [bldSpot] ヘクス 1,11
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（クッキーラビット駒）
+   [anyBasic] 麦2・木材1
+   [bldPiece] ビル駒（木材2・鉄3）
+   [bldSpot] ヘクス 2,12
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（地形タイル）
+   [bldPiece] テント駒（木材2・鉄3）
+   [bldSpot] ヘクス 5,11
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（地形タイル）
+   [terrain] ヘクス 1,13
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（地形タイル）
+   [terrain] ヘクス 0,14
+   [rabbit] ヘクス 5,11
+   [road] 辺
+   [road] 辺
+play:p01-r3c2｜アルディ・アーモンドをプレイ（0ゴールド）
+play:p12-r1c5｜クインシー・クエンチをプレイ（6ゴールド）
+   [orderEffects] 道駒1個
+   [road] 辺
+   [rabbit] ヘクス 6,8
+   [automateOffer] ダイヤ1で農業列にオートメーション化
+play:p03-r1c5｜ルビー・レッドベルベットをプレイ（2ゴールド）
+   [payConfirm] 支払う
+   [bldPiece] 研究所駒
+   [bldSpot] ヘクス 1,13
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（クッキーラビット駒）：右端へ（ダイヤ1）
+fa2｜15ゴールド → 市民カード1枚
+area:A｜麦6 → 地形タイル3枚まで（手札1枚）
+   [handCost] ヴィクター・ベルベットケーキ
+   [terrain] ヘクス 0,8
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（工業点）
+   [terrain] ヘクス 0,6
+   [industry] 機関車駒を1歩進める
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（工業点）
+   [anyBasic] 麦1・木材2
+   [terrain] ヘクス 3,9
+   [industry] 機関車駒を1歩進める
+   [industry] 機関車駒を1歩進める
+   [industry] 機関車駒を1歩進める
+   [road] 辺
+   [road] 辺
+   [choice] 緑の繁栄トラック1歩
+   [pros] 緑（道駒）
+   [industry] 機関車駒を1歩進める
+play:p04-r1c1｜サミュエル・シュガーキューブをプレイ（0ゴールド）
+   [automateOffer] オートメーション化しない
+play:p03-r2c4｜エリック・エクレールをプレイ（0ゴールド）
+play:p05-r1c2｜マーティー・マーシュをプレイ（0ゴールド）
+play:p13-r1c3｜カラ・キルシュをプレイ（4ゴールド）
+play:p01-r3c4｜クイーン・クッキークランブルをプレイ（0ゴールド）
+   [automateOffer] オートメーション化しない
+play:p11-r2c2｜ニーナ・ナツメグをプレイ（11ゴールド）
+   [payConfirm] 支払う
+   [industry] 機関車駒を1歩進める
+   [anyBasic] 麦3
+   [industry] 機関車駒を1歩進める
+   [industry] 機関車駒を1歩進める
+   [industry] 機関車駒を1歩進める
+   [industry] 機関車駒を1歩進める
+   [bldPiece] テント駒
+   [bldSpot] ヘクス 0,4
+   [choice] 緑の繁栄トラック1歩
+   [pros] 緑（道駒）：右端へ（ダイヤ1）
+   [road] 辺
+   [choice] 緑の繁栄トラック1歩
+   [pros] 緑（建物駒）：右端へ（ダイヤ1）
+   [industry] 馬車駒を1歩進める
+   [pros] 灰（工業点）：右端へ（ダイヤ1）
+   [pros] 灰（オートメーション化したカード）
+   [industry] 機関車駒を1歩進める
+   [industry] 機関車駒を1歩進める
+   [industry] 機関車駒（終点：1勝利点）
+fa5｜基礎資源1 → 1ゴールド
+   [payBasic] 鉄5
+play:p02-r1c5｜ザビエル・ザバグリオーネをプレイ（9ゴールド）
+   [orderEffects] ゴールドの収入+1
+   [rabbit] ヘクス 1,11
+   [road] 辺
+   [rabbit] ヘクス 2,8
+   [rabbit] ヘクス 1,9
+   [pros] オレンジ（地形タイル）
+   [rabbit] ヘクス 1,7
+   [rabbit] ヘクス 3,5
+   [road] 辺
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（オートメーション化したカード）
+area:H｜アクションディスクを1枚取る（手札1枚）
+   [handCost] サー・スプリンクルス
+area:P:disc｜既定のコスト＋木材1 → 建物駒3個まで（アクションディスク使用）
+   [bldPiece] 家駒（木材1・鉄3）
+   [bldSpot] ヘクス 0,8
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（オートメーション化したカード）
+   [bldPiece] 家駒（木材2・鉄3）
+   [bldSpot] ヘクス 0,6
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（オートメーション化したカード）
+   [bldPiece] ビル駒（木材3・鉄3）
+   [bldSpot] ヘクス 3,1
+   [road] 辺
+   [road] 辺
+fa2｜15ゴールド → 市民カード1枚
+play:p09-r3c5｜アレックス・アンバーをプレイ（0ゴールド）
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] 1回支払う
+   [payConfirm] もう支払わない
+fa2｜15ゴールド → 市民カード1枚
+fa5｜基礎資源1 → 1ゴールド
+   [payBasic] 鉄2
+fa3｜4ゴールド → 任意の基礎資源1
+   [anyBasic] 鉄1
+fa5｜基礎資源1 → 1ゴールド
+   [payBasic] 鉄5
+fa2｜15ゴールド → 市民カード1枚
+fa5｜基礎資源1 → 1ゴールド
+   [payBasic] 鉄1
+play:p08-r2c1｜ラッセル・ラズベリーリーフをプレイ（1ゴールド）
+   [orderEffects] 地形タイル1枚（麦畑）
+   [terrain] ヘクス 3,13
+   [road] 辺
+   [choice] 木材の収入+1
+   [choice] オレンジの繁栄トラック1歩
+   [pros] オレンジ（地形タイル）：右端へ（ダイヤ1）
+   [terrain] ヘクス 5,1
+   [orderEffects] 道駒1個
+   [road] 辺
+   [terrain] ヘクス 0,0
+   [automateOffer] オートメーション化しない
+play:p11-r2c5｜ロレンス・レモンレイクをプレイ（0ゴールド）
+   [automateOffer] オートメーション化しない
+fa2｜15ゴールド → 市民カード1枚
+play:p03-r3c3｜フェリシア・フィグをプレイ（0ゴールド）
+   [orderEffects] 道駒1個
+   [road] 辺
+   [terrain] ヘクス 1,5
+   [choice] 灰の繁栄トラック1歩
+   [pros] 灰（オートメーション化したカード）：右端へ（ダイヤ1）
+   [freeAutomate] テレサ・ティラミス → 鉱業列
+play:p08-r2c2｜ニール・ナポレオンをプレイ（0ゴールド）
+   [payConfirm] 支払う
+   [payBasic] 鉄3
+   [terrain] ヘクス 6,0
+   [bldPiece] ショップ駒（鉱業）
+   [bldSpot] ヘクス 5,1
+   [industry] 機関車駒（終点：1勝利点）
+   [industry] 機関車駒（終点：1勝利点）
+fa5｜基礎資源1 → 1ゴールド
+   [payBasic] 鉄4
+fa2｜15ゴールド → 市民カード1枚
+area:C｜麦4 → クッキーラビット駒1個（手札1枚）
+   [handCost] マイク・マーブルミント
+   [rabbit] ヘクス 2,4
+pass｜パスする
+   [passMove] 列2：麦の収入値+1 ／ 任意の繁栄トラック1歩
+final 571

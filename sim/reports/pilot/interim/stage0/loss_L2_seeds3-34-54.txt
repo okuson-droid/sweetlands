@@ -1,0 +1,15 @@
+seed 3 第5ラウンド：局面の得点 54、資源 {"gold":111,"wheat":0,"wood":0,"iron":0}、ダイヤ 3、手札 0、主行動済み false
+実際の手：fa3 → fa3 → fa3 → fa3 → fa6 → fa3 → pass
+  pass       評価 54.00（得点 54）｜
+  fa2        評価 118.31（得点 51）｜gold 34.10、diamond 0.83、hand 1.74、unflipped 13.72、openTiles 6.67、food 0.12、industry 2.17、pros 2.58、clock 1.55、played 0.59、skills 0.72、roads 2.52
+  fa3        評価 123.02（得点 53）｜gold 38.00、wheat 0.54、diamond 0.83、unflipped 13.72、openTiles 6.67、food 0.12、industry 2.17、pros 2.58、clock 1.55、played 0.59、skills 0.72、roads 2.52
+seed 34 第5ラウンド：局面の得点 64、資源 {"gold":149,"wheat":0,"wood":0,"iron":0}、ダイヤ 10、手札 0、主行動済み false
+実際の手：fa3 → fa3 → fa3 → fa6 → fa3 → fa3 → pass
+  pass       評価 64.00（得点 64）｜
+  fa2        評価 139.51（得点 61）｜gold 47.59、diamond 2.77、hand 1.74、unflipped 12.47、openTiles 5.80、buildings 0.85、industry 1.74、pros 2.58、clock 1.24、skills 0.72、roads 1.01
+  fa3        評価 145.22（得点 64）｜gold 51.50、wheat 0.54、diamond 2.77、unflipped 12.47、openTiles 5.80、buildings 0.85、industry 1.74、pros 2.58、clock 1.24、skills 0.72、roads 1.01
+seed 54 第5ラウンド：局面の得点 72、資源 {"gold":142,"wheat":0,"wood":0,"iron":0}、ダイヤ 2、手札 0、主行動済み false
+実際の手：fa3 → fa3 → fa3 → fa6 → fa3 → fa3 → pass
+  pass       評価 73.00（得点 73）｜
+  fa2        評価 150.67（得点 69）｜gold 45.10、diamond 0.55、hand 1.74、unflipped 14.97、openTiles 7.25、buildings 0.42、food 0.12、industry 2.17、pros 3.32、clock 1.86、played 1.18、skills 0.72、roads 1.51、passGain 0.75
+  fa3        評価 155.38（得点 71）｜gold 49.01、wheat 0.54、diamond 0.55、unflipped 14.97、openTiles 7.25、buildings 0.42、food 0.12、industry 2.17、pros 3.32、clock 1.86、played 1.18、skills 0.72、roads 1.51、passGain 0.75

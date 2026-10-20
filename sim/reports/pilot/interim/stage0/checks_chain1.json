@@ -1,0 +1,21 @@
+{
+ "v1": {
+  "games": 30,
+  "determinism": {
+   "fail": 0,
+   "detail": []
+  },
+  "equivalence": {
+   "fail": 0,
+   "detail": [],
+   "msFastClone": 9235,
+   "msStructuredClone": 19140
+  },
+  "anomalies": [],
+  "milestoneMoves": 0
+ },
+ "leak": {
+  "decisions": 354,
+  "diffs": 0
+ }
+}

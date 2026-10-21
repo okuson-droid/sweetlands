@@ -23,7 +23,7 @@ function args(): Record<string, string> {
 
 const o = args();
 const weights = JSON.parse(fs.readFileSync(o.weights ?? 'reports/pilot/weights/v1_eri_B.json', 'utf8')).weights;
-const cfg: AgentConfig = { ...DEFAULT_AGENT, kind: 'v1', weights, chainSub: o.chain !== '0' };
+const cfg: AgentConfig = { ...DEFAULT_AGENT, kind: 'v1', weights, chainSub: o.chain !== '0', ...(o.eval === '3' ? { evalVersion: 3 as const } : {}) };
 const record = JSON.parse(fs.readFileSync(o.record ?? 'reports/pilot/human/seed1.json', 'utf8'));
 
 /** 記録を、round ラウンドの最初の手番の選択待ちまで再生する */

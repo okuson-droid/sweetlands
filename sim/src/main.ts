@@ -17,6 +17,7 @@ import { DEFAULT_WEIGHTS, DEFAULT_WEIGHTS_2, EVAL2_EXTRA, WEIGHT_NAMES, type Wei
 import { playGame, csvHeader, csvRow, type GameResult } from './play';
 import { Pool, type Job } from './pool';
 import { CHARACTERS } from '../../src/game/characters';
+import { DEFAULT_PARAMS3, PARAM3_NAMES } from './evaluate3';
 
 // ---- 引数 ----
 function args(): Record<string, string> {
@@ -44,6 +45,7 @@ export interface WeightFile {
 function loadWeights(spec: string | undefined): { name: string; w: Weights } {
   if (!spec || spec === 'default') return { name: 'default', w: [...DEFAULT_WEIGHTS] };
   if (spec === 'default2') return { name: 'default2', w: [...DEFAULT_WEIGHTS_2] };
+  if (spec === 'default3') return { name: 'default3', w: [...DEFAULT_PARAMS3] };
   const extend = spec.endsWith('+eval2');
   const f = JSON.parse(fs.readFileSync(extend ? spec.slice(0, -6) : spec, 'utf8')) as WeightFile;
   return extend ? { name: `${f.name}+eval2`, w: [...f.weights, ...EVAL2_EXTRA] } : { name: f.name, w: f.weights };
@@ -68,6 +70,7 @@ function agentConfig(o: Record<string, string>, w: Weights): AgentConfig {
     ...(o.templates ? { templates: o.templates.split(',') } : {}),
     ...(o.templateK ? { templateK: Number(o.templateK) } : {}),
     ...(o.chain ? { chainSub: o.chain === '1' } : {}),
+    ...(o.eval === '3' ? { evalVersion: 3 as const } : {}),
   };
 }
 
@@ -162,7 +165,9 @@ async function cmdTune(o: Record<string, string>): Promise<void> {
   const gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd());
   const pool = new Pool(Number(o.jobs ?? 4), FILE);
   const history: unknown[] = [];
-  const protocol = { method: 'CEM', ai, band, seedStart, sigmaFloor: floor, ladder: o.ladder ?? 'M', chars: o.chars === 'all' ? 'all14' : 'target', iters, pop, elite, games, sigmaFrac, init: init.name, rngseed: seed0, objective: 'mean final score (milestones/final tiles excluded)', meanCandidate: 'iteration mean is always evaluated as candidate 0' };
+  const evalVersion = o.eval === '3' ? 3 : 1;
+  const chainSub = o.chain !== undefined ? o.chain === '1' : DEFAULT_AGENT.chainSub;
+  const protocol = { method: 'CEM', ai, evalVersion, chainSub, band, seedStart, sigmaFloor: floor, ladder: o.ladder ?? 'M', chars: o.chars === 'all' ? 'all14' : 'target', iters, pop, elite, games, sigmaFrac, init: init.name, rngseed: seed0, objective: 'mean final score (milestones/final tiles excluded)', meanCandidate: 'iteration mean is always evaluated as candidate 0' };
   const ladder = o.ladder ? V2_LADDER[o.ladder as keyof typeof V2_LADDER] : {};
   const t0 = Date.now();
   let bestEver = { score: -Infinity, w: mean };
@@ -173,7 +178,7 @@ async function cmdTune(o: Record<string, string>): Promise<void> {
     while (cands.length < pop) cands.push(mean.map((m, i) => m + sigma[i] * gauss()));
     const scores = await Promise.all(
       cands.map(async (w) => {
-        const rs = await Promise.all(seeds.map((seed, g) => pool.run({ cond: 'A', char: chars[(it * games + g) % chars.length], seed, cfg: { ...DEFAULT_AGENT, ...ladder, kind: ai, weights: w }, aiSeed: seed })));
+        const rs = await Promise.all(seeds.map((seed, g) => pool.run({ cond: 'A', char: chars[(it * games + g) % chars.length], seed, cfg: { ...DEFAULT_AGENT, ...ladder, kind: ai, weights: w, chainSub, evalVersion }, aiSeed: seed })));
         return rs.reduce((a, r) => a + r.score, 0) / rs.length;
       }),
     );
@@ -187,7 +192,7 @@ async function cmdTune(o: Record<string, string>): Promise<void> {
     const rec = { it, seeds: [seeds[0], seeds[seeds.length - 1]], meanScoreOfMeanCand: scores[0], best: scores[order[0]], eliteMean: order.slice(0, elite).reduce((a, i) => a + scores[i], 0) / elite, top, sec: Math.round((Date.now() - t0) / 1000) };
     history.push(rec);
     console.log(JSON.stringify({ ...rec, top: rec.top.map((x) => x.score) }));
-    const f: WeightFile = { name: path.basename(out, '.json'), ai, weights: mean, names: WEIGHT_NAMES, protocol, history };
+    const f: WeightFile = { name: path.basename(out, '.json'), ai, weights: mean, names: evalVersion === 3 ? PARAM3_NAMES : WEIGHT_NAMES, protocol, history };
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, JSON.stringify(f, null, 1));
   }

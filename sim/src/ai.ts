@@ -7,6 +7,7 @@ import type { GameState } from '../../src/game/types';
 import { Rng, determinize, legal, scoreTotal, step } from './core';
 import { WEIGHT_NAMES, baseEval, features, passesLeft, type Weights } from './evaluate';
 import { applyTemplate, templateByName, type Template } from './templates';
+import { eval3 } from './evaluate3';
 
 export interface AgentConfig {
   kind: 'v0' | 'v1' | 'v2' | 'v1r';
@@ -33,6 +34,8 @@ export interface AgentConfig {
   rolloutRoot?: number;
   /** 細かい選択のうち CHAIN_STEPS を連鎖の終わりまで解決して比べるか（段階0 の 0-1。false で修正前の v1 と同じ動き） */
   chainSub?: boolean;
+  /** 評価関数の版（既定は1。3 は evaluate3.ts、重みは PARAM3_NAMES の並び） */
+  evalVersion?: 1 | 3;
 }
 
 /** v2 のスキル梯子（第5版 §5.5・§6.5）：探索の量だけを変える3段階。中が調整に使う設定 */
@@ -118,6 +121,7 @@ export class Agent {
     if (opts.length === 0) throw new Error('合法手がない');
     if (opts.length === 1) return opts[0].id;
     if (this.cfg.kind === 'v0') return opts[this.rng.int(opts.length)].id;
+    this.cache.clear();
     const round = s.phase === 'setup' ? 1 : s.round;
     if (this.cfg.templates && s.phase !== 'setup' && round !== this.selRound) {
       this.selRound = round;
@@ -139,10 +143,33 @@ export class Agent {
     return !(inverse[id] ?? []).some((x) => this.freeUsed.includes(x));
   }
 
+  /** 評価値のキャッシュ（局面の内容 → 値）。評価は局面の内容だけで決まるため、決定性は変わらない。判断ごとに空にする */
+  private cache = new Map<string, number>();
+  /** 計測：キャッシュに当たった回数 */
+  cacheHits = 0;
+
+  /** passGain の項の重み */
+  private get wPg(): number {
+    return this.cfg.evalVersion === 3 ? this.w[10] : this.w[11];
+  }
+
   private ev(s: GameState): number {
     this.evals++;
+    if (s.finished) return scoreTotal(s);
+    const key = evalKey(s);
+    const hit = this.cache.get(key);
+    if (hit !== undefined) {
+      this.cacheHits++;
+      return hit;
+    }
+    const v = this.evalRaw(s);
+    this.cache.set(key, v);
+    return v;
+  }
+
+  private evalRaw(s: GameState): number {
+    if (this.cfg.evalVersion === 3) return eval3(s, this.w);
     let v = baseEval(s, this.w);
-    if (s.finished) return v;
     if (this.scoreMul !== 1) v += (this.scoreMul - 1) * scoreTotal(s);
     if (this.goldVp !== 1) v += (this.goldVp - 1) * this.scoreMul * Math.floor(s.players[0].res.gold / 5);
     return v;
@@ -254,7 +281,7 @@ export class Agent {
   private fullEval(s: GameState): number {
     const base = this.ev(s);
     if (s.finished) return base;
-    return base + this.w[11] * this.passGain(s) * passesLeft(s);
+    return base + this.wPg * this.passGain(s) * passesLeft(s);
   }
 
   /** 事例分析用（判断には使わない）：ある手を選んで解決まで進めた局面の評価値と、特徴量ごとの寄与 */
@@ -267,7 +294,7 @@ export class Agent {
       if (i !== 11 && i < f.length && f[i] !== 0) parts[n] = this.w[i] * f[i];
     });
     const pg = this.passGain(c) * passesLeft(c);
-    if (pg !== 0) parts.passGain = this.w[11] * pg;
+    if (pg !== 0) parts.passGain = this.wPg * pg;
     const score = scoreTotal(c);
     return { value: score + Object.values(parts).reduce((a, b) => a + b, 0), score, parts };
   }
@@ -314,7 +341,11 @@ export class Agent {
     if (!this.cfg.chainSub) return top;
     return top.map((c) => {
       let t = det;
-      for (const id of c.path) t = this.resolve(step(t, id));
+      for (const id of c.path) {
+        // 両替の内訳の選び方（同点処理の乱数）が順位付けのときと変わり、続く主行動が打てなくなった場合は、順位付けの結果をそのまま使う
+        if (!legal(t).some((o) => o.id === id)) return c;
+        t = this.resolve(step(t, id));
+      }
       return { ...c, s: t, value: this.ev(t) };
     });
   }
@@ -332,7 +363,7 @@ export class Agent {
     }
     cands.sort((a, b) => b.value - a.value);
     const top = this.refine(det, cands.slice(0, this.cfg.topK));
-    return this.argmax(top, (c) => c.value + this.w[11] * this.passGain(c.s) * passesLeft(c.s)).first;
+    return this.argmax(top, (c) => c.value + this.wPg * this.passGain(c.s) * passesLeft(c.s)).first;
   }
 
   /** 決定化した局面から、型を固定した v1 で対局の終わりまで打ち切り、最終得点を返す */
@@ -375,7 +406,7 @@ export class Agent {
   private leafValue(before: GameState, leaf: GameState): number {
     const v = this.ev(leaf);
     if (leaf.finished) return v;
-    return v + this.w[11] * (scoreTotal(leaf) - scoreTotal(before)) * passesLeft(leaf);
+    return v + this.wPg * (scoreTotal(leaf) - scoreTotal(before)) * passesLeft(leaf);
   }
 
   /** ある局面（最初の手を指したあと）から、ラウンドの終わりまでの列をビームで列挙し、最良の葉の評価値を返す。
@@ -447,6 +478,43 @@ export class Agent {
     };
     return this.argmax(top, score).first;
   }
+}
+
+/** 評価のキャッシュの鍵：評価に効く項目（ラウンド・フェイズ・自分の資源・収入・手札・カード・駒・トラック・盤面・アクションエリアの空き）だけを短い文字列にする。
+ *  ログ・山札など評価に効かないものは入れない。評価関数（第1版・第3版）が読む項目を増やしたときは、ここにも足すこと */
+function evalKey(s: GameState): string {
+  const p = s.players[0];
+  let hx = '';
+  for (const k in p.hexes) {
+    const h = p.hexes[k];
+    hx += h.tile ? h.tile.kind[0] + (h.tile.flipped ? '1' : '0') + (h.tile.specialId ?? '') : '-';
+    hx += (h.building ? h.building[0] + h.building.length : '') + (h.rabbit ? 'r' : '') + (h.iconTaken ? 'i' : '') + ',';
+  }
+  let ar = '';
+  for (const id in s.areas) ar += s.areas[id].slots.map((x) => (x === null ? '0' : '1')).join('');
+  const r = p.res;
+  const inc = p.income;
+  return [
+    s.round,
+    s.phase,
+    s.turnMainDone ? 1 : 0,
+    p.passed ? 1 : 0,
+    r.gold, r.wheat, r.wood, r.iron, p.diamond,
+    inc.gold, inc.wheat, inc.wood, inc.iron,
+    p.discs,
+    p.hand.join('.'),
+    p.played.join('.'),
+    p.automated.agr.join('.'), p.automated.for.join('.'), p.automated.min.join('.'),
+    p.taken.tent, p.taken.house, p.taken.bldg, p.taken.lab, p.shopsTaken.join('.'),
+    p.clockPlaced ? 1 : 0, p.rabbitsTaken, p.food, p.carriage, p.loco ?? '-',
+    p.pros.join('.'),
+    p.score.vp, p.score.cp, p.score.ip,
+    p.skills.map((x) => `${x.id}${x.adv ? 'a' : ''}${x.flipped ? 'f' : ''}`).join('.'),
+    p.woodDiscount, p.wonders, p.usedFree.join('.'), p.ipThisPass, p.supportSpace ?? '-', p.drawAreas.map((x) => (x ? 1 : 0)).join(''),
+    p.roads.join('.'),
+    hx,
+    ar,
+  ].join('|');
 }
 
 /** 局面のハッシュ（順番違いで同じ局面に行き着いた列をまとめる） */

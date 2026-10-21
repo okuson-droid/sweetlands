@@ -16,6 +16,8 @@ export interface GameResult {
   moves: string[];
   ms: number;
   evals: number;
+  /** 評価のキャッシュに当たった回数 */
+  cacheHits: number;
   /** 行動の統計 */
   areaUse: Record<string, number>;
   cardsPlayed: number;
@@ -144,6 +146,7 @@ export function playGame(cond: Condition, seed: number, cfg: AgentConfig, aiSeed
     moves,
     ms: performance.now() - t0,
     evals: agent.evals,
+    cacheHits: agent.cacheHits,
     areaUse,
     cardsPlayed,
     automations,

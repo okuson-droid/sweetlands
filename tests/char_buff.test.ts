@@ -1,7 +1,7 @@
 // キャラクターの上方修正（ヴァリアント、docs/decisions_16）
 import { describe, expect, it } from 'vitest';
 import { printedAuto } from '../src/game/boards';
-import { applyMove, getOptions, withEffects } from '../src/game/engine';
+import { applyMove, getOptions, pieceCostAt, withEffects } from '../src/game/engine';
 import { cities, count, neighbors, passedIp, tagCounts } from '../src/game/queries';
 import type { BuildingType, GameState, PlayerState } from '../src/game/types';
 import { setupGame } from './helpers';
@@ -52,24 +52,21 @@ describe('キャラクターの上方修正', () => {
     expect(passedIp(q, true)).toBe(8);
   });
 
-  it('ビスキュイ：研究所駒1個につき工業トラック1歩（都市でなくてもよい）', () => {
+  it('ビスキュイ：フリーアクションは通常のまま、研究所駒を置くたび工業トラック2歩', () => {
     for (const buff of [false, true]) {
       const g = game('ビスキュイ・バステト', buff);
       const p = g.s.players[g.seat];
       const keys = Object.keys(p.hexes).filter((k) => p.hexes[k].terrain !== 'C' && !p.hexes[k].building);
-      p.hexes[keys[0]].building = 'lab';
-      p.hexes[keys[keys.length - 1]].building = 'lab';
-      p.taken.lab = 4; // 工業トラックの研究所駒をすべて取り除いた扱い（マーカーがさえぎられないように）
-      const s = turnOf(g.s, g.seat);
-      const opt = getOptions(s).find((o) => o.id === 'faC:biscuit');
-      if (!buff) {
-        expect(opt).toBeUndefined();
-        continue;
-      }
-      expect(opt?.label).toBe('研究所1個につき工業トラック1歩');
+      p.hexes[keys[0]].building = 'lab'; // 都市に属さない研究所駒：フリーアクションは使えない
+      expect(getOptions(turnOf(g.s, g.seat)).some((o) => o.id === 'faC:biscuit')).toBe(false);
+      // 効果で研究所駒を1個置く（コストなし）
+      let s = withEffects(g.s, g.seat, [{ k: 'building', n: 1, viaAction: false }]);
+      s = applyMove(s, getOptions(s).find((o) => (o.data as { piece?: string })?.piece === 'lab')!.id);
       const before = s.players[g.seat].carriage;
-      const after = applyMove(s, 'faC:biscuit');
-      expect(after.players[g.seat].carriage).toBe(before + 2);
+      s = applyMove(s, getOptions(s)[0].id);
+      for (let i = 0; i < 20 && s.pending && s.pending.step !== 'turn' && s.pending.step !== 'industry'; i++) s = applyMove(s, getOptions(s)[0].id);
+      while (s.pending && s.pending.step === 'industry') s = applyMove(s, getOptions(s)[0].id);
+      expect(s.players[g.seat].carriage).toBe(before + (buff ? 2 : 0));
     }
   });
 
@@ -195,3 +192,71 @@ describe('サクラ・モチの上方修正', () => {
     expect(count(off.s, off.s.players[off.seat], { k: 'tag', tag: '和菓子' })).toBe(1);
   });
 });
+
+describe('キャラクターの上方修正（第2弾）', () => {
+  it('アリス：建物駒のコストの鉄が1少ない', () => {
+    const on = game('アリス・ティーローズ', true);
+    const off = game('アリス・ティーローズ', false);
+    expect(pieceCostAt(on.s, on.s.players[on.seat], 'bldg', 0).iron).toBe(pieceCostAt(off.s, off.s.players[off.seat], 'bldg', 0).iron! - 1);
+  });
+
+  it('アリス・リッカ・ロータス：時計塔能力のパス時の得点', () => {
+    const cases: [string, (p: PlayerState) => void, (b: PlayerState, a: PlayerState) => void][] = [
+      [
+        'リッカ・ベリー',
+        (p) => Object.keys(p.hexes).slice(0, 3).forEach((k) => (p.hexes[k].rabbit = true)),
+        (b, a) => expect(a.score.vp - b.score.vp).toBeGreaterThanOrEqual(6),
+      ],
+      [
+        'アリス・ティーローズ',
+        (p) => {
+          // 隣り合う3ヘクスに3種類の建物駒を置き、都市を1つ作る
+          const center = Object.keys(p.hexes).find((k) => p.hexes[k].terrain !== 'C' && neighbors(p, k).filter((n) => p.hexes[n].terrain !== 'C').length >= 2)!;
+          const [n1, n2] = neighbors(p, center).filter((n) => p.hexes[n].terrain !== 'C');
+          p.hexes[center].building = 'tent';
+          p.hexes[n1].building = 'house';
+          p.hexes[n2].building = 'bldg';
+        },
+        // 都市1つ：時計塔能力の1都市点＋都市点レートの1都市点。勝利点にはしない
+        (b, a) => {
+          expect(cities(a, true)).toHaveLength(1);
+          expect(a.score.cp - b.score.cp).toBe(2);
+        },
+      ],
+    ];
+    for (const [name, prep, check] of cases) {
+      const g = game(name, true);
+      const p = g.s.players[g.seat];
+      p.clockPlaced = true;
+      prep(p);
+      const before = structuredClone(p);
+      let s = withEffects(g.s, g.seat, [{ k: 'special', id: 'passScoring' }]);
+      while (s.pending && s.pending.player === g.seat && s.pending.step !== 'turn' && s.pending.step !== 'passMove') s = applyMove(s, getOptions(s)[0].id);
+      check(before, s.players[g.seat]);
+    }
+  });
+
+  it('サクラ：手札2枚を捨てて2枚引く（ラウンド1回）', () => {
+    const g = game('サクラ・モチ', true);
+    let s = turnOf(g.s, g.seat);
+    const n = s.players[g.seat].hand.length;
+    expect(getOptions(s).some((o) => o.id === 'faC:sakura2')).toBe(true);
+    s = applyMove(s, 'faC:sakura2');
+    while (s.pending!.step === 'payHand') s = applyMove(s, getOptions(s)[0].id);
+    expect(s.players[g.seat].hand.length).toBe(n);
+    expect(getOptions(s).some((o) => o.id === 'faC:sakura2')).toBe(false);
+    expect(getOptions(turnOf(game('サクラ・モチ', false).s, g.seat)).some((o) => o.id === 'faC:sakura2')).toBe(false);
+  });
+
+  it('ソルビー：食料7歩以上で地形タイル1枚のフリーアクション', () => {
+    const g = game('ソルビー・ショコラ', true);
+    g.s.players[g.seat].food = 7;
+    const s = turnOf(g.s, g.seat);
+    expect(getOptions(s).some((o) => o.id === 'faC:solbee7')).toBe(true);
+    expect(applyMove(s, 'faC:solbee7').pending!.step).toBe('terrain');
+    const off = game('ソルビー・ショコラ', false);
+    off.s.players[off.seat].food = 7;
+    expect(getOptions(turnOf(off.s, off.seat)).some((o) => o.id === 'faC:solbee7')).toBe(false);
+  });
+});
+

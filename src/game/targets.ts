@@ -131,6 +131,7 @@ export function targetOf(s: GameState, opt: Option): Target | null {
       if (d.times !== undefined) return { k: 'payTimes', n: Number(d.times) };
       return id === 'pay' ? { k: 'button', role: 'pay' } : null;
     case 'orderEffects':
+    case 'orderBundles':
       return { k: 'effectLine', idx: Number(id.split(':')[1]) };
     case 'setupChar':
       return { k: 'setupChar', name: id.slice(5) };

@@ -36,7 +36,7 @@ export function App() {
     const q = new URLSearchParams(location.search);
     if (q.get('auto')) {
       const n = Number(q.get('players') ?? 2);
-      return { k: 'game', config: { players: n, names: ['いちご', 'みかん', 'ぶどう', 'ミント'].slice(0, n), variants: { turnOrder: q.get('v') === '1', draft: q.get('v') === '1', advSkills: q.get('v') === '1', freeChar: q.get('v') === '1', setupDraft: q.get('v') === '1', charBuff: q.get('v') === '1' } }, seed: Number(q.get('seed') ?? 1), moves: [] };
+      return { k: 'game', config: { players: n, names: ['いちご', 'みかん', 'ぶどう', 'ミント'].slice(0, n), variants: { turnOrder: q.get('v') === '1', draft: q.get('v') === '1', advSkills: q.get('v') === '1', freeChar: q.get('v') === '1', setupDraft: q.get('v') === '1', charBuff: q.get('v') === '1' }, orderChoice: true }, seed: Number(q.get('seed') ?? 1), moves: [] };
     }
     return { k: 'lobby' };
   });
@@ -255,10 +255,10 @@ export function NewGameForm({ label, onSubmit, allowSolo = false }: { label: str
             <input type="checkbox" checked={variants.setupDraft} onChange={(e) => setVariants({ ...variants, setupDraft: e.target.checked })} /> 準備のドラフト（キャラクター・地図ボード・ラウンド支援駒）
           </label>
           <label className="setting">
-            <input type="checkbox" checked={variants.charBuff} onChange={(e) => setVariants({ ...variants, charBuff: e.target.checked })} /> キャラクターの上方修正（アリス・ナタ・ビスキュイ・サクラ・ソルビー・リッカ・コーラル・ジャスミン）
+            <input type="checkbox" checked={variants.charBuff} onChange={(e) => setVariants({ ...variants, charBuff: e.target.checked })} /> キャラクターの上方修正（アリス・ロータス・ナタ・ビスキュイ・グレーテル・サクラ・ソルビー・リッカ・コーラル・ジャスミン）
           </label>
         </fieldset>
-        <button className="btn primary" onClick={() => onSubmit({ players, names: names.slice(0, players).map((n, i) => n.trim() || `プレイヤー${i + 1}`), variants })}>
+        <button className="btn primary" onClick={() => onSubmit({ players, names: names.slice(0, players).map((n, i) => n.trim() || `プレイヤー${i + 1}`), variants, orderChoice: true })}>
           {label}
         </button>
     </>

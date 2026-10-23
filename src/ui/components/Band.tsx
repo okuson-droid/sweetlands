@@ -4,6 +4,7 @@ import { describe } from '../../game/engine';
 import { CARDS } from '../../game/cards';
 import type { GameState, Task } from '../../game/types';
 import type { Affordances, Move } from '../gestures';
+import type { AutoSettings } from '../useGame';
 import { useInteraction, useTarget } from '../interaction';
 import { Glyph } from '../icons/Glyph';
 
@@ -65,11 +66,11 @@ function EffectStack({ s, compact }: { s: GameState; compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const pd = s.pending!;
   const next = s.queue.map(taskLabel).filter((x): x is string => !!x).slice(0, 4);
-  const ordering = pd.step === 'orderEffects';
+  const ordering = pd.step === 'orderEffects' || pd.step === 'orderBundles';
   if (!ordering && next.length === 0 && (pd.step === 'turn' || !pd.resume.src)) return null;
   const body = (
     <div className={`stack ${ordering ? 'clickable' : ''} ${compact ? 'stack-inline' : ''}`} aria-live="polite">
-      <div className="now">解決中：{pd.resume.src ?? '手番'}{ordering ? '（先に解決する効果を選んでください）' : ''}</div>
+      <div className="now">解決中：{pd.step === 'orderBundles' ? '同時に起きた効果' : pd.resume.src ?? '手番'}{ordering ? '（先に解決する効果を選んでください）' : ''}</div>
       {ordering && pd.options.map((o, i) => <StackLine key={o.id} i={i} label={o.label} />)}
       {next.length > 0 && <div className="next">次：{next.join('／')}</div>}
     </div>
@@ -200,7 +201,25 @@ function Declare({ aff }: { aff: Affordances }) {
   );
 }
 
-export function Band(props: { s: GameState; viewer: number; canUndo: boolean; undo: () => void; undoCount: number; undoAll: () => void; pulse: boolean; onResize?: (dy: number) => void; compact?: boolean }) {
+/** 同時に起きた効果の処理順を、自分で選ぶか自動にするかの切り替え（席ごと、試合中いつでも。docs/decisions_13 §13.14） */
+function OrderToggle({ s, viewer, auto, setAuto }: { s: GameState; viewer: number; auto: AutoSettings; setAuto: (a: AutoSettings) => void }) {
+  if (!s.config.orderChoice || s.finished || viewer < 0 || viewer >= s.players.length) return null;
+  const seats = auto.orderAuto ?? [];
+  const on = seats.includes(viewer);
+  const toggle = () => setAuto({ ...auto, orderAuto: on ? seats.filter((x) => x !== viewer) : [...seats, viewer] });
+  return (
+    <button
+      className={`btn order-toggle ${on ? 'on' : ''}`}
+      onClick={toggle}
+      aria-pressed={on}
+      title={`同時に起きた効果（建物駒を置いたときのボーナス、産業ボーナスのオートメーションなど）の処理順を、${on ? '起きた順に自動で決めています。押すと自分で選ぶようにします' : '自分で選びます。押すと起きた順に自動で決めるようにします'}`}
+    >
+      処理順：{on ? '自動' : '自分で選ぶ'}
+    </button>
+  );
+}
+
+export function Band(props: { s: GameState; viewer: number; canUndo: boolean; undo: () => void; undoCount: number; undoAll: () => void; pulse: boolean; onResize?: (dy: number) => void; compact?: boolean; auto?: AutoSettings; setAuto?: (a: AutoSettings) => void }) {
   const { s, viewer, canUndo, undo, undoCount, undoAll, pulse } = props;
   const c = useInteraction();
   const text = bandText(s, viewer, !!c.copyKey);
@@ -229,6 +248,7 @@ export function Band(props: { s: GameState; viewer: number; canUndo: boolean; un
       </div>
       {s.pending && c.active && <EffectStack s={s} compact={props.compact} />}
       <div className="actions">
+        {props.auto && props.setAuto && <OrderToggle s={s} viewer={viewer} auto={props.auto} setAuto={props.setAuto} />}
         {c.active && aff.declare && <Declare aff={aff} />}
         {c.active && aff.fallback.length > 0 && (
           <div className="fallback" aria-label="その他の操作">

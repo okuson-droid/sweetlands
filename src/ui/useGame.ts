@@ -9,6 +9,31 @@ export interface AutoSettings {
   single: boolean; // 候補が1つだけの選択を自動で選ぶ
   payBasic: boolean; // 基礎資源の支払いの内訳を自動で決める
   pass: boolean; // 合法手がパスしかないとき自動でパス
+  /** 同時に起きた効果の処理順を自動で決める席（docs/decisions_13 §13.14）。席ごとに、試合中いつでも切り替えられる */
+  orderAuto?: number[];
+}
+
+const ORDER_AUTO_KEY = 'sweetlands.orderAuto.v1';
+
+/** 自動化の設定の初期値。処理順の自動の席だけは、この端末のブラウザに保存した値を使う */
+export function initialAuto(): AutoSettings {
+  let orderAuto: number[] = [];
+  try {
+    const v = JSON.parse(localStorage.getItem(ORDER_AUTO_KEY) ?? '[]') as unknown;
+    if (Array.isArray(v)) orderAuto = v.filter((x): x is number => typeof x === 'number');
+  } catch {
+    /* 読めない環境では既定値（どの席も自分で選ぶ）を使う */
+  }
+  return { single: false, payBasic: false, pass: false, orderAuto };
+}
+
+/** 自動化の設定を変える。処理順の自動の席は保存する（失敗しても遊べる） */
+export function saveAuto(a: AutoSettings): void {
+  try {
+    localStorage.setItem(ORDER_AUTO_KEY, JSON.stringify(a.orderAuto ?? []));
+  } catch {
+    /* 保存できない環境でも遊べる */
+  }
 }
 
 export interface GameSession {
@@ -59,6 +84,8 @@ export function autoAnswer(s: GameState, auto: AutoSettings): string | null {
     }
     return best.id;
   }
+  // 処理順を自動で決める席：従来どおり、並んだ順（起きた順）に解決する
+  if (pd.step === 'orderBundles' && auto.orderAuto?.includes(pd.player) && opts.length > 0) return opts[0].id;
   if (auto.single && opts.length === 1 && !IRREVERSIBLE_STEPS.has(pd.step)) return opts[0].id;
   return null;
 }
@@ -69,7 +96,11 @@ export function useGame(config: GameConfig, seed: number, initialMoves: string[]
     for (const m of initialMoves) s = applyMove(s, m);
     return { state: s, prev: null, moves: [...initialMoves], cpState: s, cpIndex: initialMoves.length, lastWasUndo: false };
   });
-  const [auto, setAuto] = useState<AutoSettings>({ single: false, payBasic: false, pass: false });
+  const [auto, setAutoState] = useState<AutoSettings>(initialAuto);
+  const setAuto = useCallback((a: AutoSettings) => {
+    setAutoState(a);
+    saveAuto(a);
+  }, []);
   const prefill = useRef<{ step: string; id: string } | null>(null);
 
   const applyIds = useCallback((ids: string[]) => {

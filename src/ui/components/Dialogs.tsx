@@ -1,6 +1,6 @@
 // 小窓：市民デッキから探す・ドラフトの候補（§5.5）、準備のキャラクター・地図ボードの選択（§3）
 import { useState, type ReactNode } from 'react';
-import { BUFF_NOTES, CHARACTERS, basicTextOf, isBuffed } from '../../game/characters';
+import { BUFF_NOTES, CHARACTERS, basicTextOf, clockTextOf, isBuffed } from '../../game/characters';
 import { CARDS } from '../../game/cards';
 import type { GameState } from '../../game/types';
 import { useInteraction, useTarget } from '../interaction';
@@ -68,7 +68,7 @@ function CharChoice({ s, name, taken, onPreview }: { s: GameState; name: string;
       </div>
       <div className="txt">
         <b>時計塔能力</b>
-        {ch.clockText}
+        {clockTextOf(s.config, name)}
       </div>
       {isBuffed(s.config, name) && (
         <div className="txt buff">

@@ -745,3 +745,13 @@ svg .lit-svg {
 .modal-back.confirm {
   z-index: 90;
 }
+
+/* 処理順の切り替え（帯の右）。自動のときは色を変えて知らせる */
+.order-toggle {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.order-toggle.on {
+  background: var(--special);
+  border-color: var(--special-deep);
+}

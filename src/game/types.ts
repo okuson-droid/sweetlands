@@ -176,6 +176,9 @@ export interface GameConfig {
    *  charBuff：キャラクターの上方修正（docs/decisions_16）。
    *  3つは後から足したため省略可（以前の記録では未定義＝不採用） */
   variants: { turnOrder: boolean; draft: boolean; advSkills: boolean; freeChar?: boolean; setupDraft?: boolean; charBuff?: boolean };
+  /** 同時に起きた効果の処理順を選べるようにするか（docs/decisions_13 §13.14）。
+   *  選択肢の並びが変わるため、この版より前の記録（未定義）は従来どおり自動の順で再生する */
+  orderChoice?: boolean;
 }
 
 export type Phase = 'setup' | 'start' | 'income' | 'action' | 'cleanup' | 'end';

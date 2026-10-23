@@ -253,6 +253,8 @@ export const PROS_TRACKS: ProsTrack[] = [
 // ---- 都市点（§6.11, §12.2） ----
 export const CITY_RATE = [0, 1, 2, 3, 5, 7, 9];
 export const LOTUS_CITY_RATE = [0, 1, 3, 5, 7, 9, 12];
+/** キャラクターの上方修正（docs/decisions_16）でのロータス・チェーの都市点レート */
+export const LOTUS_CITY_RATE_BUFF = [0, 1, 3, 6, 10, 15, 21];
 
 // ---- 港（§9） ----
 export const PORT_VP = [-40, -20, -10, -5, 10];
@@ -296,6 +298,18 @@ export const ADV_SKILLS: SkillDef[] = [
   { id: 13, kind: 'perm', label: '道駒アクション（木材6）のコストを木材3に', eff: [] },
   { id: 14, kind: 'perm', label: '地形タイルアクション（麦6）のコストを麦4に', eff: [] },
 ];
+
+/** キャラクターの上方修正（docs/decisions_16 §16.7）で差し替える上級スキルタイル。
+ *  持続効果の割引をやめ、同じ交換率のフリップ能力（ラウンド1回、アクションエリアを使わない）にする */
+const ADV_SKILLS_BUFF: Record<number, SkillDef> = {
+  13: { id: 13, kind: 'flip', label: '木材3 → 道駒3個まで', eff: [{ k: 'pay', cost: { wood: 3 }, then: [{ k: 'road', n: 3 }] }] },
+  14: { id: 14, kind: 'flip', label: '麦4 → 地形タイル3枚まで', eff: [{ k: 'pay', cost: { wheat: 4 }, then: [{ k: 'terrain', n: 3, kind: 'any' }] }] },
+};
+/** スキルタイルの定義。buff はキャラクターの上方修正を採用しているか（上級スキルタイル13・14が変わる） */
+export function skillDef(id: number, adv: boolean, buff = false): SkillDef {
+  if (!adv) return SKILLS[id - 1];
+  return (buff && ADV_SKILLS_BUFF[id]) || ADV_SKILLS[id - 1];
+}
 
 // ---- ラウンド支援タイル（§12.4, §12.4b） ----
 export interface SupportDef {

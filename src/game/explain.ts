@@ -1,6 +1,6 @@
 // できない理由の文（ui_design §6.2）。
 // 説明であって判定ではない：合法かどうかは getOptions が正で、ここが外れても対局は壊れない。
-import { ADV_SKILLS, AREAS, INDUSTRY_END, LAB_GAPS, PROS_TRACKS, RABBIT_POS, ROUND2_AREAS, SKILLS } from './boards';
+import { skillDef, AREAS, INDUSTRY_END, LAB_GAPS, PROS_TRACKS, RABBIT_POS, ROUND2_AREAS, SKILLS } from './boards';
 import { CARDS } from './cards';
 import { areaCost, buildingSpots, canLoseCards, cardCost, clockReady } from './engine';
 import { canPlaceTerrain, legalRoadEdges } from './queries';
@@ -52,7 +52,7 @@ export function explain(s: GameState, viewer: number, el: ExplainTarget): string
     case 'skill': {
       const sk = me.skills.find((x) => x.id === el.id && x.adv === el.adv);
       if (!sk) return 'あなたのスキルタイルではありません';
-      const def = el.adv ? ADV_SKILLS[el.id - 1] : SKILLS[el.id - 1];
+      const def = skillDef(el.id, el.adv, !!s.config.variants.charBuff);
       if (def.kind !== 'flip') return 'フリップ能力ではありません';
       if (sk.flipped) return 'すでにフリップ済みです';
       return GENERIC;

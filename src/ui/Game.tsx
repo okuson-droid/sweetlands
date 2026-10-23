@@ -213,7 +213,7 @@ function WideLayout(props: LayoutProps) {
     <div className="game wide" style={style}>
       <TopBar s={s} viewer={viewer} onLog={() => setPanel(panel === 'log' ? null : 'log')} onPeople={() => setViewing(viewer)} onSettings={() => setPanel('settings')} onExit={props.onExit} />
       <Opponents s={s} viewer={viewer} viewing={viewing} setViewing={setViewing} />
-      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} onResize={() => undefined} />
+      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} onResize={() => undefined} auto={session.auto} setAuto={session.setAuto} />
       <div className="wide-body">
         <section className="wide-shared" aria-label="共有ボード">
           <div className="board wide-main">

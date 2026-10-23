@@ -1,5 +1,5 @@
 // メインボード（ui_design §4.1）：繁栄トラック・アクションエリア・フリーアクション欄・スキルタイル・ラウンドトラック
-import { ADV_SKILLS, AREAS, PROS_TRACKS, ROUND2_AREAS, SKILLS, SUPPORT_NORMAL, SUPPORT_PASS, MILESTONE_LABEL, FINAL_TILES } from '../../game/boards';
+import { skillDef, AREAS, PROS_TRACKS, ROUND2_AREAS, SKILLS, SUPPORT_NORMAL, SUPPORT_PASS, MILESTONE_LABEL, FINAL_TILES } from '../../game/boards';
 import { areaCost, describe } from '../../game/engine';
 import type { GameState } from '../../game/types';
 import { useInteraction, useSource, useTarget, useZoomBind } from '../interaction';
@@ -302,11 +302,12 @@ function Milestone({ s, i }: { s: GameState; i: number }) {
 }
 
 function AdvSkill({ id }: { id: number }) {
-  const def = ADV_SKILLS[id - 1];
+  const buff = !!useInteraction().state.config.variants.charBuff;
+  const def = skillDef(id, true, buff);
   const src = useSource(`advskill:${id}`, `上級：${def.label}`, { k: 'other' });
   return (
     <div className={`skillpile adv ${src.lit ? 'lit' : ''} ${src.held ? 'held' : ''}`} {...src.props} tabIndex={0} title={def.label}>
-      <Icons toks={skillToks(id, true)} size={14} label={def.label} />
+      <Icons toks={skillToks(id, true, buff)} size={14} label={def.label} />
       <Icons toks={[{ g: 'diamond', n: 1, cost: true }]} size={12} />
     </div>
   );
@@ -354,9 +355,9 @@ export function PublicTiles({ s }: { s: GameState }) {
           <ul>
             {s.advSkills.map((id) => (
               <li key={id}>
-                <Icons toks={skillToks(id, true)} size={14} />
+                <Icons toks={skillToks(id, true, !!s.config.variants.charBuff)} size={14} />
                 <span>
-                  {SKILL_KIND[ADV_SKILLS[id - 1].kind]}：{ADV_SKILLS[id - 1].label}
+                  {SKILL_KIND[skillDef(id, true, !!s.config.variants.charBuff).kind]}：{skillDef(id, true, !!s.config.variants.charBuff).label}
                 </span>
               </li>
             ))}

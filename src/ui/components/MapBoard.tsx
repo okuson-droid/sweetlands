@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from 'react';
 import { edgeVertices, hexCenter, hexVertices, parseHexKey, vertexPoint } from '../../game/geometry';
 import { virtualAreas, legalRoadEdges, cities, portStatus } from '../../game/queries';
 import { isBuffed } from '../../game/characters';
-import { CAPITAL_BONUS, CITY_RATE, LOTUS_CITY_RATE, PORT_VP, TERRAIN_FLIP } from '../../game/boards';
+import { CAPITAL_BONUS, CITY_RATE, LOTUS_CITY_RATE, LOTUS_CITY_RATE_BUFF, PORT_VP, TERRAIN_FLIP } from '../../game/boards';
 import { Icons, effToks as effToks2 } from '../icons/EffIcons';
 import { SPECIAL_TILES } from '../../game/boards';
 import type { PlayerState } from '../../game/types';
@@ -86,7 +86,7 @@ export function MapBoard({ p, color, flashKeys }: { p: PlayerState; color: strin
   const cityGroups = cities(p, aliceSplit);
   const ports = portStatus(p);
   const lotus = p.lotusRate || (p.character === 'ロータス・チェー' && p.clockPlaced);
-  const rate = lotus ? LOTUS_CITY_RATE : CITY_RATE;
+  const rate = lotus ? (p.character === 'ロータス・チェー' && isBuffed(c.state.config, p.character) ? LOTUS_CITY_RATE_BUFF : LOTUS_CITY_RATE) : CITY_RATE;
   const nCity = Math.min(6, cityGroups.length);
   const nPort = ports.filter(Boolean).length;
   return (

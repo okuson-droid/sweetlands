@@ -1,6 +1,7 @@
 // ゲーム進行エンジン（rules §2〜§9）。純粋関数：applyMove は新しい state を返す。
 import {
   ADV_SKILLS,
+  skillDef,
   AREAS,
   BASIC_AREAS,
   BUILDING_LABEL,
@@ -17,6 +18,7 @@ import {
   LAB_COST,
   LAB_GAPS,
   LOTUS_CITY_RATE,
+  LOTUS_CITY_RATE_BUFF,
   MAP_ICON,
   printedAuto,
   PROS_TRACKS,
@@ -369,6 +371,18 @@ function newPlayer(seat: number, name: string): PlayerState {
 const clockwise = (start: number, n: number) => Array.from({ length: n }, (_, i) => (start + i) % n);
 const counterClockwiseFromRight = (start: number, n: number) => Array.from({ length: n }, (_, i) => (start - 1 - i + 2 * n) % n);
 
+/** 同時に起きた効果のまとまり（処理順を選ぶ単位） */
+type Bundle = { src: string; effs: Eff[] };
+/** タスクの列を、由来（src）ごとのまとまりに分ける */
+function bundlesOf(ts: Task[]): Bundle[] {
+  const out: Bundle[] = [];
+  for (const t of ts) {
+    const last = out[out.length - 1];
+    if (last && last.src === (t.src ?? '')) last.effs.push(t.eff);
+    else out.push({ src: t.src ?? '', effs: [t.eff] });
+  }
+  return out;
+}
 function sp(player: number, id: string, ctx?: Record<string, unknown>): Task {
   return { player, eff: { k: 'special', id }, ctx };
 }
@@ -388,10 +402,10 @@ const P = (s: GameState, t: Task) => s.players[t.player];
 const hasChar = (p: PlayerState, name: string) => p.character === name;
 /** キャラクターの上方修正（ヴァリアント、docs/decisions_16）がこのプレイヤーに効いているか */
 const buffOn = (s: GameState, p: PlayerState) => isBuffed(s.config, p.character);
-/** 自分の研究所駒の数 */
-const labCount = (p: PlayerState) => Object.values(p.hexes).filter((h) => h.building === 'lab').length;
+/** スキルタイルの上方修正（キャラクターの上方修正のヴァリアントに含める）が効いているか */
+const skillBuff = (s: GameState) => !!s.config.variants.charBuff;
 /** ビスキュイ・バステトのフリーアクションで進む歩数。上方修正では研究所駒1個につき、通常は研究所駒のある都市1つにつき */
-const biscuitSteps = (s: GameState, p: PlayerState) => (buffOn(s, p) ? labCount(p) : cities(p).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length);
+const biscuitSteps = (_s: GameState, p: PlayerState) => cities(p).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length;
 /** リッカ・ベリーが麦の代わりに払える資源。上方修正ではゴールド、通常は木材 */
 const rikkaSub = (s: GameState, p: PlayerState): 'gold' | 'wood' => (buffOn(s, p) ? 'gold' : 'wood');
 const clockOf = (p: PlayerState, name: string) => p.character === name && p.clockPlaced;
@@ -515,11 +529,11 @@ export function cardCost(s: GameState, p: PlayerState, id: string): number {
   return Math.max(0, cost);
 }
 
-function automatableRows(p: PlayerState, id: string): Row[] {
+function automatableRows(s: GameState, p: PlayerState, id: string): Row[] {
   const c = CARDS[id];
   if (c.type !== 'immediate' || !c.industry || !c.auto) return [];
   const rows: Row[] = c.industry === 'all' ? ['agr', 'for', 'min'] : [c.industry];
-  return rows.filter((r) => p.automated[r].length < rowCapacity(p, r));
+  return rows.filter((r) => p.automated[r].length < rowCapacity(p, r, buffOn(s, p)));
 }
 
 // =====================================================================
@@ -888,6 +902,7 @@ export function pieceCostAt(s: GameState, p: PlayerState, piece: Piece, idx: num
   else c = { wood: GRID_WOOD[idx], iron: GRID_IRON };
   if (c.wood) c.wood = Math.max(0, c.wood - p.woodDiscount);
   if (c.iron && supportActive(s, p, 15)) c.iron = Math.max(0, c.iron - 1);
+  if (c.iron && hasChar(p, 'アリス・ティーローズ') && buffOn(s, p)) c.iron = Math.max(0, c.iron - 1);
   return c;
 }
 
@@ -978,7 +993,13 @@ function resumeBuilding(s: GameState, t: Task, step: string, opt: Option): void 
     (ctx as Record<string, unknown>)[`pre_${ctx.placed.length - 1}`] = p.taken[piece];
     p.taken[piece] += 1;
   }
-  out.push(...placeBuildingAt(s, t.player, key, type));
+  const placed = placeBuildingAt(s, t.player, key, type);
+  const biscuit: Task[] = piece === 'lab' && hasChar(p, 'ビスキュイ・バステト') && buffOn(s, p) ? tasks(t.player, [{ k: 'industry', n: 2 }], 'ビスキュイ・バステト') : [];
+  if (s.config.orderChoice) {
+    // 置いたヘクスの効果などは、置き終えたあとに段のボーナスとまとめて、処理順を選んで解決する
+    const later = ((ctx as Record<string, unknown>).bundles ??= []) as Bundle[];
+    for (const b of bundlesOf([...placed, ...biscuit])) later.push(b);
+  } else out.push(...placed, ...biscuit);
   ctx.left -= 1;
   front(s, [...out, { ...t, ctx: { ...ctx, piece: undefined } }]);
 }
@@ -1001,14 +1022,17 @@ function finishBuilding(s: GameState, t: Task): void {
   const ctx = (t.ctx ?? { placed: [] }) as { placed: Piece[] } & Record<string, unknown>;
   const board = CHARACTERS[p.character!].board;
   const out: Task[] = [];
+  const bundles: Bundle[] = [...((ctx.bundles as Bundle[] | undefined) ?? [])];
   ctx.placed.forEach((piece, i) => {
     if (piece === 'tent' || piece === 'house' || piece === 'bldg') {
       const pre = Number(ctx[`pre_${i}`]);
-      out.push(...tasks(t.player, gridBonus(board, piece, pre), '個人ボードのボーナス'));
+      bundles.push({ src: '個人ボードのボーナス', effs: gridBonus(board, piece, pre) });
     } else if (piece.startsWith('shop')) {
-      out.push(...tasks(t.player, [{ k: 'ib', row: piece.split(':')[1] as Row }], 'ショップ駒'));
+      bundles.push({ src: 'ショップ駒', effs: [{ k: 'ib', row: piece.split(':')[1] as Row }] });
     }
   });
+  if (s.config.orderChoice) out.push(sp(t.player, 'orderBundles', { bundles }));
+  else for (const b of bundles) out.push(...tasks(t.player, b.effs, b.src));
   front(s, out);
 }
 
@@ -1176,7 +1200,7 @@ function stepSkill(s: GameState, t: Task, n: number): void {
   });
   if (s.config.variants.advSkills && p.diamond >= 1)
     for (const id of s.advSkills)
-      if (!hasSkill(p, id, true)) opts.push({ id: `adv:${id}`, label: `上級：${ADV_SKILLS[id - 1].label}（ダイヤ1）`, data: { id, adv: true } });
+      if (!hasSkill(p, id, true)) opts.push({ id: `adv:${id}`, label: `上級：${skillDef(id, true, skillBuff(s)).label}（ダイヤ1）`, data: { id, adv: true } });
   if (opts.length === 0) return;
   t.ctx = { n };
   ask(s, t, 'skill', `スキルタイルを選んでください（あと${n}枚）`, opts);
@@ -1192,7 +1216,7 @@ function resumeSkill(s: GameState, t: Task, opt: Option): void {
     s.advSkills = s.advSkills.filter((x) => x !== id);
     p.skills.push({ id, adv: true, flipped: false });
     emit(s, { t: 'skill', p: t.player, id, adv: true });
-    const def = ADV_SKILLS[id - 1];
+    const def = skillDef(id, true, skillBuff(s));
     if (id === 11) out.push(...tasks(t.player, def.eff, '上級スキルタイル'));
   } else {
     s.skillPiles[id - 1] -= 1;
@@ -1231,8 +1255,10 @@ function runIb(s: GameState, t: Task, row: Row): void {
   emit(s, { t: 'ib', p: t.player, row });
   const board = CHARACTERS[p.character!].board;
   const chain: Task[] = [sp(t.player, 'ibStart')];
-  chain.push(...tasks(t.player, printedAuto(board, row, buffOn(s, p)), '産業列'));
-  for (const id of p.automated[row]) chain.push(...tasks(t.player, CARDS[id].auto ?? [], CARDS[id].nameJa));
+  const bundles: Bundle[] = [{ src: '産業列', effs: printedAuto(board, row, buffOn(s, p)) }];
+  for (const id of p.automated[row]) bundles.push({ src: CARDS[id].nameJa, effs: CARDS[id].auto ?? [] });
+  if (s.config.orderChoice) chain.push(sp(t.player, 'orderBundles', { bundles }));
+  else for (const b of bundles) chain.push(...tasks(t.player, b.effs, b.src));
   chain.push(sp(t.player, 'ibEnd'));
   front(s, chain);
 }
@@ -1374,12 +1400,12 @@ function resumeFlipAny(s: GameState, t: Task, opt: Option): void {
 
 function stepFreeAutomate(s: GameState, t: Task, n: number): void {
   const p = P(s, t);
-  const cands = p.hand.filter((id) => automatableRows(p, id).length > 0);
+  const cands = p.hand.filter((id) => automatableRows(s, p, id).length > 0);
   if (n <= 0 || cands.length === 0) return;
   t.ctx = { n };
   const opts: Option[] = [];
   for (const id of cands)
-    for (const r of automatableRows(p, id)) opts.push({ id: `auto:${id}:${r}`, label: `${CARDS[id].nameJa} → ${ROW_LABEL[r]}列`, data: { card: id, row: r } });
+    for (const r of automatableRows(s, p, id)) opts.push({ id: `auto:${id}:${r}`, label: `${CARDS[id].nameJa} → ${ROW_LABEL[r]}列`, data: { card: id, row: r } });
   if (!(t.ctx as Record<string, unknown>).mandatory) opts.push({ id: 'skip', label: 'オートメーション化しない' });
   ask(s, t, 'freeAutomate', `無料でオートメーション化するカードを選んでください（あと${n}枚）`, opts, 'card');
 }
@@ -1508,7 +1534,7 @@ function execSpecial(s: GameState, t: Task, id: string): void {
       return;
     }
     case 'incomeChar': {
-      if (hasChar(p, 'グレーテル・シュトーレン')) p.diamond += 1;
+      if (hasChar(p, 'グレーテル・シュトーレン')) p.diamond += buffOn(s, p) ? 2 : 1;
       if (hasChar(p, 'コーラル・ライラ')) {
         const by = prosByColor(p);
         const min = Math.min(by.O, by.G, by.Y);
@@ -1586,6 +1612,21 @@ function execSpecial(s: GameState, t: Task, id: string): void {
     // ---- 手番 ----
     case 'afterPlay':
       return afterPlay(s, t);
+    case 'orderBundles': {
+      // 同時に起きた効果のまとまり（建物駒を置いたヘクスの効果・段のボーナス、産業ボーナスの各オートメーション）を、
+      // 選んだ順に1つずつ解決する（docs/decisions_13 §13.14）。順番で結果が変わりうるときだけ尋ねる
+      const bundles = ((t.ctx!.bundles as Bundle[]) ?? []).filter((b) => b.effs.length > 0);
+      if (bundles.length === 0) return;
+      const simple = (e: Eff) => e.k === 'gain' || e.k === 'income' || e.k === 'score';
+      if (bundles.length === 1 || bundles.every((b) => b.effs.every(simple))) {
+        front(s, bundles.flatMap((b) => tasks(t.player, b.effs, b.src)));
+        return;
+      }
+      t.ctx = { bundles };
+      const opts = bundles.map((b, i) => ({ id: `bundle:${i}`, label: `${b.src}：${describe(b.effs)}` }));
+      ask(s, t, 'orderBundles', '先に解決する効果を選んでください', opts);
+      return;
+    }
     case 'orderEffects': {
       // 即時能力は任意の順で解決できる（§6.9）。順番で結果が変わりうるときだけ尋ねる
       const effs = t.ctx!.effs as Eff[];
@@ -1609,6 +1650,17 @@ function execSpecial(s: GameState, t: Task, id: string): void {
     case 'passRest':
       return passRest(s, t);
     case 'passDone': {
+      // 最終ラウンド（第5ラウンド）のパスでは、残った基礎資源をフリーアクション❺（基礎資源1 → 1ゴールド）で
+      // すべてゴールドに替える。基礎資源はゲーム終了時に得点にならず、ゴールドは5につき1勝利点になるため、
+      // 替えて損をすることはない。パス時の効果（基礎資源をより高く替えるカードなど）を解決したあとに行う
+      if (s.round >= 5) {
+        const n = p.res.wheat + p.res.wood + p.res.iron;
+        if (n > 0) {
+          p.res.wheat = p.res.wood = p.res.iron = 0;
+          p.res.gold += n;
+          log(s, `${p.name}：残った基礎資源${n}個をゴールドに替えた（最終ラウンドのパス）`);
+        }
+      }
       p.passed = true;
       p.passOrder = s.passCount;
       if (s.passCount === 0) s.startPlayer = t.player;
@@ -1708,6 +1760,13 @@ function resumeSpecial(s: GameState, t: Task, step: string, opt: Option): void {
       log(s, `（${CARDS[id].nameJa} は無料でプレイ）`);
       return;
     }
+    case 'orderBundles': {
+      const bundles = t.ctx!.bundles as Bundle[];
+      const i = Number(opt.id.split(':')[1]);
+      const rest = bundles.filter((_, j) => j !== i);
+      front(s, [...tasks(t.player, bundles[i].effs, bundles[i].src), sp(t.player, 'orderBundles', { bundles: rest })]);
+      return;
+    }
     case 'orderEffects': {
       const effs = t.ctx!.effs as Eff[];
       const i = Number(opt.id.split(':')[1]);
@@ -1758,7 +1817,7 @@ function carmenRound1(s: GameState, t: Task): void {
   drawCards(s, p, 2);
   // 8枚の中にオートメーション化できるカードが2枚ない場合は引き直す
   let guard = 0;
-  while (p.hand.filter((id) => automatableRows(p, id).length > 0).length < 2 && guard++ < 20) {
+  while (p.hand.filter((id) => automatableRows(s, p, id).length > 0).length < 2 && guard++ < 20) {
     s.deck.push(...p.hand);
     p.hand = [];
     drawCards(s, p, 8);
@@ -1791,8 +1850,9 @@ function areaAvailable(s: GameState, id: string): boolean {
 export function areaCost(s: GameState, p: PlayerState, id: string): Cost {
   const c: Cost = { ...AREAS[id].cost };
   if (hasChar(p, 'ナタ・パステル') && (id === 'F' || id === 'Q')) c.iron = Math.max(0, (c.iron ?? 0) - 1);
-  if (hasSkill(p, 13, true) && id === 'D') c.wood = 3;
-  if (hasSkill(p, 14, true) && id === 'A') c.wheat = 4;
+  // 上方修正では、上級スキルタイル13・14は割引でなくフリップ能力になる（docs/decisions_16 §16.7）
+  if (hasSkill(p, 13, true) && id === 'D' && !skillBuff(s)) c.wood = 3;
+  if (hasSkill(p, 14, true) && id === 'A' && !skillBuff(s)) c.wheat = 4;
   return c;
 }
 
@@ -1822,6 +1882,12 @@ function areaFeasible(s: GameState, p: PlayerState, id: string, extraGold = 0): 
   return true;
 }
 
+/** アクションスペースの手札コスト（スペースの順番＝枚数）。上方修正のナタ・パステルは、工業トラックのエリア（F・Q）で常に1枚 */
+function slotHandCost(s: GameState, p: PlayerState, area: string, slot: number): number {
+  if (hasChar(p, 'ナタ・パステル') && buffOn(s, p) && (area === 'F' || area === 'Q')) return 1;
+  return slot + 1;
+}
+
 function turnMenu(s: GameState): void {
   const p = s.players[s.current];
   const t: Task = sp(s.current, 'turn');
@@ -1831,7 +1897,7 @@ function turnMenu(s: GameState): void {
     for (const id of Object.keys(s.areas)) {
       if (!areaAvailable(s, id)) continue;
       const slot = s.areas[id].slots.indexOf(null);
-      const k = slot + 1;
+      const k = slotHandCost(s, p, id, slot);
       const def = AREAS[id];
       const targets = def.copy ? copyTargets(s, def.copy) : [null];
       for (const tgt of targets) {
@@ -1852,7 +1918,7 @@ function turnMenu(s: GameState): void {
       }
     // ❸ フリップ能力
     for (const sk of p.skills) {
-      const def = sk.adv ? ADV_SKILLS[sk.id - 1] : SKILLS[sk.id - 1];
+      const def = skillDef(sk.id, sk.adv, skillBuff(s));
       if (def.kind !== 'flip' || sk.flipped) continue;
       const payable = def.eff[0].k !== 'pay' || canAfford(s, p, (def.eff[0] as Extract<Eff, { k: 'pay' }>).cost);
       if (payable) opts.push({ id: `flip:${sk.adv ? 'a' : 's'}${sk.id}`, label: `フリップ：${def.label}`, data: { id: sk.id, adv: sk.adv } });
@@ -1890,7 +1956,7 @@ function resumeTurn(s: GameState, t: Task, opt: Option): void {
     s.areas[d.area].slots[d.slot] = t.player;
     emit(s, { t: 'disc', p: t.player, area: d.area, slot: d.slot, own: d.disc });
     log(s, `${p.name} が「${AREAS[d.area].label}」を選んだ`);
-    const k = d.slot + 1;
+    const k = slotHandCost(s, p, d.area, d.slot);
     if (d.disc) p.discs -= 1;
     else s.queue.push(sp(t.player, 'payHandCost', { n: k, reserve: areaCost(s, p, d.target ?? d.area).diamond ?? 0 }));
     s.queue.push(sp(t.player, 'payAreaCost', { area: d.area, target: d.target }));
@@ -1909,7 +1975,7 @@ function resumeTurn(s: GameState, t: Task, opt: Option): void {
     const sk = p.skills.find((x) => x.id === sid && x.adv === adv)!;
     sk.flipped = true;
     emit(s, { t: 'skillFlip', p: t.player, id: sid, adv });
-    const def = adv ? ADV_SKILLS[sid - 1] : SKILLS[sid - 1];
+    const def = skillDef(sid, adv, skillBuff(s));
     const ts = tasks(t.player, def.eff, 'フリップ能力');
     ts.forEach((x) => x.eff.k === 'pay' && (x.ctx = { forced: true }));
     s.queue.push(...ts);
@@ -2007,7 +2073,7 @@ function afterPlay(s: GameState, t: Task): void {
   const p = P(s, t);
   const id = String(t.ctx!.card);
   if (!p.played.includes(id)) return;
-  const rows = automatableRows(p, id);
+  const rows = automatableRows(s, p, id);
   const price = automationPrice(s, p);
   if (rows.length === 0 || p.diamond < price) return;
   const opts: Option[] = rows.map((r) => ({ id: `auto:${r}`, label: `ダイヤ${price}で${ROW_LABEL[r]}列にオートメーション化`, data: { row: r, price } }));
@@ -2038,8 +2104,15 @@ function passScoring(s: GameState, t: Task): void {
   if (clockOf(p, 'ビスキュイ・バステト')) addScore(s, p, 'ip', cities(p, buffOn(s, p)).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length);
   if (clockOf(p, 'ナタ・パステル')) vp(ip);
   if (clockOf(p, 'ソルビー・ショコラ')) vp(Object.values(p.hexes).filter((h) => h.rabbit).length);
-  if (clockOf(p, 'リッカ・ベリー')) addScore(s, p, 'cp', cities(p, buffOn(s, p)).filter((c) => c.some((k) => p.hexes[k].rabbit)).length);
-  if (clockOf(p, 'アリス・ティーローズ')) vp(cities(p, buffOn(s, p)).length);
+  if (clockOf(p, 'リッカ・ベリー')) {
+    if (buffOn(s, p)) vp(2 * Object.values(p.hexes).filter((h) => h.rabbit).length);
+    else addScore(s, p, 'cp', cities(p).filter((c) => c.some((k) => p.hexes[k].rabbit)).length);
+  }
+  if (clockOf(p, 'アリス・ティーローズ')) {
+    const n = cities(p, buffOn(s, p)).length;
+    if (buffOn(s, p)) addScore(s, p, 'cp', n);
+    else vp(n);
+  }
   if (hasChar(p, 'エルサ・スカイル')) out.push(...tasks(t.player, [{ k: 'terrain', n: 1, kind: 'any' }], 'エルサ・スカイル'));
   if (clockOf(p, 'エルサ・スカイル')) vp(2 * connectedPorts(p));
   if (clockOf(p, 'エリ・マカロン')) vp(Math.min(p.income.wheat, p.income.wood, p.income.iron));
@@ -2058,7 +2131,7 @@ function passRest(s: GameState, t: Task): void {
   const vp = (n: number) => n > 0 && addScore(s, p, 'vp', n);
   // ② 都市点
   const nc = Math.min(6, cities(p, buffOn(s, p)).length);
-  const rate = clockOf(p, 'ロータス・チェー') || p.lotusRate ? LOTUS_CITY_RATE : CITY_RATE;
+  const rate = clockOf(p, 'ロータス・チェー') || p.lotusRate ? (buffOn(s, p) && hasChar(p, 'ロータス・チェー') ? LOTUS_CITY_RATE_BUFF : LOTUS_CITY_RATE) : CITY_RATE;
   addScore(s, p, 'cp', rate[nc]);
   // ③ 工業点（①でエルサ・スカイルが地形タイルを置いた場合に備えて数え直す）
   p.ipThisPass = passedIp(p, buffOn(s, p));
@@ -2133,15 +2206,17 @@ function freeActionOptions(s: GameState, p: PlayerState): Option[] {
   // キャラクター固有
   const used = (k: string) => p.usedFree.includes(k);
   if (hasChar(p, 'ビスキュイ・バステト') && !used('biscuit') && biscuitSteps(s, p) > 0)
-    out.push({ id: 'faC:biscuit', label: buffOn(s, p) ? '研究所1個につき工業トラック1歩' : '研究所のある都市1つにつき工業トラック1歩' });
+    out.push({ id: 'faC:biscuit', label: '研究所のある都市1つにつき工業トラック1歩' });
   if (hasChar(p, 'ロータス・チェー') && !used('lotus') && Object.values(p.hexes).some((h) => h.tile && !h.tile.flipped))
     out.push({ id: 'faC:lotus', label: '表向きの地形タイルを1枚裏返す' });
   if (hasChar(p, 'ソルビー・ショコラ')) {
     if (p.food >= 3 && !used('solbee3')) out.push({ id: 'faC:solbee3', label: '麦1を得る' });
     if (p.food >= 5 && !used('solbee5')) out.push({ id: 'faC:solbee5', label: '道駒を1個置く' });
+    if (buffOn(s, p) && p.food >= 7 && !used('solbee7') && terrainTargets(s, p, 'any').length > 0) out.push({ id: 'faC:solbee7', label: '地形タイルを1枚置く' });
     if (p.food >= 9 && !used('solbee9')) out.push({ id: 'faC:solbee9', label: '任意の繁栄トラック1歩' });
   }
   if (hasChar(p, 'サクラ・モチ') && !used('sakura') && canLoseCards(s, p, 1)) out.push({ id: 'faC:sakura', label: '手札1枚 → アクションディスク1枚' });
+  if (hasChar(p, 'サクラ・モチ') && buffOn(s, p) && !used('sakura2') && canLoseCards(s, p, 2)) out.push({ id: 'faC:sakura2', label: '手札2枚を捨てて2枚引く' });
   return out;
 }
 
@@ -2228,7 +2303,12 @@ function resumeFreeAction(s: GameState, t: Task, opt: Option): void {
     if (k === 'lotus') q([{ k: 'flipAny' }]);
     if (k === 'solbee3') q([{ k: 'gain', res: { wheat: 1 } }]);
     if (k === 'solbee5') q([{ k: 'road', n: 1 }]);
+    if (k === 'solbee7') q([{ k: 'terrain', n: 1, kind: 'any' }]);
     if (k === 'solbee9') q([{ k: 'pros', n: 1 }]);
+    if (k === 'sakura2') {
+      q([{ k: 'pay', cost: { hand: 2 }, then: [{ k: 'draw', n: 2 }] }]);
+      s.queue[s.queue.length - 1].ctx = { basicLeft: 0, handLeft: 2, direct: true };
+    }
     if (k === 'sakura') {
       q([{ k: 'pay', cost: { hand: 1 }, then: [{ k: 'disc' }] }]);
       s.queue[s.queue.length - 1].ctx = { basicLeft: 0, handLeft: 1, direct: true };

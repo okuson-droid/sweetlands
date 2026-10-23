@@ -1,5 +1,5 @@
 // 効果言語で表していないタイル・欄のアイコン表記（原作の印刷と同じ並び：条件 → 白抜き矢印 → 得点）
-import { ADV_SKILLS, SKILLS, SUPPORT_NORMAL } from '../../game/boards';
+import { SKILLS, SUPPORT_NORMAL, skillDef } from '../../game/boards';
 import { effToks, type Tok } from './EffIcons';
 
 const vp = (n: number | string): Tok => ({ g: 'vp', n });
@@ -7,8 +7,8 @@ const arrow: Tok = { g: 'condOnce' };
 const each: Tok = { g: 'condEach' };
 
 /** スキルタイル（id 1..12）：種類のアイコン＋内容 */
-export function skillToks(id: number, adv = false): Tok[] {
-  const def = adv ? ADV_SKILLS[id - 1] : SKILLS[id - 1];
+export function skillToks(id: number, adv = false, buff = false): Tok[] {
+  const def = skillDef(id, adv, buff);
   const kind: Tok = { g: def.kind === 'instant' ? 'instant' : def.kind === 'pass' ? 'pass' : def.kind === 'flip' ? 'flip' : 'perm' };
   if (def.eff.length && !(adv && id === 11)) return [kind, ...effToks(def.eff)];
   if (!adv)
@@ -121,10 +121,9 @@ export const CHAR_ABILITY_TOKS: Record<string, Tok[]> = {
   solbee5: [{ g: 'food', n: 5 }, arrow, { g: 'roadPlace', n: 1 }],
   solbee9: [{ g: 'food', n: 9 }, arrow, { g: { k: 'pros' }, n: 1 }],
   sakura: [{ g: 'handCard', n: 1, cost: true }, { g: 'payOnce' }, { g: 'disc' }],
-};
-/** キャラクターの上方修正（docs/decisions_16）で書き換わるもの */
-export const CHAR_ABILITY_TOKS_BUFF: Record<string, Tok[]> = {
-  biscuit: [{ g: { k: 'building', type: 'lab' } }, each, { g: 'indAdvance', n: 1 }],
+  // キャラクターの上方修正（docs/decisions_16）で加わるもの
+  solbee7: [{ g: 'food', n: 7 }, arrow, { g: { k: 'hex', kind: 'any' }, n: 1 }],
+  sakura2: [{ g: 'handCard', n: 2, cost: true }, { g: 'payOnce' }, { g: { k: 'draw', n: 2 } }],
 };
 
 /** メインボードのフリーアクション欄 */

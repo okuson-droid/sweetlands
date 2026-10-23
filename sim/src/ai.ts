@@ -37,7 +37,7 @@ export interface AgentConfig {
   /** 評価関数の版（既定は1。3 は evaluate3.ts、重みは PARAM3_NAMES の並び） */
   evalVersion?: 1 | 3;
   /** 段階1b（追補 2026-10-22）：第5ラウンドの手番では、パスまでの手の列をビームで探す（W：残すノードの数、E：1ノードから進める候補の数）。評価関数は使わない */
-  planR5?: { W: number; E: number };
+  planR5?: { W: number; E: number; keepEven?: boolean };
 }
 
 /** 最終ラウンドの計画器の計測（ノード数・手番ごとの計画） */
@@ -466,7 +466,10 @@ export class Agent {
         const kids = this.planChildren(node.s, node.path);
         nodes += kids.length;
         for (const k of kids) if (k.leaf && k.score > best.score) best = { path: k.path, keys: [...node.keys, ''], score: k.score };
-        for (const k of kids.filter((x) => !x.leaf).slice(0, E)) {
+        // keepEven：上位 E 個に入らなくても、パスしたら得る得点が親より下がらない手（その場では点にならない準備の手）は残す
+        const alive = kids.filter((x) => !x.leaf);
+        const picked = this.cfg.planR5!.keepEven ? alive.filter((x, i) => i < E || x.score >= node.score) : alive.slice(0, E);
+        for (const k of picked) {
           const key = stateKey(k.s);
           if (seen.has(key)) continue;
           seen.add(key);

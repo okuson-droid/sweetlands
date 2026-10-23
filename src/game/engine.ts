@@ -2115,7 +2115,11 @@ function passScoring(s: GameState, t: Task): void {
   }
   if (hasChar(p, 'エルサ・スカイル')) out.push(...tasks(t.player, [{ k: 'terrain', n: 1, kind: 'any' }], 'エルサ・スカイル'));
   if (clockOf(p, 'エルサ・スカイル')) vp(2 * connectedPorts(p));
-  if (clockOf(p, 'エリ・マカロン')) vp(Math.min(p.income.wheat, p.income.wood, p.income.iron));
+  if (clockOf(p, 'エリ・マカロン')) {
+    // 上方修正では、基礎資源の収入値のうち最大値（通常は最小値）
+    const inc = [p.income.wheat, p.income.wood, p.income.iron];
+    vp(buffOn(s, p) ? Math.max(...inc) : Math.min(...inc));
+  }
   if (clockOf(p, 'カルメン・メロ')) vp(p.carmenCubes);
   if (clockOf(p, 'ジャスミン・メイ')) vp(p.skills.length);
   if (clockOf(p, 'コーラル・ライラ')) {

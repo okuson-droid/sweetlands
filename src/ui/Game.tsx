@@ -90,10 +90,15 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
     return () => document.removeEventListener('visibilitychange', f);
   }, [s.pending?.player, viewer]);
 
-  // Ctrl+Z で取り消し
+  // Ctrl+Z で取り消し、Ctrl+Y（Ctrl+Shift+Z）でやり直し
   useEffect(() => {
     const f = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && session.canUndo && s.pending?.player === viewer) {
+      const key = e.key.toLowerCase();
+      const redoKey = (e.ctrlKey || e.metaKey) && (key === 'y' || (key === 'z' && e.shiftKey));
+      if (redoKey && session.redo && (session.redoCount ?? 0) > 0 && s.pending?.player === viewer) {
+        e.preventDefault();
+        session.redo();
+      } else if ((e.ctrlKey || e.metaKey) && key === 'z' && !e.shiftKey && session.canUndo && s.pending?.player === viewer) {
         e.preventDefault();
         session.undo();
       }
@@ -213,7 +218,7 @@ function WideLayout(props: LayoutProps) {
     <div className="game wide" style={style}>
       <TopBar s={s} viewer={viewer} onLog={() => setPanel(panel === 'log' ? null : 'log')} onPeople={() => setViewing(viewer)} onSettings={() => setPanel('settings')} onExit={props.onExit} />
       <Opponents s={s} viewer={viewer} viewing={viewing} setViewing={setViewing} />
-      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} onResize={() => undefined} auto={session.auto} setAuto={session.setAuto} />
+      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} onResize={() => undefined} auto={session.auto} setAuto={session.setAuto} redo={session.redo} redoCount={session.redoCount} />
       <div className="wide-body">
         <section className="wide-shared" aria-label="共有ボード">
           <div className="board wide-main">

@@ -219,7 +219,7 @@ function OrderToggle({ s, viewer, auto, setAuto }: { s: GameState; viewer: numbe
   );
 }
 
-export function Band(props: { s: GameState; viewer: number; canUndo: boolean; undo: () => void; undoCount: number; undoAll: () => void; pulse: boolean; onResize?: (dy: number) => void; compact?: boolean; auto?: AutoSettings; setAuto?: (a: AutoSettings) => void }) {
+export function Band(props: { s: GameState; viewer: number; canUndo: boolean; undo: () => void; undoCount: number; undoAll: () => void; pulse: boolean; onResize?: (dy: number) => void; compact?: boolean; auto?: AutoSettings; setAuto?: (a: AutoSettings) => void; redo?: () => void; redoCount?: number }) {
   const { s, viewer, canUndo, undo, undoCount, undoAll, pulse } = props;
   const c = useInteraction();
   const text = bandText(s, viewer, !!c.copyKey);
@@ -272,6 +272,11 @@ export function Band(props: { s: GameState; viewer: number; canUndo: boolean; un
         {canUndo && text.mine && (
           <button className="btn" onClick={undo} title="Ctrl+Z">
             取り消し
+          </button>
+        )}
+        {props.redo && (props.redoCount ?? 0) > 0 && text.mine && (
+          <button className="btn" onClick={props.redo} title={`取り消した手を1手ずつ進め直す（あと${props.redoCount}手。Ctrl+Y）。別の手を選ぶと、残りの進め直しはできなくなる`}>
+            やり直す
           </button>
         )}
         {canUndo && text.mine && undoCount >= 2 && (

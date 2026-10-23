@@ -304,7 +304,7 @@ export function PortraitLayout(props: LayoutProps) {
     <div className="game mobile portrait" style={style}>
       <MobileTop s={s} viewer={viewer} onMenu={() => setMenu(true)} />
       <MyStatus p={me} />
-      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} compact auto={session.auto} setAuto={session.setAuto} />
+      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} compact auto={session.auto} setAuto={session.setAuto} redo={session.redo} redoCount={session.redoCount} />
       <main className="mpane" aria-label={PORTRAIT_TABS.find(([t]) => t === pane)?.[1]}>
         {viewing !== viewer && (pane === 'town' || pane === 'char' || pane === 'industry') && <ViewingBanner p={p} back={back} />}
         {pane === 'shared' && (
@@ -458,7 +458,7 @@ export function LandscapeLayout(props: LayoutProps) {
           )}
         </div>
       </section>
-      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} compact auto={session.auto} setAuto={session.setAuto} />
+      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} compact auto={session.auto} setAuto={session.setAuto} redo={session.redo} redoCount={session.redoCount} />
       <CandidateWindow s={live} viewer={viewer} />
       <SetupWindow s={live} viewer={viewer} />
       {menu && <MobileMenu onLog={() => setPanel('log')} onSettings={() => setPanel('settings')} onExit={props.onExit} close={() => setMenu(false)} />}

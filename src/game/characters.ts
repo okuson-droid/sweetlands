@@ -81,7 +81,7 @@ export const BUFF_NOTES: Record<string, string[]> = {
   'ロータス・チェー': ['時計塔能力：都市点レート 1/3/5/7/9/12 → 1/3/6/10/15/21'],
   'コーラル・ライラ': ['林業列の印刷オートメーション：1都市点 → 道駒1個'],
   'ジャスミン・メイ': ['林業列の印刷オートメーション：1都市点 → 道駒1個', '初期：ゴールドの収入値10 → 14、麦・木材を1個ずつ多く持つ'],
-  'エリ・マカロン': ['時計塔能力：基礎資源の収入値のうち最小値 → 最大値に等しい勝利点', '初期：鉄を1個多く持つ'],
+  'エリ・マカロン': ['時計塔能力：基礎資源の収入値のうち最小値 → 最大値に等しい勝利点'],
 };
 /** 上方修正で書き換わる特性のスイーツタグ */
 export const BUFF_TRAIT_TAGS: Record<string, Partial<Record<Tag, number>>> = { 'サクラ・モチ': { 和菓子: 2 } };
@@ -108,7 +108,6 @@ const BUFF_CLOCK_TEXT: Record<string, string> = {
 /** 上方修正で書き換わる初期の資源・収入（通常の値に足す） */
 const BUFF_START: Record<string, { res?: Partial<Res>; income?: Partial<Res> }> = {
   'ジャスミン・メイ': { res: { wheat: 1, wood: 1 }, income: { gold: 4 } },
-  'エリ・マカロン': { res: { iron: 1 } },
 };
 /** 初期の資源・ダイヤ・収入（上方修正を反映する） */
 export function startOf(config: GameConfig, name: string): { res: Res; diamond: number; income: Res } {

@@ -298,7 +298,7 @@ describe('ジャスミン・メイの上方修正', () => {
 });
 
 describe('エリ・マカロンの上方修正', () => {
-  it('時計塔能力は基礎資源の収入値の最大値に等しい勝利点、初期の鉄が1個多い', () => {
+  it('時計塔能力は基礎資源の収入値の最大値に等しい勝利点（初期の資源は変えない）', () => {
     const vpAfterPass = (buff: boolean) => {
       const g = game('エリ・マカロン', buff);
       const p = g.s.players[g.seat];
@@ -314,7 +314,7 @@ describe('エリ・マカロンの上方修正', () => {
     const v = { turnOrder: false, draft: false, advSkills: false };
     const on = setupGame(2, ['エリ・マカロン'], 42, [], { ...v, charBuff: true }).players.find((p) => p.character === 'エリ・マカロン')!;
     const off = setupGame(2, ['エリ・マカロン'], 42, [], v).players.find((p) => p.character === 'エリ・マカロン')!;
-    expect(on.res.iron - off.res.iron).toBe(1);
-    expect(on.res.wheat).toBe(off.res.wheat);
+    expect(on.res).toEqual(off.res);
+    expect(on.income).toEqual(off.income);
   });
 });

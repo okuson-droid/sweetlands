@@ -66,6 +66,14 @@ describe('乱択プレイアウト', () => {
       expect(s.finished).toBe(true);
     }
   });
+  it('最終ラウンドのパスで、残った基礎資源はすべてゴールドに替わる', () => {
+    for (let seed = 1; seed <= 5; seed++) {
+      const { s } = playRandom(3, seed * 43);
+      expect(s.finished).toBe(true);
+      for (const p of s.players) expect(p.res.wheat + p.res.wood + p.res.iron).toBe(0);
+    }
+  });
+
   it('1人でも、ヴァリアントをすべて採用して最後まで進む', () => {
     for (let seed = 1; seed <= 10; seed++) {
       const all = { turnOrder: true, draft: true, advSkills: true, freeChar: true, setupDraft: true, charBuff: true };

@@ -121,10 +121,9 @@ export const CHAR_ABILITY_TOKS: Record<string, Tok[]> = {
   solbee5: [{ g: 'food', n: 5 }, arrow, { g: 'roadPlace', n: 1 }],
   solbee9: [{ g: 'food', n: 9 }, arrow, { g: { k: 'pros' }, n: 1 }],
   sakura: [{ g: 'handCard', n: 1, cost: true }, { g: 'payOnce' }, { g: 'disc' }],
-};
-/** キャラクターの上方修正（docs/decisions_16）で書き換わるもの */
-export const CHAR_ABILITY_TOKS_BUFF: Record<string, Tok[]> = {
-  biscuit: [{ g: { k: 'building', type: 'lab' } }, each, { g: 'indAdvance', n: 1 }],
+  // キャラクターの上方修正（docs/decisions_16）で加わるもの
+  solbee7: [{ g: 'food', n: 7 }, arrow, { g: { k: 'hex', kind: 'any' }, n: 1 }],
+  sakura2: [{ g: 'handCard', n: 2, cost: true }, { g: 'payOnce' }, { g: { k: 'draw', n: 2 } }],
 };
 
 /** メインボードのフリーアクション欄 */

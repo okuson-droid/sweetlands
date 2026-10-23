@@ -253,6 +253,8 @@ export const PROS_TRACKS: ProsTrack[] = [
 // ---- 都市点（§6.11, §12.2） ----
 export const CITY_RATE = [0, 1, 2, 3, 5, 7, 9];
 export const LOTUS_CITY_RATE = [0, 1, 3, 5, 7, 9, 12];
+/** キャラクターの上方修正（docs/decisions_16）でのロータス・チェーの都市点レート */
+export const LOTUS_CITY_RATE_BUFF = [0, 1, 3, 6, 10, 15, 21];
 
 // ---- 港（§9） ----
 export const PORT_VP = [-40, -20, -10, -5, 10];

@@ -17,6 +17,7 @@ import {
   LAB_COST,
   LAB_GAPS,
   LOTUS_CITY_RATE,
+  LOTUS_CITY_RATE_BUFF,
   MAP_ICON,
   printedAuto,
   PROS_TRACKS,
@@ -388,10 +389,8 @@ const P = (s: GameState, t: Task) => s.players[t.player];
 const hasChar = (p: PlayerState, name: string) => p.character === name;
 /** キャラクターの上方修正（ヴァリアント、docs/decisions_16）がこのプレイヤーに効いているか */
 const buffOn = (s: GameState, p: PlayerState) => isBuffed(s.config, p.character);
-/** 自分の研究所駒の数 */
-const labCount = (p: PlayerState) => Object.values(p.hexes).filter((h) => h.building === 'lab').length;
 /** ビスキュイ・バステトのフリーアクションで進む歩数。上方修正では研究所駒1個につき、通常は研究所駒のある都市1つにつき */
-const biscuitSteps = (s: GameState, p: PlayerState) => (buffOn(s, p) ? labCount(p) : cities(p).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length);
+const biscuitSteps = (_s: GameState, p: PlayerState) => cities(p).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length;
 /** リッカ・ベリーが麦の代わりに払える資源。上方修正ではゴールド、通常は木材 */
 const rikkaSub = (s: GameState, p: PlayerState): 'gold' | 'wood' => (buffOn(s, p) ? 'gold' : 'wood');
 const clockOf = (p: PlayerState, name: string) => p.character === name && p.clockPlaced;
@@ -888,6 +887,7 @@ export function pieceCostAt(s: GameState, p: PlayerState, piece: Piece, idx: num
   else c = { wood: GRID_WOOD[idx], iron: GRID_IRON };
   if (c.wood) c.wood = Math.max(0, c.wood - p.woodDiscount);
   if (c.iron && supportActive(s, p, 15)) c.iron = Math.max(0, c.iron - 1);
+  if (c.iron && hasChar(p, 'アリス・ティーローズ') && buffOn(s, p)) c.iron = Math.max(0, c.iron - 1);
   return c;
 }
 
@@ -979,6 +979,7 @@ function resumeBuilding(s: GameState, t: Task, step: string, opt: Option): void 
     p.taken[piece] += 1;
   }
   out.push(...placeBuildingAt(s, t.player, key, type));
+  if (piece === 'lab' && hasChar(p, 'ビスキュイ・バステト') && buffOn(s, p)) out.push(...tasks(t.player, [{ k: 'industry', n: 2 }], 'ビスキュイ・バステト'));
   ctx.left -= 1;
   front(s, [...out, { ...t, ctx: { ...ctx, piece: undefined } }]);
 }
@@ -1508,7 +1509,7 @@ function execSpecial(s: GameState, t: Task, id: string): void {
       return;
     }
     case 'incomeChar': {
-      if (hasChar(p, 'グレーテル・シュトーレン')) p.diamond += 1;
+      if (hasChar(p, 'グレーテル・シュトーレン')) p.diamond += buffOn(s, p) ? 2 : 1;
       if (hasChar(p, 'コーラル・ライラ')) {
         const by = prosByColor(p);
         const min = Math.min(by.O, by.G, by.Y);
@@ -1609,6 +1610,17 @@ function execSpecial(s: GameState, t: Task, id: string): void {
     case 'passRest':
       return passRest(s, t);
     case 'passDone': {
+      // 最終ラウンド（第5ラウンド）のパスでは、残った基礎資源をフリーアクション❺（基礎資源1 → 1ゴールド）で
+      // すべてゴールドに替える。基礎資源はゲーム終了時に得点にならず、ゴールドは5につき1勝利点になるため、
+      // 替えて損をすることはない。パス時の効果（基礎資源をより高く替えるカードなど）を解決したあとに行う
+      if (s.round >= 5) {
+        const n = p.res.wheat + p.res.wood + p.res.iron;
+        if (n > 0) {
+          p.res.wheat = p.res.wood = p.res.iron = 0;
+          p.res.gold += n;
+          log(s, `${p.name}：残った基礎資源${n}個をゴールドに替えた（最終ラウンドのパス）`);
+        }
+      }
       p.passed = true;
       p.passOrder = s.passCount;
       if (s.passCount === 0) s.startPlayer = t.player;
@@ -2038,8 +2050,15 @@ function passScoring(s: GameState, t: Task): void {
   if (clockOf(p, 'ビスキュイ・バステト')) addScore(s, p, 'ip', cities(p, buffOn(s, p)).filter((c) => c.some((k) => p.hexes[k].building === 'lab')).length);
   if (clockOf(p, 'ナタ・パステル')) vp(ip);
   if (clockOf(p, 'ソルビー・ショコラ')) vp(Object.values(p.hexes).filter((h) => h.rabbit).length);
-  if (clockOf(p, 'リッカ・ベリー')) addScore(s, p, 'cp', cities(p, buffOn(s, p)).filter((c) => c.some((k) => p.hexes[k].rabbit)).length);
-  if (clockOf(p, 'アリス・ティーローズ')) vp(cities(p, buffOn(s, p)).length);
+  if (clockOf(p, 'リッカ・ベリー')) {
+    if (buffOn(s, p)) vp(2 * Object.values(p.hexes).filter((h) => h.rabbit).length);
+    else addScore(s, p, 'cp', cities(p).filter((c) => c.some((k) => p.hexes[k].rabbit)).length);
+  }
+  if (clockOf(p, 'アリス・ティーローズ')) {
+    const n = cities(p, buffOn(s, p)).length;
+    if (buffOn(s, p)) addScore(s, p, 'cp', n);
+    else vp(n);
+  }
   if (hasChar(p, 'エルサ・スカイル')) out.push(...tasks(t.player, [{ k: 'terrain', n: 1, kind: 'any' }], 'エルサ・スカイル'));
   if (clockOf(p, 'エルサ・スカイル')) vp(2 * connectedPorts(p));
   if (clockOf(p, 'エリ・マカロン')) vp(Math.min(p.income.wheat, p.income.wood, p.income.iron));
@@ -2058,7 +2077,7 @@ function passRest(s: GameState, t: Task): void {
   const vp = (n: number) => n > 0 && addScore(s, p, 'vp', n);
   // ② 都市点
   const nc = Math.min(6, cities(p, buffOn(s, p)).length);
-  const rate = clockOf(p, 'ロータス・チェー') || p.lotusRate ? LOTUS_CITY_RATE : CITY_RATE;
+  const rate = clockOf(p, 'ロータス・チェー') || p.lotusRate ? (buffOn(s, p) && hasChar(p, 'ロータス・チェー') ? LOTUS_CITY_RATE_BUFF : LOTUS_CITY_RATE) : CITY_RATE;
   addScore(s, p, 'cp', rate[nc]);
   // ③ 工業点（①でエルサ・スカイルが地形タイルを置いた場合に備えて数え直す）
   p.ipThisPass = passedIp(p, buffOn(s, p));
@@ -2133,15 +2152,17 @@ function freeActionOptions(s: GameState, p: PlayerState): Option[] {
   // キャラクター固有
   const used = (k: string) => p.usedFree.includes(k);
   if (hasChar(p, 'ビスキュイ・バステト') && !used('biscuit') && biscuitSteps(s, p) > 0)
-    out.push({ id: 'faC:biscuit', label: buffOn(s, p) ? '研究所1個につき工業トラック1歩' : '研究所のある都市1つにつき工業トラック1歩' });
+    out.push({ id: 'faC:biscuit', label: '研究所のある都市1つにつき工業トラック1歩' });
   if (hasChar(p, 'ロータス・チェー') && !used('lotus') && Object.values(p.hexes).some((h) => h.tile && !h.tile.flipped))
     out.push({ id: 'faC:lotus', label: '表向きの地形タイルを1枚裏返す' });
   if (hasChar(p, 'ソルビー・ショコラ')) {
     if (p.food >= 3 && !used('solbee3')) out.push({ id: 'faC:solbee3', label: '麦1を得る' });
     if (p.food >= 5 && !used('solbee5')) out.push({ id: 'faC:solbee5', label: '道駒を1個置く' });
+    if (buffOn(s, p) && p.food >= 7 && !used('solbee7') && terrainTargets(s, p, 'any').length > 0) out.push({ id: 'faC:solbee7', label: '地形タイルを1枚置く' });
     if (p.food >= 9 && !used('solbee9')) out.push({ id: 'faC:solbee9', label: '任意の繁栄トラック1歩' });
   }
   if (hasChar(p, 'サクラ・モチ') && !used('sakura') && canLoseCards(s, p, 1)) out.push({ id: 'faC:sakura', label: '手札1枚 → アクションディスク1枚' });
+  if (hasChar(p, 'サクラ・モチ') && buffOn(s, p) && !used('sakura2') && canLoseCards(s, p, 2)) out.push({ id: 'faC:sakura2', label: '手札2枚を捨てて2枚引く' });
   return out;
 }
 
@@ -2228,7 +2249,12 @@ function resumeFreeAction(s: GameState, t: Task, opt: Option): void {
     if (k === 'lotus') q([{ k: 'flipAny' }]);
     if (k === 'solbee3') q([{ k: 'gain', res: { wheat: 1 } }]);
     if (k === 'solbee5') q([{ k: 'road', n: 1 }]);
+    if (k === 'solbee7') q([{ k: 'terrain', n: 1, kind: 'any' }]);
     if (k === 'solbee9') q([{ k: 'pros', n: 1 }]);
+    if (k === 'sakura2') {
+      q([{ k: 'pay', cost: { hand: 2 }, then: [{ k: 'draw', n: 2 }] }]);
+      s.queue[s.queue.length - 1].ctx = { basicLeft: 0, handLeft: 2, direct: true };
+    }
     if (k === 'sakura') {
       q([{ k: 'pay', cost: { hand: 1 }, then: [{ k: 'disc' }] }]);
       s.queue[s.queue.length - 1].ctx = { basicLeft: 0, handLeft: 1, direct: true };

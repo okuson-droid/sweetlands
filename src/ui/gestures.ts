@@ -162,8 +162,8 @@ function place(s: GameState, a: Affordances, t: Target, opt: Option, step: strin
       return true;
     }
     case 'supportMarker': {
-      // 準備のドラフトでのラウンド支援駒の選択は、キャラクター・地図ボードと同じく確認を挟む
-      const m = step === 'setupPick' ? setupConfirm(one(), `ラウンド支援駒のスペース「${opt.label}」`) : one();
+      // 準備のラウンド支援駒の選択（通常の準備 support・ドラフト setupPick）は、キャラクター・地図ボードと同じく確認を挟む
+      const m = step === 'setupPick' || step === 'support' ? setupConfirm(one(), `ラウンド支援駒のスペース「${opt.label}」`) : one();
       addDrag(a, 'marker:support', `support:${t.col}`, m);
       a.clicks.set(`support:${t.col}`, m);
       return true;

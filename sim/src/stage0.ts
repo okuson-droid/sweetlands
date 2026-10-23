@@ -11,6 +11,7 @@ import { createGame } from '../../src/game/engine';
 import { CARDS } from '../../src/game/cards';
 import type { GameState } from '../../src/game/types';
 import { cardEffectCheck } from './cardcheck';
+import { eval3 } from './evaluate3';
 import { Agent, DEFAULT_AGENT, type AgentConfig } from './ai';
 import { conditionByName, legal, newGame, scoreTotal, step } from './core';
 
@@ -23,7 +24,7 @@ function args(): Record<string, string> {
 
 const o = args();
 const weights = JSON.parse(fs.readFileSync(o.weights ?? 'reports/pilot/weights/v1_eri_B.json', 'utf8')).weights;
-const cfg: AgentConfig = { ...DEFAULT_AGENT, kind: 'v1', weights, chainSub: o.chain !== '0', ...(o.eval === '3' ? { evalVersion: 3 as const } : {}) };
+const cfg: AgentConfig = { ...DEFAULT_AGENT, kind: 'v1', weights, chainSub: o.chain !== '0', ...(o.eval === '3' ? { evalVersion: 3 as const } : {}), ...(o.plan ? { planR5: { W: Number(o.plan.split(',')[0]), E: Number(o.plan.split(',')[1]) } } : {}) };
 const record = JSON.parse(fs.readFileSync(o.record ?? 'reports/pilot/human/seed1.json', 'utf8'));
 
 /** 記録を、round ラウンドの最初の手番の選択待ちまで再生する */
@@ -37,8 +38,10 @@ function replayTo(round: number): GameState {
 }
 
 /** 局面から AI に終局まで打たせる */
+let lastAgent: Agent | null = null;
 function playOut(s: GameState, aiSeed: number): GameState {
   const agent = new Agent(cfg, aiSeed);
+  lastAgent = agent;
   let n = 0;
   while (s.pending && !s.finished) {
     if (++n > 3000) throw new Error('手数が多すぎる');
@@ -54,8 +57,8 @@ function write(out: string, rows: string[]): void {
 }
 
 function cmdHandover(): void {
-  const rows = ['round,aiSeed,chain,score,ms'];
-  for (const round of [2, 3, 4, 5]) {
+  const rows = ['round,aiSeed,chain,score,ms,planNodes'];
+  for (const round of (o.rounds ?? '2,3,4,5').split(',').map(Number)) {
     const start = replayTo(round);
     const p = start.players[0];
     console.log(`第${round}R の頭：得点 ${scoreTotal(start)}、収入 ${JSON.stringify(p.income)}、繁栄 ${p.pros.join(',')}`);
@@ -63,7 +66,7 @@ function cmdHandover(): void {
       const t0 = performance.now();
       const end = playOut(start, aiSeed);
       const ms = Math.round(performance.now() - t0);
-      rows.push([round, aiSeed, cfg.chainSub ? 1 : 0, scoreTotal(end), ms].join(','));
+      rows.push([round, aiSeed, cfg.chainSub ? 1 : 0, scoreTotal(end), ms, lastAgent!.planStats.nodes].join(','));
       console.log(`  AI乱数 ${aiSeed}: ${scoreTotal(end)}点（${ms}ms）`);
     }
   }
@@ -110,10 +113,75 @@ function cmdCards(): void {
   write(o.out ?? `out/stage0/cards_chain${cfg.chainSub ? 1 : 0}.csv`, r.rows);
 }
 
+/** 段階1b の (b)：v1 の自己対戦の局（jsonl の手の列）を第5ラウンドの最初の手番まで再生し、そこから AI（計画器つき）に打ち直させる */
+function cmdR5(): void {
+  const lines = fs
+    .readFileSync(o.jsonl ?? 'out/s0/games.jsonl', 'utf8')
+    .split('\n')
+    .filter(Boolean)
+    .map((l) => JSON.parse(l))
+    .sort((a, b) => a.seed - b.seed);
+  const [from, to] = (o.seeds ?? '1-100').split('-').map(Number);
+  const rows = ['seed,original,score,startScore,ms,planNodes,plans'];
+  for (const d of lines.filter((x) => x.seed >= from && x.seed <= to)) {
+    let s = newGame(conditionByName('A'), d.seed);
+    for (const id of d.moves) {
+      if (s.phase === 'action' && s.round === 5 && s.pending?.step === 'turn') break;
+      s = step(s, id);
+    }
+    const t0 = performance.now();
+    const end = playOut(s, d.seed);
+    const ms = Math.round(performance.now() - t0);
+    rows.push([d.seed, d.score, scoreTotal(end), scoreTotal(s), ms, lastAgent!.planStats.nodes, lastAgent!.planStats.plans].join(','));
+    console.log(`seed ${d.seed}: 元の v1 ${d.score} → ${scoreTotal(end)}（第5Rの頭 ${scoreTotal(s)}、${ms}ms）`);
+  }
+  write(o.out ?? 'out/s1b/r5.csv', rows);
+}
+
+/** 段階1b の (c)：人の記録の第5ラウンドの手番ごとに、人の手が計画器の候補（パスしたら得る得点の順）の何番目か */
+function cmdTrace(): void {
+  let s = createGame(record.config, record.seed);
+  const agent = new Agent(cfg, 1);
+  const rows = ['turn,human,rank,candidates,humanScore,bestScore,best,inE'];
+  const E = cfg.planR5?.E ?? 6;
+  let turn = 0;
+  for (const id of record.moves) {
+    if (s.phase === 'action' && s.round === 5 && s.pending?.step === 'turn') {
+      turn++;
+      const kids = agent.planChildren(s, []);
+      const rank = kids.findIndex((k) => k.path[0] === id) + 1;
+      const h = kids[rank - 1];
+      rows.push([turn, id, rank, kids.length, h ? h.score : '', kids[0].score, kids[0].path[0], rank > 0 && rank <= E ? 1 : 0].join(','));
+      console.log(`手番${turn}：人 ${id}（${rank}/${kids.length}位、${h?.score ?? '-'}点）｜最上位 ${kids[0].path[0]}（${kids[0].score}点）`);
+    }
+    s = step(s, id);
+  }
+  write(o.out ?? 'out/s1b/trace.csv', rows);
+}
+
+/** 段階1b の報告項目：v1 の局の第5ラウンドの頭の局面での、第3版の評価値（計画器の到達点と並べるため） */
+function cmdR5Eval(): void {
+  const w3 = JSON.parse(fs.readFileSync(o.v3 ?? 'reports/pilot/weights/v3_eri_A.json', 'utf8')).weights;
+  const rows = ['seed,startScore,eval3'];
+  for (const l of fs.readFileSync(o.jsonl ?? 'out/s0/games.jsonl', 'utf8').split('\n').filter(Boolean)) {
+    const d = JSON.parse(l);
+    let s = newGame(conditionByName('A'), d.seed);
+    for (const id of d.moves) {
+      if (s.phase === 'action' && s.round === 5 && s.pending?.step === 'turn') break;
+      s = step(s, id);
+    }
+    rows.push([d.seed, scoreTotal(s), eval3(s, w3).toFixed(1)].join(','));
+  }
+  write(o.out ?? 'out/s1b/r5_eval3.csv', rows);
+}
+
 const cmd = process.argv[2];
 if (cmd === 'handover') cmdHandover();
 else if (cmd === 'cards') cmdCards();
 else if (cmd === 'loss') cmdLoss();
+else if (cmd === 'r5') cmdR5();
+else if (cmd === 'trace') cmdTrace();
+else if (cmd === 'r5eval') cmdR5Eval();
 else {
   console.error('使い方: stage0.cjs handover|cards --weights <重み.json> [--chain 0|1] [--out <csv>]');
   process.exit(2);

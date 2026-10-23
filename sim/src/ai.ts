@@ -36,6 +36,15 @@ export interface AgentConfig {
   chainSub?: boolean;
   /** 評価関数の版（既定は1。3 は evaluate3.ts、重みは PARAM3_NAMES の並び） */
   evalVersion?: 1 | 3;
+  /** 段階1b（追補 2026-10-22）：第5ラウンドの手番では、パスまでの手の列をビームで探す（W：残すノードの数、E：1ノードから進める候補の数）。評価関数は使わない */
+  planR5?: { W: number; E: number };
+}
+
+/** 最終ラウンドの計画器の計測（ノード数・手番ごとの計画） */
+export interface PlanStats {
+  plans: number;
+  nodes: number;
+  ms: number;
 }
 
 /** v2 のスキル梯子（第5版 §5.5・§6.5）：探索の量だけを変える3段階。中が調整に使う設定 */
@@ -84,6 +93,8 @@ export class Agent {
   private selRound = -1;
   /** 計測：ラウンドごとに選んだ型 */
   readonly picks: string[] = [];
+  /** 計測：最終ラウンドの計画器 */
+  readonly planStats: PlanStats = { plans: 0, nodes: 0, ms: 0 };
 
   private setRound(round: number): void {
     if (round === this.wRound) return;
@@ -304,6 +315,7 @@ export class Agent {
   private chooseTurn(det: GameState): string {
     const ids = legal(det).map((o) => o.id);
     if (this.cfg.rules.clock && ids.includes('fa8')) return 'fa8';
+    if (this.cfg.planR5 && det.round === 5 && det.phase === 'action') return this.followPlan(det);
     let pick =
       this.cfg.kind === 'v2' && !det.turnMainDone ? this.beamK(det) : this.cfg.kind === 'v1r' && !det.turnMainDone ? this.rolloutPick(det) : this.oneTurn(det, true);
     if (pick === 'pass' && this.cfg.rules.prePass) {
@@ -391,6 +403,83 @@ export class Agent {
     // 候補の間で AI の乱数をそろえる（共通乱数。デッキの並びは det で既にそろっている）
     const seed = this.rng.int(2 ** 31);
     return this.argmax(top, (c) => this.rollout(c.s, seed)).first;
+  }
+
+  // ---- 段階1b：最終ラウンドの計画器 ----
+
+  /** 局面を終局まで進める（パスしたあとの解決。細かい選択は chooseSub） */
+  private finish(s: GameState): GameState {
+    let n = 0;
+    while (s.pending && !s.finished) {
+      if (++n > MAX_RESOLVE) throw new Error('解決が終わらない');
+      s = step(s, this.chooseSub(s, false));
+    }
+    return s;
+  }
+
+  /** 第5ラウンドで、いまパスしたら得る終局の得点 */
+  passScore(s: GameState): number {
+    return scoreTotal(s) + this.passGain(s);
+  }
+
+  /** ある手番の局面の候補（子）：手を指し、細かい選択を chooseSub で解決して次の手番の選択待ちまで進めたもの。
+   *  終局したものは leaf（得点が確定）。score は「その局面でパスしたら得る終局の得点」（評価関数は使わない） */
+  planChildren(s: GameState, path: string[]): { s: GameState; path: string[]; score: number; leaf: boolean }[] {
+    const out: { s: GameState; path: string[]; score: number; leaf: boolean }[] = [];
+    for (const o of legal(s)) {
+      let c = this.resolve(step(s, o.id));
+      const p = [...path, o.id];
+      if (c.finished || c.round !== 5 || c.phase !== 'action' || c.pending?.step !== 'turn') {
+        c = this.finish(c);
+        out.push({ s: c, path: p, score: scoreTotal(c), leaf: true });
+      } else out.push({ s: c, path: p, score: this.passScore(c), leaf: false });
+    }
+    // 同点は手の列の辞書順で固定する（乱数を使わない）
+    out.sort((a, b) => b.score - a.score || (a.path.join(' ') < b.path.join(' ') ? -1 : 1));
+    return out;
+  }
+
+  /** いまの計画（手の列と、その手を指したあとに来るはずの局面の鍵） */
+  private plan: { path: string[]; keys: string[]; i: number } | null = null;
+
+  /** 計画どおりの局面にいるあいだは計画の続きを打ち、ずれたら（カードを引いた・細かい選択が変わった）計画し直す */
+  private followPlan(det: GameState): string {
+    const key = stateKey(det);
+    const pl = this.plan;
+    if (pl && pl.i < pl.path.length && (pl.i === 0 ? false : pl.keys[pl.i - 1] === key) && legal(det).some((o) => o.id === pl.path[pl.i])) return pl.path[pl.i++];
+    const r = this.planR5(det);
+    this.plan = { path: r.path, keys: r.keys, i: 1 };
+    return r.path[0];
+  }
+
+  /** 第5ラウンドの計画器：パスまでの手の列をビームで探し、終局の得点が最も高い列を返す。keys は各手を指したあとの局面の鍵 */
+  planR5(det: GameState): { path: string[]; keys: string[]; score: number } {
+    const t0 = performance.now();
+    const { W, E } = this.cfg.planR5!;
+    let best = { path: ['pass'], keys: [] as string[], score: -Infinity };
+    let frontier = [{ s: det, path: [] as string[], keys: [] as string[], score: this.passScore(det), leaf: false }];
+    const seen = new Set<string>();
+    let nodes = 0;
+    while (frontier.length > 0) {
+      const next: { s: GameState; path: string[]; keys: string[]; score: number; leaf: boolean }[] = [];
+      for (const node of frontier) {
+        const kids = this.planChildren(node.s, node.path);
+        nodes += kids.length;
+        for (const k of kids) if (k.leaf && k.score > best.score) best = { path: k.path, keys: [...node.keys, ''], score: k.score };
+        for (const k of kids.filter((x) => !x.leaf).slice(0, E)) {
+          const key = stateKey(k.s);
+          if (seen.has(key)) continue;
+          seen.add(key);
+          next.push({ ...k, keys: [...node.keys, key] });
+        }
+      }
+      next.sort((a, b) => b.score - a.score || (a.path.join(' ') < b.path.join(' ') ? -1 : 1));
+      frontier = next.slice(0, W);
+    }
+    this.planStats.plans++;
+    this.planStats.nodes += nodes;
+    this.planStats.ms += performance.now() - t0;
+    return best;
   }
 
   // ---- v2：ラウンドの終わりまでの列挙 ----
@@ -518,7 +607,7 @@ function evalKey(s: GameState): string {
 }
 
 /** 局面のハッシュ（順番違いで同じ局面に行き着いた列をまとめる） */
-function stateKey(s: GameState): string {
+export function stateKey(s: GameState): string {
   const p = s.players[0];
   return JSON.stringify([s.round, s.turnMainDone, p.res, p.diamond, p.income, p.hand, p.played, p.automated, p.discs, p.score, p.pros, p.food, p.carriage, p.loco, p.roads, p.skills, p.taken, p.usedFree, Object.entries(p.hexes).filter(([, h]) => h.tile || h.building || h.rabbit), s.areas, s.deck.length]);
 }

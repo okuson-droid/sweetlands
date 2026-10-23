@@ -80,7 +80,7 @@ export const BUFF_NOTES: Record<string, string[]> = {
   'グレーテル・シュトーレン': ['基本能力：収入時のダイヤ1個 → 2個'],
   'ロータス・チェー': ['時計塔能力：都市点レート 1/3/5/7/9/12 → 1/3/6/10/15/21'],
   'コーラル・ライラ': ['林業列の印刷オートメーション：1都市点 → 道駒1個'],
-  'ジャスミン・メイ': ['林業列の印刷オートメーション：1都市点 → 道駒1個'],
+  'ジャスミン・メイ': ['林業列の印刷オートメーション：1都市点 → 道駒1個', '初期：ゴールドの収入値10 → 14、麦・木材を1個ずつ多く持つ'],
 };
 /** 上方修正で書き換わる特性のスイーツタグ */
 export const BUFF_TRAIT_TAGS: Record<string, Partial<Record<Tag, number>>> = { 'サクラ・モチ': { 和菓子: 2 } };
@@ -102,6 +102,18 @@ const BUFF_CLOCK_TEXT: Record<string, string> = {
   'アリス・ティーローズ': '永続：時計塔駒は単独でも都市になる。パス時：自分の都市1つにつき1都市点。',
   'ロータス・チェー': '即時：専用の都市点レートタイルを使う（1/3/6/10/15/21都市点）。',
 };
+
+/** 上方修正で書き換わる初期の資源・収入（通常の値に足す） */
+const BUFF_START: Record<string, { res?: Partial<Res>; income?: Partial<Res> }> = {
+  'ジャスミン・メイ': { res: { wheat: 1, wood: 1 }, income: { gold: 4 } },
+};
+/** 初期の資源・ダイヤ・収入（上方修正を反映する） */
+export function startOf(config: GameConfig, name: string): { res: Res; diamond: number; income: Res } {
+  const c = CHARACTERS[name];
+  const add = (isBuffed(config, name) && BUFF_START[name]) || {};
+  const plus = (base: Res, d: Partial<Res> = {}): Res => ({ gold: base.gold + (d.gold ?? 0), wheat: base.wheat + (d.wheat ?? 0), wood: base.wood + (d.wood ?? 0), iron: base.iron + (d.iron ?? 0) });
+  return { res: plus(c.startRes, add.res), diamond: c.startDiamond, income: plus(c.startIncome, add.income) };
+}
 
 /** このキャラクターに上方修正が効いているか */
 export function isBuffed(config: GameConfig, name: string | null): boolean {

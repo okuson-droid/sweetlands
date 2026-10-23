@@ -1,6 +1,6 @@
 // 小窓：市民デッキから探す・ドラフトの候補（§5.5）、準備のキャラクター・地図ボードの選択（§3）
 import { useState, type ReactNode } from 'react';
-import { BUFF_NOTES, CHARACTERS, basicTextOf, clockTextOf, isBuffed } from '../../game/characters';
+import { BUFF_NOTES, CHARACTERS, basicTextOf, clockTextOf, isBuffed, startOf } from '../../game/characters';
 import { CARDS } from '../../game/cards';
 import type { GameState } from '../../game/types';
 import { useInteraction, useTarget } from '../interaction';
@@ -46,6 +46,7 @@ export function CandidateWindow({ s, viewer }: { s: GameState; viewer: number })
 function CharChoice({ s, name, taken, onPreview }: { s: GameState; name: string; taken: boolean; onPreview: (name: string) => void }) {
   const t = useTarget(`setupChar:${name}`, { k: 'other' });
   const ch = CHARACTERS[name];
+  const start = startOf(s.config, name);
   return (
     <div className={`charcard ${t.lit ? 'lit' : ''} ${taken ? 'taken' : ''}`} {...t.props} tabIndex={0} aria-disabled={!t.lit}>
       <button
@@ -60,7 +61,7 @@ function CharChoice({ s, name, taken, onPreview }: { s: GameState; name: string;
       <h3>{name}</h3>
       <div className="start">
         {isBuffed(s.config, name) && <span className="buff-mark lead">上方修正</span>}
-        初期：G{ch.startRes.gold} 麦{ch.startRes.wheat} 木{ch.startRes.wood} 鉄{ch.startRes.iron} ダイヤ{ch.startDiamond}
+        初期：G{start.res.gold} 麦{start.res.wheat} 木{start.res.wood} 鉄{start.res.iron} ダイヤ{start.diamond}・G収入{start.income.gold}
       </div>
       <div className="txt">
         <b>基本能力</b>

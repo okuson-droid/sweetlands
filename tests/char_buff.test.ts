@@ -279,3 +279,20 @@ describe('上方修正の説明文', () => {
     }
   });
 });
+
+describe('ジャスミン・メイの上方修正', () => {
+  it('初期のゴールドの収入値が14、麦・木材が1個ずつ多い', () => {
+    const v = { turnOrder: false, draft: false, advSkills: false };
+    const on = setupGame(2, ['ジャスミン・メイ'], 42, [], { ...v, charBuff: true });
+    const off = setupGame(2, ['ジャスミン・メイ'], 42, [], v);
+    const a = on.players.find((p) => p.character === 'ジャスミン・メイ')!;
+    const b = off.players.find((p) => p.character === 'ジャスミン・メイ')!;
+    expect(b.income.gold).toBe(10);
+    expect(a.income.gold).toBe(14);
+    expect(a.res.wheat - b.res.wheat).toBe(1);
+    expect(a.res.wood - b.res.wood).toBe(1);
+    expect(a.res.iron).toBe(b.res.iron);
+    // 局面は第1ラウンドの収入のあと：収入値が4多い分、ゴールドも4多い
+    expect(a.res.gold - b.res.gold).toBe(4);
+  });
+});

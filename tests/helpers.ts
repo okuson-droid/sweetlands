@@ -1,9 +1,9 @@
 import { applyMove, createGame, getOptions } from '../src/game/engine';
-import type { GameState } from '../src/game/types';
+import type { GameConfig, GameState } from '../src/game/types';
 
 /** 準備を済ませ、第1ラウンドのアクションフェイズ最初の手番まで進める */
-export function setupGame(players = 2, chars: string[] = [], seed = 42, maps: string[] = []): GameState {
-  let s = createGame({ players, names: ['A', 'B', 'C', 'D'].slice(0, players), variants: { turnOrder: false, draft: false, advSkills: false } }, seed);
+export function setupGame(players = 2, chars: string[] = [], seed = 42, maps: string[] = [], variants: GameConfig['variants'] = { turnOrder: false, draft: false, advSkills: false }): GameState {
+  let s = createGame({ players, names: ['A', 'B', 'C', 'D'].slice(0, players), variants }, seed);
   let ci = 0;
   let mi = 0;
   while (s.pending && s.pending.kind !== 'turn') {

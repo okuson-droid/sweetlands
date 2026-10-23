@@ -25,8 +25,8 @@ function pick(s: GameState, opts: Option[], r: number): Option {
   return opts[Math.floor(r * 991) % opts.length];
 }
 
-export function playRandom(players: number, seed: number, variants: GameConfig['variants'] = { turnOrder: false, draft: false, advSkills: false }) {
-  let s = createGame({ players, names: ['A', 'B', 'C', 'D'].slice(0, players), variants }, seed);
+export function playRandom(players: number, seed: number, variants: GameConfig['variants'] = { turnOrder: false, draft: false, advSkills: false }, orderChoice = false) {
+  let s = createGame({ players, names: ['A', 'B', 'C', 'D'].slice(0, players), variants, orderChoice }, seed);
   let rng = seed ^ 0x9e3779b9;
   let steps = 0;
   while (!s.finished) {
@@ -71,6 +71,13 @@ describe('乱択プレイアウト', () => {
       const { s } = playRandom(3, seed * 43);
       expect(s.finished).toBe(true);
       for (const p of s.players) expect(p.res.wheat + p.res.wood + p.res.iron).toBe(0);
+    }
+  });
+
+  it('処理順を選ぶ版（orderChoice）でも、ヴァリアントをすべて採用して最後まで進む', () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const { s } = playRandom(2 + (seed % 3), seed * 47, { turnOrder: true, draft: true, advSkills: true, freeChar: true, setupDraft: true, charBuff: true }, true);
+      expect(s.finished).toBe(true);
     }
   });
 

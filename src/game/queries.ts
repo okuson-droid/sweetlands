@@ -419,10 +419,12 @@ export function prosByColor(p: PlayerState): Record<'O' | 'G' | 'Y', number> {
 }
 
 /** 産業列の上限（§6.9 オートメーション化） */
-export function rowCapacity(p: PlayerState, row: Row): number {
+/** 産業列のオートメーション化の上限。buff はキャラクターの上方修正を採用しているか（カルメン・メロは各列+1） */
+export function rowCapacity(p: PlayerState, row: Row, buff = false): number {
   const b = row === 'agr' ? 'tent' : row === 'for' ? 'house' : 'bldg';
   const t = p.taken[b];
   let cap = 1 + (t >= 2 ? 1 : 0) + (t >= 4 ? 1 : 0);
+  if (buff && p.character === 'カルメン・メロ') cap += 1;
   if (p.skills.some((s) => s.adv && s.id === 11)) cap += 1;
   return cap;
 }

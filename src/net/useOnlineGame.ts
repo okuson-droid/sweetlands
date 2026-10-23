@@ -5,7 +5,7 @@ import { applyMove, createGame, viewFor } from '../game/engine';
 import { isCheckpoint, type GameRecord } from '../game/history';
 import type { GameState } from '../game/types';
 import type { Move } from '../ui/gestures';
-import { autoAnswer, type AutoSettings, type GameSession } from '../ui/useGame';
+import { autoAnswer, initialAuto, saveAuto, type AutoSettings, type GameSession } from '../ui/useGame';
 import type { GameDoc, Room } from './room';
 
 interface Built {
@@ -110,7 +110,11 @@ export function useOnlineGame(room: Room, doc: GameDoc, seat: number | null, onW
   );
 
   const prefill = useRef<{ step: string; id: string } | null>(null);
-  const [auto, setAuto] = useState<AutoSettings>({ single: false, payBasic: false, pass: false });
+  const [auto, setAutoState] = useState<AutoSettings>(initialAuto);
+  const setAuto = useCallback((a: AutoSettings) => {
+    setAutoState(a);
+    saveAuto(a);
+  }, []);
 
   const perform = useCallback(
     (m: Move) => {

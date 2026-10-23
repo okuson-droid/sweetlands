@@ -2,6 +2,7 @@
 // 入力は Pointer Events の1経路。(a) ドラッグ／タップで持ち上げ→置き先、(b) クリック、(c) ボタン。
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { explain, type ExplainTarget } from '../game/explain';
+import { applyMove } from '../game/engine';
 import type { GameState } from '../game/types';
 import { CLICK_SWALLOW_MS, DRAG_START_PX, HOVER_ZOOM_MS, LONG_PRESS_MS, REASON_TOAST_MS, SNAP_PX } from './constants';
 import { destsOf, type Affordances, type Move } from './gestures';
@@ -90,10 +91,15 @@ export function InteractionProvider(props: {
         setConfirm(m);
         return;
       }
+      const draw = drawsCard(state, m.ids);
+      if (draw) {
+        setConfirm({ ...m, confirm: draw === 'search' ? SEARCH_CONFIRM : DRAW_CONFIRM, confirmOk: '進める' });
+        return;
+      }
       setCopyKey(null);
       perform(m);
     },
-    [perform],
+    [perform, state],
   );
 
   // ---- ドラッグ（Pointer Events） ----
@@ -230,6 +236,28 @@ export function InteractionProvider(props: {
       )}
     </InteractionCtx.Provider>
   );
+}
+
+const DRAW_CONFIRM = 'この操作で市民カードを引きます。引いたあとは、この操作とそれより前の操作を取り消せなくなります。よろしいですか';
+const SEARCH_CONFIRM = 'この操作で市民デッキの中を見ます。見たあとは、この操作とそれより前の操作を取り消せなくなります。よろしいですか';
+
+/** この手で、選んだ人が市民カードを引く（山札から手札に加える）か。エンジンで仮に進めて確かめる（判定はエンジンが正）。
+ *  引いたあとは新しい情報が出るため取り消せなくなる（history.ts の isCheckpoint）。仮に進められないときは引かないとみなす */
+export function drawsCard(state: GameState, ids: string[]): 'draw' | 'search' | null {
+  const player = state.pending?.player;
+  if (player === undefined || state.pending?.waiting) return null;
+  try {
+    let s = state;
+    for (const id of ids) {
+      s = applyMove(s, id);
+      if (s.events.some((e) => e.t === 'card' && e.p === player && e.reason === 'draw')) return 'draw';
+      if (s.events.some((e) => e.t === 'card' && e.p === player && e.reason === 'search')) return 'search';
+      if (s.pending?.player === player && s.pending.step === 'search') return 'search'; // 山札の中から探す（山札の中身が見える）
+    }
+  } catch {
+    /* 仮に進められない手（別の席の画面など）は確かめない */
+  }
+  return null;
 }
 
 function swallowNextClick(): void {

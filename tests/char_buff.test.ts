@@ -279,3 +279,42 @@ describe('上方修正の説明文', () => {
     }
   });
 });
+
+describe('ジャスミン・メイの上方修正', () => {
+  it('初期のゴールドの収入値が14、麦・木材が1個ずつ多い', () => {
+    const v = { turnOrder: false, draft: false, advSkills: false };
+    const on = setupGame(2, ['ジャスミン・メイ'], 42, [], { ...v, charBuff: true });
+    const off = setupGame(2, ['ジャスミン・メイ'], 42, [], v);
+    const a = on.players.find((p) => p.character === 'ジャスミン・メイ')!;
+    const b = off.players.find((p) => p.character === 'ジャスミン・メイ')!;
+    expect(b.income.gold).toBe(10);
+    expect(a.income.gold).toBe(14);
+    expect(a.res.wheat - b.res.wheat).toBe(1);
+    expect(a.res.wood - b.res.wood).toBe(1);
+    expect(a.res.iron).toBe(b.res.iron);
+    // 局面は第1ラウンドの収入のあと：収入値が4多い分、ゴールドも4多い
+    expect(a.res.gold - b.res.gold).toBe(4);
+  });
+});
+
+describe('エリ・マカロンの上方修正', () => {
+  it('時計塔能力は基礎資源の収入値の最大値に等しい勝利点（初期の資源は変えない）', () => {
+    const vpAfterPass = (buff: boolean) => {
+      const g = game('エリ・マカロン', buff);
+      const p = g.s.players[g.seat];
+      p.clockPlaced = true;
+      p.income = { ...p.income, wheat: 1, wood: 5, iron: 2 };
+      const before = p.score.vp;
+      let s = withEffects(g.s, g.seat, [{ k: 'special', id: 'passScoring' }]);
+      while (s.pending && s.pending.player === g.seat && s.pending.step !== 'turn' && s.pending.step !== 'passMove') s = applyMove(s, getOptions(s)[0].id);
+      return s.players[g.seat].score.vp - before;
+    };
+    // 同じ局面で、最小値1 → 最大値5 の差だけ勝利点が増える
+    expect(vpAfterPass(true) - vpAfterPass(false)).toBe(4);
+    const v = { turnOrder: false, draft: false, advSkills: false };
+    const on = setupGame(2, ['エリ・マカロン'], 42, [], { ...v, charBuff: true }).players.find((p) => p.character === 'エリ・マカロン')!;
+    const off = setupGame(2, ['エリ・マカロン'], 42, [], v).players.find((p) => p.character === 'エリ・マカロン')!;
+    expect(on.res).toEqual(off.res);
+    expect(on.income).toEqual(off.income);
+  });
+});

@@ -38,7 +38,7 @@ import {
   supportColumns,
 } from './boards';
 import { CARDS, CARD_IDS } from './cards';
-import { BOARD_PAIRS, CHARACTERS, isBuffed } from './characters';
+import { BOARD_PAIRS, CHARACTERS, isBuffed, startOf } from './characters';
 import { shuffle, nextRandom } from './rng';
 import {
   automatedCount,
@@ -290,11 +290,11 @@ function supportOptions(s: GameState): Option[] {
 /** 準備の画面で、まだ選んでいないキャラクターのキャラボードを見せるための写し（状態は変えない） */
 export function characterPreview(s: GameState, seat: number, name: string): PlayerState {
   const p = newPlayer(seat, s.players[seat].name);
-  const c = CHARACTERS[name];
+  const st = startOf(s.config, name);
   p.character = name;
-  p.res = { ...c.startRes };
-  p.diamond = c.startDiamond;
-  p.income = { ...c.startIncome };
+  p.res = st.res;
+  p.diamond = st.diamond;
+  p.income = st.income;
   return p;
 }
 
@@ -307,11 +307,11 @@ export function mapPreview(s: GameState, seat: number, face: string): PlayerStat
 }
 
 function applySetupChar(s: GameState, p: PlayerState, name: string): void {
-  const c = CHARACTERS[name];
+  const st = startOf(s.config, name);
   p.character = name;
-  p.res = { ...c.startRes };
-  p.diamond = c.startDiamond;
-  p.income = { ...c.startIncome };
+  p.res = st.res;
+  p.diamond = st.diamond;
+  p.income = st.income;
   log(s, `${p.name} が ${name} を選んだ`);
 }
 
@@ -2115,7 +2115,11 @@ function passScoring(s: GameState, t: Task): void {
   }
   if (hasChar(p, 'エルサ・スカイル')) out.push(...tasks(t.player, [{ k: 'terrain', n: 1, kind: 'any' }], 'エルサ・スカイル'));
   if (clockOf(p, 'エルサ・スカイル')) vp(2 * connectedPorts(p));
-  if (clockOf(p, 'エリ・マカロン')) vp(Math.min(p.income.wheat, p.income.wood, p.income.iron));
+  if (clockOf(p, 'エリ・マカロン')) {
+    // 上方修正では、基礎資源の収入値のうち最大値（通常は最小値）
+    const inc = [p.income.wheat, p.income.wood, p.income.iron];
+    vp(buffOn(s, p) ? Math.max(...inc) : Math.min(...inc));
+  }
   if (clockOf(p, 'カルメン・メロ')) vp(p.carmenCubes);
   if (clockOf(p, 'ジャスミン・メイ')) vp(p.skills.length);
   if (clockOf(p, 'コーラル・ライラ')) {

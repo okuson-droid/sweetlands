@@ -105,7 +105,9 @@ function LocalGame({ config, seed, moves, onExit, onFinished }: { config: GameCo
 /** リザルト。onReplay の at は、リプレイを最初から見る（start）か、最終盤面から見る（end）か */
 export function ResultScreen({ record, onReplay, onLobby }: { record: GameRecord; onReplay: (at: 'start' | 'end') => void; onLobby: () => void }) {
   const s = useMemo(() => replay(record), [record]);
-  return <Result s={s} onReplay={onReplay} onLobby={onLobby} onExport={() => downloadRecord(record)} />;
+  // 同じゲーム（設定・シード・手の数が同じ）のリザルトは、得点の演出を1回目だけにする
+  const animKey = `${record.seed}:${record.moves.length}:${record.config.names.join(',')}`;
+  return <Result s={s} onReplay={onReplay} onLobby={onLobby} onExport={() => downloadRecord(record)} animKey={animKey} />;
 }
 
 export function ReplayScreen({ record, at, onBack }: { record: GameRecord; at: 'start' | 'end'; onBack: () => void }) {
@@ -255,7 +257,7 @@ export function NewGameForm({ label, onSubmit, allowSolo = false }: { label: str
             <input type="checkbox" checked={variants.setupDraft} onChange={(e) => setVariants({ ...variants, setupDraft: e.target.checked })} /> 準備のドラフト（キャラクター・地図ボード・ラウンド支援駒）
           </label>
           <label className="setting">
-            <input type="checkbox" checked={variants.charBuff} onChange={(e) => setVariants({ ...variants, charBuff: e.target.checked })} /> キャラクターの上方修正（アリス・ロータス・ナタ・ビスキュイ・グレーテル・サクラ・ソルビー・リッカ・コーラル・ジャスミン）
+            <input type="checkbox" checked={variants.charBuff} onChange={(e) => setVariants({ ...variants, charBuff: e.target.checked })} /> キャラクターの上方修正（アリス・ロータス・エリ・ナタ・ビスキュイ・グレーテル・サクラ・ソルビー・リッカ・カルメン・コーラル・ジャスミン）
           </label>
         </fieldset>
         <button className="btn primary" onClick={() => onSubmit({ players, names: names.slice(0, players).map((n, i) => n.trim() || `プレイヤー${i + 1}`), variants, orderChoice: true })}>

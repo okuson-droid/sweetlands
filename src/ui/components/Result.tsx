@@ -4,10 +4,35 @@ import { finalScores } from '../../game/scoring';
 import type { GameState } from '../../game/types';
 import { cssMs, playerColor, prefersReducedMotion } from '../theme';
 
-export function Result({ s, onReplay, onLobby, onExport }: { s: GameState; onReplay: (at: 'start' | 'end') => void; onLobby: () => void; onExport?: () => void }) {
+/** 得点を1行ずつ出す演出を見せたゲーム（同じゲームのリザルトに戻ったときは演出せず、最初から全部出す） */
+const SHOWN_KEY = 'sweetlands.resultShown.v1';
+const shownGames = new Set<string>();
+function alreadyShown(key: string): boolean {
+  if (shownGames.has(key)) return true;
+  try {
+    return (JSON.parse(sessionStorage.getItem(SHOWN_KEY) ?? '[]') as string[]).includes(key);
+  } catch {
+    return false;
+  }
+}
+function markShown(key: string): void {
+  shownGames.add(key);
+  try {
+    const list = (JSON.parse(sessionStorage.getItem(SHOWN_KEY) ?? '[]') as string[]).filter((k) => k !== key);
+    sessionStorage.setItem(SHOWN_KEY, JSON.stringify([...list, key].slice(-20)));
+  } catch {
+    /* 保存できない環境では、この画面を開いている間だけ覚える */
+  }
+}
+
+/** animKey：ゲームを見分ける文字列。同じ animKey のリザルトは、演出を1回目だけにする */
+export function Result({ s, onReplay, onLobby, onExport, animKey }: { s: GameState; onReplay: (at: 'start' | 'end') => void; onLobby: () => void; onExport?: () => void; animKey?: string }) {
   const rows = useMemo(() => finalScores(s), [s]);
   const items = rows[0].items.length;
-  const [shown, setShown] = useState(prefersReducedMotion() ? items : 0);
+  const [shown, setShown] = useState(() => (prefersReducedMotion() || (animKey !== undefined && alreadyShown(animKey)) ? items : 0));
+  useEffect(() => {
+    if (animKey !== undefined) markShown(animKey);
+  }, [animKey]);
   useEffect(() => {
     if (shown >= items) return;
     const t = window.setTimeout(() => setShown((n) => n + 1), cssMs('--showcase', 1000) * 0.5);

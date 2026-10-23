@@ -42,6 +42,16 @@ function pointsOf(r: number, c: number): string {
     .join(' ');
 }
 
+/** ヘクスを中心へ k 倍に縮めた頂点の列。都市の囲みを辺（道駒の置き場）から離して描くために使う */
+function insetPointsOf(r: number, c: number, k: number): string {
+  const pts = hexVertices(r, c).map(vertexPoint);
+  const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length;
+  const cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+  return pts.map(([x, y]) => `${cx + (x - cx) * k},${cy + (y - cy) * k}`).join(' ');
+}
+/** 都市の囲みの縮め具合（道駒の線と重ならない程度） */
+const CITY_INSET = 0.8;
+
 export function MapBoard({ p, color, flashKeys }: { p: PlayerState; color: string; flashKeys: Set<string> }) {
   const c = useInteraction();
   const [view, setView] = useState(HOME_VIEW);
@@ -157,18 +167,19 @@ export function MapBoard({ p, color, flashKeys }: { p: PlayerState; color: strin
       {Object.entries(p.hexes).map(([key, h]) => (
         <Hex key={key} k={key} h={h} holding={holding} tileKind={tileKind} flash={flashKeys.has(`hex:${key}`)} color={color} />
       ))}
-      {p.roads.map((e) => {
-        const [a, b] = edgeVertices(e).map(vertexPoint);
-        return <line key={e} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className={flashKeys.has(`edge:${e}`) ? 'road flash' : 'road'} />;
-      })}
       {cityGroups.map((g, i) => (
         <g key={i} pointerEvents="none" className={`cityline ${aliceSplit && i % 2 === 1 ? 'alt' : ''}`}>
           {g.map((k) => {
             const [r, cc] = parseHexKey(k);
-            return <polygon key={k} points={pointsOf(r, cc)} fill="none" />;
+            return <polygon key={k} points={insetPointsOf(r, cc, CITY_INSET)} fill="none" />;
           })}
         </g>
       ))}
+      {/* 道駒は都市の囲みより手前に描く（都市ができていても道が見えるように） */}
+      {p.roads.map((e) => {
+        const [a, b] = edgeVertices(e).map(vertexPoint);
+        return <line key={e} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className={flashKeys.has(`edge:${e}`) ? 'road flash' : 'road'} />;
+      })}
       {legalEdges.map((e) => (
         <EdgeSpot key={e} e={e} />
       ))}

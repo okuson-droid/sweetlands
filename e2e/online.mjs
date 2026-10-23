@@ -101,7 +101,10 @@ while (steps < Number(maxArg)) {
   if (hints.length && rand() < 0.3) await hints[0].click();
   const dests = await visibleLit(p, '[data-dest].lit');
   const srcs = await visibleLit(p, '[data-src].lit');
-  const buttons = await visibleLit(p, '.band .actions .btn:not([disabled])');
+  // 処理順の切り替え（.order-toggle）は手を進めない設定のボタンのため、操作の候補から外し、ときどきだけ押す
+  const tg = await visibleLit(p, '.band .actions .order-toggle');
+  if (tg.length && rand() < 0.03) await p.mouse.click(...Object.values(await center(tg[0])));
+  const buttons = await visibleLit(p, '.band .actions .btn:not([disabled]):not(.order-toggle)');
   const texts = await Promise.all(buttons.map((b) => b.innerText()));
   const nonPass = buttons.filter((_, k) => !['パス', '取り消し', '手番の最初に戻る', 'コピーをやめる'].includes(texts[k]));
   const r = rand();

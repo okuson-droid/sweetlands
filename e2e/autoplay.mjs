@@ -145,7 +145,10 @@ while (steps < Number(maxArg)) {
   if (await stepSplit(page, rand, tapAt)) continue;
   const dests = await visibleLit('[data-dest].lit');
   const srcs = await visibleLit('[data-src].lit');
-  const buttons = (await visibleLit('.band .actions .btn:not([disabled])')).filter(Boolean);
+  // 処理順の切り替え（.order-toggle）は手を進めない設定のボタンのため、操作の候補から外し、ときどきだけ押す
+  const tg = await visibleLit('.band .actions .order-toggle');
+  if (tg.length && rand() < 0.03) await tapAt(await center(tg[0]));
+  const buttons = (await visibleLit('.band .actions .btn:not([disabled]):not(.order-toggle)')).filter(Boolean);
   const btnTexts = await Promise.all(buttons.map((b) => b.innerText()));
   const nonPass = buttons.filter((_, i) => !['パス', '取り消し', '手番の最初に戻る', 'コピーをやめる'].includes(btnTexts[i]));
   const passBtn = buttons.filter((_, i) => btnTexts[i] === 'パス');

@@ -47,17 +47,24 @@ export interface GameSession {
   undo: () => void;
   /** 取り消せる手をまとめて取り消す（手番の最初、またはその後のチェックポイントまで戻る） */
   undoAll: () => void;
+  /** 取り消した手を1手ずつ進め直す（ローカルのみ。docs/decisions_13 §13.17）。オンラインでは未定義 */
+  redo?: () => void;
+  redoCount?: number;
   auto: AutoSettings;
   setAuto: (a: AutoSettings) => void;
 }
 
-interface Inner {
+export interface Inner {
   state: GameState;
   prev: GameState | null;
   moves: string[];
   cpState: GameState;
   cpIndex: number;
   lastWasUndo: boolean;
+  /** 取り消した手（やり直しの順に、次に進め直す手が末尾） */
+  redo: string[];
+  /** 進め直した直後で、自動の回答を止めているか（続けて進め直せるように） */
+  holdAuto?: boolean;
 }
 
 const IRREVERSIBLE_STEPS = new Set(['keep', 'turn']);
@@ -90,11 +97,59 @@ export function autoAnswer(s: GameState, auto: AutoSettings): string | null {
   return null;
 }
 
+/** 手を進める（純粋関数） */
+export function applyInner(cur: Inner, ids: string[]): Inner {
+  let s = cur.state;
+  let { cpState, cpIndex } = cur;
+  const moves = [...cur.moves];
+  // 取り消した手と同じ手を進めたときは、やり直しの手を1つ使ったものとして残りを保つ。別の手なら残りは捨てる
+  let redo = [...cur.redo];
+  for (const id of ids) {
+    if (redo.length && redo[redo.length - 1] === id) redo.pop();
+    else redo = [];
+    const next = applyMove(s, id);
+    moves.push(id);
+    if (isCheckpoint(s, next)) {
+      cpState = next;
+      cpIndex = moves.length;
+    }
+    s = next;
+  }
+  return { state: s, prev: cur.state, moves, cpState, cpIndex, lastWasUndo: false, redo };
+}
+
+/** 1手取り消す（純粋関数） */
+export function undoInner(cur: Inner): Inner {
+  if (cur.moves.length <= cur.cpIndex) return cur;
+  const since = cur.moves.slice(cur.cpIndex);
+  const { state } = undoLast(cur.cpState, since);
+  return { ...cur, state, prev: null, moves: cur.moves.slice(0, -1), lastWasUndo: true, redo: [...cur.redo, cur.moves[cur.moves.length - 1]] };
+}
+
+/** 取り消せる手をまとめて取り消す（純粋関数） */
+export function undoAllInner(cur: Inner): Inner {
+  if (cur.moves.length <= cur.cpIndex) return cur;
+  const undone = cur.moves.slice(cur.cpIndex).reverse(); // 最初に取り消した手（最も新しい手）が下、次に進め直す手が上
+  return { ...cur, state: cur.cpState, prev: null, moves: cur.moves.slice(0, cur.cpIndex), lastWasUndo: true, redo: [...cur.redo, ...undone] };
+}
+
+/** 取り消した手を1手進め直す（純粋関数）。取り消した手は同じ局面から同じ結果になる（乱数・山札も同じ）ため、そのまま適用する */
+export function redoInner(cur: Inner): Inner {
+  if (!cur.redo.length) return cur;
+  const id = cur.redo[cur.redo.length - 1];
+  if (!getOptions(cur.state).some((o) => o.id === id)) return { ...cur, redo: [] };
+  const next = applyMove(cur.state, id);
+  const moves = [...cur.moves, id];
+  const cp = isCheckpoint(cur.state, next);
+  // 進め直した直後は自動の回答をしない（続けて進め直せるように）
+  return { ...cur, state: next, prev: cur.state, moves, cpState: cp ? next : cur.cpState, cpIndex: cp ? moves.length : cur.cpIndex, lastWasUndo: false, holdAuto: cur.redo.length > 1, redo: cur.redo.slice(0, -1) };
+}
+
 export function useGame(config: GameConfig, seed: number, initialMoves: string[] = []): GameSession {
   const [inner, setInner] = useState<Inner>(() => {
     let s = createGame(config, seed);
     for (const m of initialMoves) s = applyMove(s, m);
-    return { state: s, prev: null, moves: [...initialMoves], cpState: s, cpIndex: initialMoves.length, lastWasUndo: false };
+    return { state: s, prev: null, moves: [...initialMoves], cpState: s, cpIndex: initialMoves.length, lastWasUndo: false, redo: [] };
   });
   const [auto, setAutoState] = useState<AutoSettings>(initialAuto);
   const setAuto = useCallback((a: AutoSettings) => {
@@ -103,23 +158,7 @@ export function useGame(config: GameConfig, seed: number, initialMoves: string[]
   }, []);
   const prefill = useRef<{ step: string; id: string } | null>(null);
 
-  const applyIds = useCallback((ids: string[]) => {
-    setInner((cur) => {
-      let s = cur.state;
-      let { cpState, cpIndex } = cur;
-      const moves = [...cur.moves];
-      for (const id of ids) {
-        const next = applyMove(s, id);
-        moves.push(id);
-        if (isCheckpoint(s, next)) {
-          cpState = next;
-          cpIndex = moves.length;
-        }
-        s = next;
-      }
-      return { state: s, prev: cur.state, moves, cpState, cpIndex, lastWasUndo: false };
-    });
-  }, []);
+  const applyIds = useCallback((ids: string[]) => setInner((cur) => applyInner(cur, ids)), []);
 
   const perform = useCallback(
     (m: Move) => {
@@ -132,20 +171,17 @@ export function useGame(config: GameConfig, seed: number, initialMoves: string[]
 
   const undo = useCallback(() => {
     prefill.current = null;
-    setInner((cur) => {
-      if (cur.moves.length <= cur.cpIndex) return cur;
-      const since = cur.moves.slice(cur.cpIndex);
-      const { state } = undoLast(cur.cpState, since);
-      return { ...cur, state, prev: null, moves: cur.moves.slice(0, -1), lastWasUndo: true };
-    });
+    setInner(undoInner);
   }, []);
 
   const undoAll = useCallback(() => {
     prefill.current = null;
-    setInner((cur) => {
-      if (cur.moves.length <= cur.cpIndex) return cur;
-      return { ...cur, state: cur.cpState, prev: null, moves: cur.moves.slice(0, cur.cpIndex), lastWasUndo: true };
-    });
+    setInner(undoAllInner);
+  }, []);
+
+  const redo = useCallback(() => {
+    prefill.current = null;
+    setInner(redoInner);
   }, []);
 
   // 先回りの回答と自動化（合法手から機械的に選ぶだけ。ルールは変えない）
@@ -162,10 +198,10 @@ export function useGame(config: GameConfig, seed: number, initialMoves: string[]
         return;
       }
     }
-    if (inner.lastWasUndo) return;
+    if (inner.lastWasUndo || inner.holdAuto) return;
     const a = autoAnswer(s, auto);
     if (a) applyIds([a]);
-  }, [inner.state, inner.lastWasUndo, auto, applyIds]);
+  }, [inner.state, inner.lastWasUndo, inner.holdAuto, auto, applyIds]);
 
   const record = useMemo<GameRecord>(() => ({ config, seed, moves: inner.moves }), [config, seed, inner.moves]);
   const undoCount = inner.moves.length - inner.cpIndex;
@@ -179,6 +215,8 @@ export function useGame(config: GameConfig, seed: number, initialMoves: string[]
     perform,
     undo,
     undoAll,
+    redo,
+    redoCount: inner.state.finished ? 0 : inner.redo.length,
     auto,
     setAuto,
   };

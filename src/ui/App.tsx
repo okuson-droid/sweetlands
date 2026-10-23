@@ -105,7 +105,9 @@ function LocalGame({ config, seed, moves, onExit, onFinished }: { config: GameCo
 /** リザルト。onReplay の at は、リプレイを最初から見る（start）か、最終盤面から見る（end）か */
 export function ResultScreen({ record, onReplay, onLobby }: { record: GameRecord; onReplay: (at: 'start' | 'end') => void; onLobby: () => void }) {
   const s = useMemo(() => replay(record), [record]);
-  return <Result s={s} onReplay={onReplay} onLobby={onLobby} onExport={() => downloadRecord(record)} />;
+  // 同じゲーム（設定・シード・手の数が同じ）のリザルトは、得点の演出を1回目だけにする
+  const animKey = `${record.seed}:${record.moves.length}:${record.config.names.join(',')}`;
+  return <Result s={s} onReplay={onReplay} onLobby={onLobby} onExport={() => downloadRecord(record)} animKey={animKey} />;
 }
 
 export function ReplayScreen({ record, at, onBack }: { record: GameRecord; at: 'start' | 'end'; onBack: () => void }) {

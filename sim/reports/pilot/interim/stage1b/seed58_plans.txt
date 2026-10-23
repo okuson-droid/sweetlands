@@ -1,0 +1,6 @@
+seed 58 第5R頭 得点 60 手札 6 資源 {"gold":156,"wheat":11,"wood":4,"iron":3} ダイヤ 5 ディスク 0
+v1 の第5R（最終 78 ）: area:A card:p03-r1c3 endTurn area:J card:p08-r3c4 fa1 card:p04-r1c2 choice:0 endTurn area:G card:p04-r1c3 pros:0 pros:0 fa1 card:p11-r1c2 choice:0 endTurn area:K card:p05-r3c5 endTurn fa5 fa5 fa5 fa5 fa5 fa5 area:I card:p09-r3c3 endTurn fa7h card:p02-r3c5 fa5 fa5 pass col:2
+実際の山札での計画 70 area:A endTurn area:E endTurn area:I fa1 fa1 endTurn area:K endTurn pass
+決定化0での計画 70 area:P endTurn area:A endTurn area:I fa1 fa1 endTurn area:K endTurn pass
+決定化1での計画 78 area:E endTurn area:A endTurn area:K fa1 fa1 endTurn area:G endTurn pass
+決定化2での計画 69 area:P fa1 fa1 endTurn area:I fa1 endTurn area:K endTurn pass

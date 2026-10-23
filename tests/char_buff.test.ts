@@ -1,6 +1,7 @@
 // キャラクターの上方修正（ヴァリアント、docs/decisions_16）
 import { describe, expect, it } from 'vitest';
 import { printedAuto } from '../src/game/boards';
+import { BUFF_NOTES, CHARACTERS, basicTextOf, clockTextOf } from '../src/game/characters';
 import { applyMove, getOptions, pieceCostAt, withEffects } from '../src/game/engine';
 import { cities, count, neighbors, passedIp, tagCounts } from '../src/game/queries';
 import type { BuildingType, GameState, PlayerState } from '../src/game/types';
@@ -260,3 +261,21 @@ describe('キャラクターの上方修正（第2弾）', () => {
   });
 });
 
+
+describe('上方修正の説明文', () => {
+  it('基本能力（特性・追加の能力・フリーアクションを含む）を変える上方修正は、基本能力の文にも反映する', () => {
+    const config = { players: 2, names: ['A', 'B'], variants: { turnOrder: false, draft: false, advSkills: false, charBuff: true } };
+    for (const [name, notes] of Object.entries(BUFF_NOTES)) {
+      if (!notes.some((n) => /^(基本能力|特性|追加の能力|追加のフリーアクション)/.test(n))) continue;
+      expect(basicTextOf(config, name), name).not.toBe(CHARACTERS[name].basicText);
+    }
+  });
+
+  it('時計塔能力を変える上方修正は、時計塔能力の文にも反映する', () => {
+    const config = { players: 2, names: ['A', 'B'], variants: { turnOrder: false, draft: false, advSkills: false, charBuff: true } };
+    for (const [name, notes] of Object.entries(BUFF_NOTES)) {
+      if (!notes.some((n) => n.startsWith('時計塔能力'))) continue;
+      expect(clockTextOf(config, name), name).not.toBe(CHARACTERS[name].clockText);
+    }
+  });
+});

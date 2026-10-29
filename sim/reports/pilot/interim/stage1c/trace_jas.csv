@@ -1,0 +1,36 @@
+turn,human,rank,candidates,humanScore,humanRankValue,bestScore,best,inE
+1,flip:s9,11,35,239,275,237,area:P,0
+2,endTurn,2,7,239,239,242,fa1,1
+3,area:J,3,34,239,298,240,area:K,1
+4,endTurn,2,7,239,239,242,fa1,1
+5,area:P,15,34,265,265,240,area:K,0
+6,endTurn,2,7,276,276,292,fa1,1
+7,flip:s7,1,33,276,348,276,flip:s7,1
+8,endTurn,2,7,276,276,292,fa1,1
+9,play:p09-r2c3,17,32,308,308,277,area:I,0
+10,endTurn,2,6,305,305,321,fa1,1
+11,play:p01-r3c2,21,27,311,311,401,fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 area:Q,0
+12,endTurn,2,7,308,308,324,fa1,1
+13,play:p14-r3c2,19,28,328,328,308,fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 area:Q,0
+14,endTurn,2,6,348,348,354,fa1,1
+15,flip:a5,17,26,368,368,424,fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 area:F,0
+16,endTurn,2,7,405,405,412,fa1,1
+17,flip:a7,19,25,412,412,464,fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 area:Q,0
+18,endTurn,2,7,406,406,413,fa1,1
+19,fa6,1,24,468,468,468,fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 area:Q,1
+20,area:E,6,26,406,476,407,area:I,1
+21,endTurn,2,7,475,475,482,fa1,1
+22,flip:s8,5,24,476,492,496,fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:3-0-0 >basic:0-0-1 fa6 >basic:0-3-0 >basic:0-0-1 area:Q,1
+23,endTurn,2,7,476,476,483,fa1,1
+24,fa6,2,23,497,497,474,play:p01-r1c4,1
+25,fa7h,19,22,476,476,497,fa6 >basic:0-3-0 >basic:0-0-1 area:Q,0
+26,area:Q,3,21,497,497,477,area:I,1
+27,endTurn,2,7,519,519,521,fa1,1
+28,fa2,21,21,516,516,537,fa6 >basic:0-3-0 >basic:1-0-0 area:O,0
+29,area:C,5,16,528,528,534,fa6 >basic:0-3-0 >basic:1-0-0 area:O,1
+30,endTurn,2,5,528,528,530,fa1,1
+31,fa7h,12,13,528,528,534,area:C,0
+32,area:A,2,13,532,532,528,area:H,1
+33,fa5,2,3,534,534,534,endTurn,1
+34,endTurn,1,2,535,535,535,endTurn,1
+35,pass,2,2,535,535,535,fa3,1

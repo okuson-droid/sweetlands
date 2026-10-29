@@ -2,7 +2,10 @@
 //   handover：人の記録を各ラウンドの最初の手番の選択待ちまで再生し、そこから AI に打たせる（0-2）
 //   cards：市民カード207枚を中盤の局面でプレイし、v1 の方法で解決した前後の差分を出す（0-3。cardcheck.ts）
 //   loss：第5ラウンドの末尾の損な両替の局面で、各手の評価値と特徴量の寄与を出す（0-4）
-// 使い方：node dist/stage0.cjs handover|cards --weights <重み.json> [--chain 0|1] [--out <csv>]
+//   r5・trace・r5eval：段階1b・1c の最終ラウンドの計画器の計測（--plan W,E、--twoPly 1、--delta 3、--prefix 1）
+//   --peek 1：診断専用。決定化せず実際の山札を見て判断する（情報漏れの規約の例外。測定の構成には使わない）
+//   --record：人の記録（既定は human/seed1.json。条件は記録の config のまま使う）
+// 使い方：node dist/stage0.cjs handover|cards|loss|r5|trace|r5eval --weights <重み.json> [--chain 0|1] [--out <csv>]
 import { installFastClone } from '../fastclone';
 installFastClone();
 import fs from 'node:fs';
@@ -24,7 +27,11 @@ function args(): Record<string, string> {
 
 const o = args();
 const weights = JSON.parse(fs.readFileSync(o.weights ?? 'reports/pilot/weights/v1_eri_B.json', 'utf8')).weights;
-const cfg: AgentConfig = { ...DEFAULT_AGENT, kind: 'v1', weights, chainSub: o.chain !== '0', ...(o.eval === '3' ? { evalVersion: 3 as const } : {}), ...(o.plan ? { planR5: { W: Number(o.plan.split(',')[0]), E: Number(o.plan.split(',')[1]), keepEven: o.keepEven === '1' } } : {}) };
+const cfg: AgentConfig = { ...DEFAULT_AGENT, kind: 'v1', weights, chainSub: o.chain !== '0', ...(o.eval === '3' ? { evalVersion: 3 as const } : {}), ...(o.plan
+    ? { planR5: { W: Number(o.plan.split(',')[0]), E: Number(o.plan.split(',')[1]), keepEven: o.keepEven === '1', twoPly: o.twoPly === '1', delta: Number(o.delta ?? 3), prefix: o.prefix === '1' } }
+    : {}),
+  // 診断専用（段階1c の (a')）：実際の山札を見て判断する。情報漏れの規約の例外で、測定には使わない
+  ...(o.peek === '1' ? { peek: true } : {}) };
 const record = JSON.parse(fs.readFileSync(o.record ?? 'reports/pilot/human/seed1.json', 'utf8'));
 
 /** 記録を、round ラウンドの最初の手番の選択待ちまで再生する */
@@ -142,17 +149,17 @@ function cmdR5(): void {
 function cmdTrace(): void {
   let s = createGame(record.config, record.seed);
   const agent = new Agent(cfg, 1);
-  const rows = ['turn,human,rank,candidates,humanScore,bestScore,best,inE'];
+  const rows = ['turn,human,rank,candidates,humanScore,humanRankValue,bestScore,best,inE'];
   const E = cfg.planR5?.E ?? 6;
   let turn = 0;
   for (const id of record.moves) {
     if (s.phase === 'action' && s.round === 5 && s.pending?.step === 'turn') {
       turn++;
-      const kids = agent.planChildren(s, []);
+      const kids = agent.planChildren(s, [], agent.passScore(s));
       const rank = kids.findIndex((k) => k.path[0] === id) + 1;
       const h = kids[rank - 1];
-      rows.push([turn, id, rank, kids.length, h ? h.score : '', kids[0].score, kids[0].path[0], rank > 0 && rank <= E ? 1 : 0].join(','));
-      console.log(`手番${turn}：人 ${id}（${rank}/${kids.length}位、${h?.score ?? '-'}点）｜最上位 ${kids[0].path[0]}（${kids[0].score}点）`);
+      rows.push([turn, id, rank, kids.length, h ? h.score : '', h ? h.rank : '', kids[0].score, kids[0].path.join(' '), rank > 0 && rank <= E ? 1 : 0].join(','));
+      console.log(`手番${turn}：人 ${id}（${rank}/${kids.length}位、${h?.score ?? '-'}点、順位の値 ${h?.rank ?? '-'}）｜最上位 ${kids[0].path.join(' ')}（${kids[0].score}点、順位の値 ${kids[0].rank}）`);
     }
     s = step(s, id);
   }

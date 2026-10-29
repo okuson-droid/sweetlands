@@ -5,6 +5,7 @@
 // 先読みはすべて決定化した仮の局面（core.determinize）の上で行い、実際の市民デッキの並びは見ない。
 import type { GameState } from '../../src/game/types';
 import { Rng, determinize, legal, scoreTotal, step } from './core';
+import { areaCost, cardCost } from '../../src/game/engine';
 import { WEIGHT_NAMES, baseEval, features, passesLeft, type Weights } from './evaluate';
 import { applyTemplate, templateByName, type Template } from './templates';
 import { eval3 } from './evaluate3';
@@ -37,7 +38,28 @@ export interface AgentConfig {
   /** 評価関数の版（既定は1。3 は evaluate3.ts、重みは PARAM3_NAMES の並び） */
   evalVersion?: 1 | 3;
   /** 段階1b（追補 2026-10-22）：第5ラウンドの手番では、パスまでの手の列をビームで探す（W：残すノードの数、E：1ノードから進める候補の数）。評価関数は使わない */
-  planR5?: { W: number; E: number; keepEven?: boolean };
+  planR5?: {
+    W: number;
+    E: number;
+    keepEven?: boolean;
+    /** 段階1c：得点の伸びが delta 未満の手（準備の手）を、主行動をもう1手打った孫の最良の得点で順位付けする */
+    twoPly?: boolean;
+    delta?: number;
+    /** 段階1c：打てない主行動に、不足分を埋める最小の両替（fa5・fa3・fa6）を前に付けた候補を足す */
+    prefix?: boolean;
+  };
+  /** 診断専用（段階1c の (a')）：決定化せず、実際の山札のまま判断する。情報漏れの規約の例外で、測定には使わない */
+  peek?: boolean;
+}
+
+/** 計画器のノード：手の列、手番の選択待ちの局面（leaf なら終局）、パスしたら得る得点、枝刈りの順位の値、各手のあとの局面の鍵 */
+interface PlanNode {
+  s: GameState;
+  path: string[];
+  score: number;
+  rank: number;
+  leaf: boolean;
+  keys: string[];
 }
 
 /** 最終ラウンドの計画器の計測（ノード数・手番ごとの計画） */
@@ -139,8 +161,18 @@ export class Agent {
       this.selectTemplate(s);
     }
     this.setRound(round);
-    const det = determinize(s, this.rng);
-    if (s.pending!.step !== 'turn') return this.chooseSub(det, true);
+    const det = this.cfg.peek ? structuredClone(s) : determinize(s, this.rng);
+    if (s.pending!.step !== 'turn') {
+      // 計画器の計画に含めた細かい選択（両替の内訳）は、計画どおりに選ぶ
+      const pl = this.plan;
+      const nextId = pl && pl.i < pl.path.length && pl.path[pl.i].startsWith('>') ? pl.path[pl.i].slice(1) : null;
+      if (this.cfg.planR5 && this.lastFromPlan && nextId && opts.some((o) => o.id === nextId)) {
+        pl!.i++;
+        return nextId;
+      }
+      this.lastFromPlan = false;
+      return this.chooseSub(det, true);
+    }
     const id = this.chooseTurn(det);
     if (CONVERSIONS.has(id) && !s.turnMainDone) this.freeUsed.push(id);
     else if (!CONVERSIONS.has(id)) this.freeUsed = [];
@@ -422,33 +454,138 @@ export class Agent {
     return scoreTotal(s) + this.passGain(s);
   }
 
+  /** 指した手のあとの局面を、手番の選択待ちまで解決する。終局（または第5ラウンドの手番でなくなった）なら終局まで進めて leaf にする */
+  private planNode(c: GameState, path: string[]): PlanNode {
+    c = this.resolve(c);
+    if (c.finished || c.round !== 5 || c.phase !== 'action' || c.pending?.step !== 'turn') {
+      c = this.finish(c);
+      const sc = scoreTotal(c);
+      return { s: c, path, score: sc, rank: sc, leaf: true, keys: [] };
+    }
+    const sc = this.passScore(c);
+    return { s: c, path, score: sc, rank: sc, leaf: false, keys: [] };
+  }
+
   /** ある手番の局面の候補（子）：手を指し、細かい選択を chooseSub で解決して次の手番の選択待ちまで進めたもの。
-   *  終局したものは leaf（得点が確定）。score は「その局面でパスしたら得る終局の得点」（評価関数は使わない） */
-  planChildren(s: GameState, path: string[]): { s: GameState; path: string[]; score: number; leaf: boolean }[] {
-    const out: { s: GameState; path: string[]; score: number; leaf: boolean }[] = [];
-    for (const o of legal(s)) {
-      let c = this.resolve(step(s, o.id));
-      const p = [...path, o.id];
-      if (c.finished || c.round !== 5 || c.phase !== 'action' || c.pending?.step !== 'turn') {
-        c = this.finish(c);
-        out.push({ s: c, path: p, score: scoreTotal(c), leaf: true });
-      } else out.push({ s: c, path: p, score: this.passScore(c), leaf: false });
+   *  終局したものは leaf（得点が確定）。score は「その局面でパスしたら得る終局の得点」（評価関数は使わない）。
+   *  rank は枝刈りに使う順位の値（既定は score。twoPly のときは準備の手だけ孫の最良の得点） */
+  planChildren(s: GameState, path: string[], parentScore = -Infinity): PlanNode[] {
+    const cfg = this.cfg.planR5 ?? { W: 0, E: 0 };
+    const out: PlanNode[] = [];
+    const ids = legal(s).map((o) => o.id);
+    for (const id of ids) out.push(this.planNode(step(s, id), [...path, id]));
+    if (cfg.prefix) for (const pre of this.prefixed(s, ids)) out.push(this.planNode(pre.s, [...path, ...pre.path]));
+    if (cfg.twoPly) {
+      const delta = cfg.delta ?? 3;
+      for (const k of out) {
+        // 準備の手は主行動に限る（両替などのフリーアクションは、両替を前に付けた候補で扱う）
+        if (k.leaf || k.score - parentScore >= delta || !isMain(k.path[k.path.length - 1])) continue;
+        // 準備の手：主行動をもう1手打った孫のうち最良の得点。主行動を打ち終えた手番なら、手番を終えて次の手番の主行動を孫にする
+        let base = k.s;
+        if (base.turnMainDone && legal(base).some((o) => o.id === 'endTurn')) {
+          base = this.resolve(step(base, 'endTurn'));
+          if (base.finished || base.round !== 5 || base.phase !== 'action' || base.pending?.step !== 'turn') continue;
+        }
+        let best = -Infinity;
+        for (const g of legal(base).filter((o) => isMain(o.id))) best = Math.max(best, this.planNode(step(base, g.id), []).score);
+        if (best > -Infinity) k.rank = best;
+      }
     }
     // 同点は手の列の辞書順で固定する（乱数を使わない）
-    out.sort((a, b) => b.score - a.score || (a.path.join(' ') < b.path.join(' ') ? -1 : 1));
+    out.sort((a, b) => b.rank - a.rank || b.score - a.score || (a.path.join(' ') < b.path.join(' ') ? -1 : 1));
+    return out;
+  }
+
+  /** 打てない主行動（手札のカードのプレイ・アクションエリア）に、不足分を埋める最小の両替の列を前に付けたもの。
+   *  ゴールドの不足は fa5（基礎資源1 → 1ゴールド、多い資源から払う）、基礎資源の不足は fa6（余った資源3 → 1）か fa3（4ゴールド → 1）。
+   *  手札を使う両替（fa7h・fa1）は主行動の回数を減らすので使わない。両替の内訳は計画に「>選択肢 ID」として含める */
+  private prefixed(s: GameState, legalIds: string[]): { s: GameState; path: string[] }[] {
+    const p = s.players[0];
+    const out: { s: GameState; path: string[] }[] = [];
+    const targets: { id: string; need: { gold: number; wheat: number; wood: number; iron: number } }[] = [];
+    for (const c of p.hand) {
+      const id = `play:${c}`;
+      if (legalIds.includes(id)) continue;
+      const cost = cardCost(s, p, c);
+      if (cost > p.res.gold) targets.push({ id, need: { gold: cost, wheat: 0, wood: 0, iron: 0 } });
+    }
+    for (const a of Object.keys(s.areas)) {
+      const id = `area:${a}`;
+      if (legalIds.includes(id) || !s.areas[a].slots.includes(null)) continue;
+      const c = areaCost(s, p, a);
+      if ((c.diamond ?? 0) > p.diamond) continue;
+      targets.push({ id, need: { gold: c.gold ?? 0, wheat: c.wheat ?? 0, wood: c.wood ?? 0, iron: c.iron ?? 0 } });
+    }
+    const BAS = ['wheat', 'wood', 'iron'] as const;
+    const code = (r: (typeof BAS)[number]) => `basic:${r === 'wheat' ? 1 : 0}-${r === 'wood' ? 1 : 0}-${r === 'iron' ? 1 : 0}`;
+    for (const t of targets) {
+      const path: string[] = [];
+      let x = s;
+      let ok = true;
+      const run = (id: string, subs: string[]) => {
+        if (!ok || !legal(x).some((o) => o.id === id)) return (ok = false);
+        x = step(x, id);
+        path.push(id);
+        for (const sub of subs) {
+          if (!x.pending || !legal(x).some((o) => o.id === sub)) return (ok = false);
+          x = step(x, sub);
+          path.push('>' + sub);
+        }
+        return true;
+      };
+      const res = () => x.players[0].res;
+      const convs = () => path.filter((q) => !q.startsWith('>')).length;
+      // 基礎資源の不足
+      for (const r of BAS) {
+        while (ok && res()[r] < t.need[r]) {
+          if (convs() >= MAX_CONVERSIONS) ok = false;
+          // 余り（このコストに要らない分）が3個以上ある資源から fa6、なければ fa3
+          const spare = BAS.filter((b) => b !== r && res()[b] - t.need[b] >= 1);
+          const total = spare.reduce((a, b) => a + (res()[b] - t.need[b]), 0);
+          if (total >= 3) {
+            // 余りの多い順に3個払う内訳
+            const pay: Record<string, number> = { wheat: 0, wood: 0, iron: 0 };
+            let left = 3;
+            for (const b of [...spare].sort((u, v) => res()[v] - t.need[v] - (res()[u] - t.need[u]))) {
+              const k = Math.min(left, res()[b] - t.need[b]);
+              pay[b] += k;
+              left -= k;
+            }
+            run('fa6', [`basic:${pay.wheat}-${pay.wood}-${pay.iron}`, code(r)]);
+          } else if (res().gold - t.need.gold >= 4) run('fa3', [code(r)]);
+          else ok = false;
+        }
+      }
+      // ゴールドの不足：余った基礎資源から fa5
+      while (ok && res().gold < t.need.gold) {
+        if (convs() >= MAX_CONVERSIONS) ok = false;
+        const b = BAS.filter((q) => res()[q] - t.need[q] >= 1).sort((u, v) => res()[v] - t.need[v] - (res()[u] - t.need[u]))[0];
+        if (!b) ok = false;
+        else run('fa5', [code(b)]);
+      }
+      if (!ok || path.length === 0 || !legal(x).some((o) => o.id === t.id)) continue;
+      out.push({ s: step(x, t.id), path: [...path, t.id] });
+    }
     return out;
   }
 
   /** いまの計画（手の列と、その手を指したあとに来るはずの局面の鍵） */
   private plan: { path: string[]; keys: string[]; i: number } | null = null;
+  /** 直前の手を計画から打ったか（計画の中の両替の内訳と、その次の手番の判断で使う） */
+  private lastFromPlan = false;
 
   /** 計画どおりの局面にいるあいだは計画の続きを打ち、ずれたら（カードを引いた・細かい選択が変わった）計画し直す */
   private followPlan(det: GameState): string {
     const key = stateKey(det);
     const pl = this.plan;
-    if (pl && pl.i < pl.path.length && (pl.i === 0 ? false : pl.keys[pl.i - 1] === key) && legal(det).some((o) => o.id === pl.path[pl.i])) return pl.path[pl.i++];
+    const atPlan = pl && pl.i > 0 && pl.i < pl.path.length && (pl.keys[pl.i - 1] === key || (pl.keys[pl.i - 1] === '' && this.lastFromPlan));
+    if (atPlan && !pl!.path[pl!.i].startsWith('>') && legal(det).some((o) => o.id === pl!.path[pl!.i])) {
+      this.lastFromPlan = true;
+      return pl!.path[pl!.i++];
+    }
     const r = this.planR5(det);
     this.plan = { path: r.path, keys: r.keys, i: 1 };
+    this.lastFromPlan = true;
     return r.path[0];
   }
 
@@ -457,15 +594,18 @@ export class Agent {
     const t0 = performance.now();
     const { W, E } = this.cfg.planR5!;
     let best = { path: ['pass'], keys: [] as string[], score: -Infinity };
-    let frontier = [{ s: det, path: [] as string[], keys: [] as string[], score: this.passScore(det), leaf: false }];
+    const s0 = this.passScore(det);
+    let frontier: PlanNode[] = [{ s: det, path: [], keys: [], score: s0, rank: s0, leaf: false }];
     const seen = new Set<string>();
     let nodes = 0;
     while (frontier.length > 0) {
-      const next: { s: GameState; path: string[]; keys: string[]; score: number; leaf: boolean }[] = [];
+      const next: PlanNode[] = [];
       for (const node of frontier) {
-        const kids = this.planChildren(node.s, node.path);
+        const kids = this.planChildren(node.s, node.path, node.score);
         nodes += kids.length;
-        for (const k of kids) if (k.leaf && k.score > best.score) best = { path: k.path, keys: [...node.keys, ''], score: k.score };
+        // 子の手の列は node.path に1手（両替を前に付けたものは数手）足したもの。足した手のうち最後以外の鍵は ''（両替の途中）
+        const keysFor = (k: PlanNode, last: string) => [...node.keys, ...Array(k.path.length - node.path.length - 1).fill(''), last];
+        for (const k of kids) if (k.leaf && k.score > best.score) best = { path: k.path, keys: keysFor(k, ''), score: k.score };
         // keepEven：上位 E 個に入らなくても、パスしたら得る得点が親より下がらない手（その場では点にならない準備の手）は残す
         const alive = kids.filter((x) => !x.leaf);
         const picked = this.cfg.planR5!.keepEven ? alive.filter((x, i) => i < E || x.score >= node.score) : alive.slice(0, E);
@@ -473,10 +613,10 @@ export class Agent {
           const key = stateKey(k.s);
           if (seen.has(key)) continue;
           seen.add(key);
-          next.push({ ...k, keys: [...node.keys, key] });
+          next.push({ ...k, keys: keysFor(k, key) });
         }
       }
-      next.sort((a, b) => b.score - a.score || (a.path.join(' ') < b.path.join(' ') ? -1 : 1));
+      next.sort((a, b) => b.rank - a.rank || b.score - a.score || (a.path.join(' ') < b.path.join(' ') ? -1 : 1));
       frontier = next.slice(0, W);
     }
     this.planStats.plans++;

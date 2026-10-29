@@ -69,7 +69,7 @@ function cmdHandover(): void {
     const start = replayTo(round);
     const p = start.players[0];
     console.log(`第${round}R の頭：得点 ${scoreTotal(start)}、収入 ${JSON.stringify(p.income)}、繁栄 ${p.pros.join(',')}`);
-    for (let aiSeed = 1; aiSeed <= 5; aiSeed++) {
+    for (const aiSeed of (o.aiSeeds ?? '1,2,3,4,5').split(',').map(Number)) {
       const t0 = performance.now();
       const end = playOut(start, aiSeed);
       const ms = Math.round(performance.now() - t0);

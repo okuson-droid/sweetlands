@@ -273,6 +273,16 @@ svg .lit-svg {
   font-size: 11px;
   color: var(--cocoa-soft);
 }
+.opp .think {
+  font-size: 11px;
+  color: var(--cocoa-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.opp .think.on {
+  color: var(--cocoa);
+  font-weight: 700;
+}
 
 .upper {
   display: grid;

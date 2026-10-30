@@ -14,6 +14,8 @@ export interface GameDoc {
   moves: string[];
   /** 書き込むたびに1増やす（食い違いの検出用） */
   version: number;
+  /** 席ごとの思考時間（ミリ秒）。手を送った人が、自分の画面で測った分を足して書く（docs/decisions_13 §13.19）。以前のドキュメントにはない */
+  think?: number[];
 }
 
 export interface Room {

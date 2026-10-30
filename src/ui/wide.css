@@ -411,6 +411,8 @@ body:has(.game.wide .hand .hslot:hover) .zoom {
 .fold-pop {
   position: fixed;
   z-index: 40;
+  max-width: calc(100vw - 16px); /* 狭い画面では、指定の幅より画面の幅に合わせる */
+  box-sizing: border-box;
   background: var(--biscuit);
   border: 2px solid var(--cocoa);
   border-radius: 12px;
@@ -450,6 +452,37 @@ body:has(.game.wide .hand .hslot:hover) .zoom {
 .tableau.full .card {
   zoom: 1.15;
   box-shadow: none;
+}
+/* 見るだけのカードの一覧（オートメーション化したカード・捨て札）。枚数が多いときは中でスクロールする */
+.card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+.card-list .card {
+  box-shadow: none;
+}
+.automated-cards {
+  margin-top: 8px;
+}
+.auto-row {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: start;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.auto-row-name {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  padding-top: 4px;
+}
+.discard-fold .fold-head {
+  min-width: 56px;
 }
 /* 覗き窓の文章は窓の幅に合わせる（拡大表示の小窓の固定幅 280px を外す） */
 .hpeek-text .cardfull {

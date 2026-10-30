@@ -43,14 +43,10 @@ describe('キャラクターの上方修正', () => {
     expect(afterOff.players[off.seat].income.gold).toBe(inc + 2);
   });
 
-  it('ナタ：工業点アイコンは 1/2/3/4（両方のマーカー）', () => {
+  it('ナタ：工業点アイコンの値は上方修正でも通常どおり 1/1/2/2（2026-10-30 に 1/2/3/4 を取り下げた）', () => {
     const { s, seat } = game('ナタ・パステル', true);
     const p = { ...s.players[seat], carriage: 17, loco: 8 };
-    expect(passedIp(p, false)).toBe(6 + 2);
-    expect(passedIp(p, true)).toBe(10 + 3);
-    // ナタ以外には効かない
-    const q = { ...p, character: 'ビスキュイ・バステト' };
-    expect(passedIp(q, true)).toBe(8);
+    expect(passedIp(p)).toBe(6 + 2);
   });
 
   it('ビスキュイ：フリーアクションは通常のまま、研究所駒を置くたび工業トラック2歩', () => {
@@ -316,5 +312,43 @@ describe('エリ・マカロンの上方修正', () => {
     const off = setupGame(2, ['エリ・マカロン'], 42, [], v).players.find((p) => p.character === 'エリ・マカロン')!;
     expect(on.res).toEqual(off.res);
     expect(on.income).toEqual(off.income);
+  });
+});
+
+describe('上方修正の第4弾（docs/decisions_16 §16.11）', () => {
+  it('リッカ：食料トラックのエリアの手札コストが常に1枚', () => {
+    for (const buff of [false, true]) {
+      const g = game('リッカ・ベリー', buff);
+      g.s.areas.B.slots[0] = 1 - g.seat; // 1つ目のスペースは相手が使った
+      g.s.players[g.seat].res.wheat = 9;
+      const opt = getOptions(turnOf(g.s, g.seat)).find((o) => o.id === 'area:B');
+      expect(opt?.label).toContain(buff ? '（手札1枚）' : '（手札2枚）');
+    }
+  });
+
+  it('コーラル：繁栄トラック下段の最初のボーナスで、収入値が2上がる', () => {
+    for (const buff of [false, true]) {
+      const g = game('コーラル・ライラ', buff);
+      const p = g.s.players[g.seat];
+      p.pros[1] = 1; // オレンジの下段（麦）の1マス目
+      const before = p.income.wheat;
+      const s = applyMove(withEffects(g.s, g.seat, [{ k: 'pros', n: 1 }]), 'pros:1');
+      expect(s.players[g.seat].income.wheat - before).toBe(buff ? 2 : 1);
+    }
+    // コーラル以外には効かない
+    const o = game('ナタ・パステル', true);
+    o.s.players[o.seat].pros[3] = 1;
+    const before = o.s.players[o.seat].income.wood;
+    const s = applyMove(withEffects(o.s, o.seat, [{ k: 'pros', n: 1 }]), 'pros:3');
+    expect(s.players[o.seat].income.wood - before).toBe(1);
+  });
+
+  it('ロータス：収入時に地形タイルを1枚置く', () => {
+    const v = { turnOrder: false, draft: false, advSkills: false };
+    const tiles = (s: GameState) => Object.values(s.players.find((p) => p.character === 'ロータス・チェー')!.hexes).filter((h) => h.tile).length;
+    const on = setupGame(2, ['ロータス・チェー'], 42, [], { ...v, charBuff: true });
+    const off = setupGame(2, ['ロータス・チェー'], 42, [], v);
+    // 局面は第1ラウンドの収入のあと（準備の手は先頭の選択肢を選ぶ）
+    expect(tiles(on) - tiles(off)).toBe(1);
   });
 });

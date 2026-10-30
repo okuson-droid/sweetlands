@@ -44,6 +44,24 @@ async function tapAt(p) {
   if (touch) await page.touchscreen.tap(p.x, p.y);
   else await page.mouse.click(p.x, p.y);
 }
+// 開いたままの展開の窓（Fold）が押したい要素を覆っていたら、人と同じく窓を閉じる（覆われたまま押し続けて止まらないように）。
+// 押したい要素が一番上に見えていれば何もしない（窓の中の要素を押すときを含む）
+async function uncover(el, p) {
+  const hidden = (e, q) => {
+    const t = document.elementFromPoint(q.x, q.y);
+    return !!t && !e.contains(t) && !!t.closest('.fold-pop');
+  };
+  if (!(await el.evaluate(hidden, p).catch(() => false))) return;
+  for (const h of await page.$$('.fold.open .fold-head')) await h.click().catch(() => {});
+  await page.waitForTimeout(30);
+}
+async function tapEl(el) {
+  const p = await center(el);
+  if (!p) return false;
+  await uncover(el, p);
+  await tapAt(p);
+  return true;
+}
 async function visibleLit(sel) {
   const els = await page.$$(sel);
   const out = [];
@@ -159,6 +177,7 @@ while (steps < Number(maxArg)) {
     const el = pick(srcs);
     const p = await center(el);
     if (p) {
+      await uncover(el, p);
       if (touch) {
         await page.touchscreen.tap(p.x, p.y); // タップで持ち上げる
         await page.waitForTimeout(30);
@@ -193,18 +212,11 @@ while (steps < Number(maxArg)) {
       did = true;
     }
   } else if (dests.length && (r < 0.97 || !passBtn.length)) {
-    const p = await center(pick(dests));
-    if (p) {
-      await tapAt(p);
-      did = true;
-    }
+    if (await tapEl(pick(dests))) did = true;
   }
   if (!did) {
     const pool = nonPass.length && rand() < 0.85 ? nonPass : buttons.filter((_, i) => !['取り消し', '手番の最初に戻る'].includes(btnTexts[i]));
-    if (pool.length) {
-      const p = await center(pick(pool));
-      if (p) await tapAt(p);
-    } else {
+    if (pool.length) await tapEl(pick(pool)); else {
       // 狭い画面：対象のある側へ切り替える
       const tabs = await visibleLit(WANT_TABS);
       if (tabs.length) await tapAt(await center(tabs[0]));

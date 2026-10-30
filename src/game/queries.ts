@@ -4,7 +4,7 @@ import { CARDS } from './cards';
 import { BUFF_TRAIT_TAGS, CHARACTERS, isBuffed } from './characters';
 import { hexEdges, hexKey, hexVertices, neighborCoords, parseHexKey, sharedEdge, edgeVertices } from './geometry';
 import type { HexKey } from './geometry';
-import { IP_ICONS, IP_VALUES_NATA_BUFF, PROS_TRACKS } from './boards';
+import { IP_ICONS, PROS_TRACKS } from './boards';
 import type { BuildingType, CondItem, Counter, GameState, MapHex, PlayerState, Row, Tag, Terrain } from './types';
 import { TAGS } from './types';
 
@@ -364,15 +364,13 @@ export function automatedCount(p: PlayerState): number {
   return p.automated.agr.length + p.automated.for.length + p.automated.min.length;
 }
 
-/** 工業マーカーが通過した工業点アイコンの合計（§6.11-3）。buff はキャラクターの上方修正を採用しているか
- *  （採用時、ナタ・パステルのアイコンの値は 1/2/3/4。docs/decisions_16） */
-export function passedIp(p: PlayerState, buff = false): number {
-  const values = buff && p.character === 'ナタ・パステル' ? IP_VALUES_NATA_BUFF : IP_ICONS.map((ic) => ic.value);
+/** 工業マーカーが通過した工業点アイコンの合計（§6.11-3） */
+export function passedIp(p: PlayerState): number {
   let sum = 0;
   for (const pos of [p.carriage, p.loco]) {
     if (pos === null) continue;
-    IP_ICONS.forEach((ic, i) => {
-      if (pos > ic.gap) sum += values[i];
+    IP_ICONS.forEach((ic) => {
+      if (pos > ic.gap) sum += ic.value;
     });
   }
   return sum;

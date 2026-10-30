@@ -99,8 +99,18 @@ export function CardBrowser({ onBack }: { onBack: () => void }) {
           ))}
           {list.length === 0 && <p className="hint">条件に合うカードはありません。</p>}
         </div>
-        <aside className="cb-detail" aria-label="選んだカード">
-          {selected ? <CardFull id={selected} /> : <p className="hint">カードをクリックすると、ここに詳しい内容を出します。</p>}
+        {/* 広い画面では右の欄、狭い画面（スマートフォン）ではカードを選んだときだけ下から出す窓（CSS で切り替える） */}
+        <aside className={`cb-detail ${selected ? 'has-card' : ''}`} aria-label="選んだカード">
+          {selected ? (
+            <>
+              <button className="btn cb-close" onClick={() => setSelected(null)}>
+                閉じる
+              </button>
+              <CardFull id={selected} />
+            </>
+          ) : (
+            <p className="hint">カードをクリックすると、ここに詳しい内容を出します。</p>
+          )}
         </aside>
       </div>
     </main>

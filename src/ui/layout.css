@@ -1910,3 +1910,75 @@ fieldset {
 .cb-detail .cardfull {
   width: auto;
 }
+
+.cb-close {
+  display: none;
+  float: right;
+}
+/* 狭い画面（スマートフォン）：カードを画面いっぱいに並べ、選んだカードは下から出す窓で見せる */
+@media (max-width: 760px) {
+  .cb-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 8px;
+    padding: 8px;
+  }
+  .cb-bar > .btn {
+    justify-self: start;
+  }
+  .cb-bar h1 {
+    font-size: 16px;
+    align-self: center;
+  }
+  .cb-search {
+    grid-column: 1 / -1;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 16px; /* iOS で入力時に拡大されないように */
+  }
+  .cb-bar .field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+  }
+  .cb-bar .field select {
+    width: 100%;
+  }
+  .cb-count {
+    grid-column: 1 / -1;
+    font-size: 12px;
+  }
+  .cb-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: 6px;
+    padding: 8px;
+  }
+  .cb-grid .card {
+    width: auto;
+  }
+  .cb-detail {
+    display: none;
+  }
+  .cb-detail.has-card {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 60vh;
+    z-index: 30;
+    border-left: none;
+    border-top: 2px solid var(--cocoa);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -6px 20px rgba(60, 30, 10, 0.2);
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  }
+  .cb-close {
+    display: inline-block;
+  }
+}

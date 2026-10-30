@@ -13,6 +13,8 @@ import { MainBoard, SideBoard } from './components/MainBoard';
 import { MapBoard } from './components/MapBoard';
 import { PersonalBoard } from './components/PersonalBoard';
 import { CardList } from './components/Card';
+import { CardBrowser } from './components/CardBrowser';
+import { CARDS } from '../game/cards';
 import { playerColor } from './theme';
 import { GlyphDefs } from './icons/Glyph';
 import { connectClaudeRoom, connectFakeRoom, type Room } from '../net/room';
@@ -20,8 +22,9 @@ import { connectSupabaseRoom, supabaseConfigured } from '../net/supabaseRoom';
 import { OnlineScreen } from './Online';
 
 const SAVE_KEY = 'sweetlands.local.v1';
+const CARD_COUNT = Object.keys(CARDS).length;
 
-type ScreenState = { k: 'online' } | { k: 'lobby' } | { k: 'game'; config: GameConfig; seed: number; moves: string[] } | { k: 'result'; record: GameRecord } | { k: 'replay'; record: GameRecord; at: 'start' | 'end' };
+type ScreenState = { k: 'online' } | { k: 'lobby' } | { k: 'cards' } | { k: 'game'; config: GameConfig; seed: number; moves: string[] } | { k: 'result'; record: GameRecord } | { k: 'replay'; record: GameRecord; at: 'start' | 'end' };
 
 function loadSaved(): GameRecord | null {
   try {
@@ -81,7 +84,8 @@ export function App() {
 }
 
 function Screen({ screen, setScreen, online }: { screen: ScreenState; setScreen: (s: ScreenState) => void; online: Room | null | undefined }) {
-  if (screen.k === 'lobby' || screen.k === 'online') return <Lobby start={(config, seed, moves = []) => setScreen({ k: 'game', config, seed, moves })} online={online} openOnline={() => setScreen({ k: 'online' })} />;
+  if (screen.k === 'lobby' || screen.k === 'online') return <Lobby start={(config, seed, moves = []) => setScreen({ k: 'game', config, seed, moves })} online={online} openOnline={() => setScreen({ k: 'online' })} openCards={() => setScreen({ k: 'cards' })} />;
+  if (screen.k === 'cards') return <CardBrowser onBack={() => setScreen({ k: 'lobby' })} />;
   if (screen.k === 'game')
     return <LocalGame key={screen.seed} config={screen.config} seed={screen.seed} moves={screen.moves} onExit={() => setScreen({ k: 'lobby' })} onFinished={(record) => setScreen({ k: 'result', record })} />;
   if (screen.k === 'result')
@@ -184,7 +188,7 @@ export function ReplayScreen({ record, at, onBack }: { record: GameRecord; at: '
 /** オンライン対戦に接続できなかったときの理由（画面に出して原因を特定しやすくする） */
 let onlineError = '';
 
-function Lobby({ start, online, openOnline }: { start: (c: GameConfig, seed: number, moves?: string[]) => void; online: Room | null | undefined; openOnline: () => void }) {
+function Lobby({ start, online, openOnline, openCards }: { start: (c: GameConfig, seed: number, moves?: string[]) => void; online: Room | null | undefined; openOnline: () => void; openCards: () => void }) {
   const saved = loadSaved();
   return (
     <main className="lobby">
@@ -217,6 +221,13 @@ function Lobby({ start, online, openOnline }: { start: (c: GameConfig, seed: num
         <h2>1台で遊ぶ（ローカル）</h2>
         <p className="hint">1台の画面で、全員が交代しながら遊びます。手番が来た人の手札が表示されます。人数を1人にすると、1人で遊べます（ソロモード専用のルールはなく、2人用の場で1人だけが進めます）。</p>
         <NewGameForm label="ゲーム開始" allowSolo onSubmit={(c) => start(c, Math.floor(Math.random() * 2 ** 31))} />
+      </section>
+      <section className="lobby-card">
+        <h2>カード一覧</h2>
+        <p className="hint">市民カード全{CARD_COUNT}枚を一覧で見られます。名前や能力の文で探したり、種類・産業・タグで絞り込んだりできます。</p>
+        <button className="btn" onClick={openCards}>
+          カード一覧を見る
+        </button>
       </section>
     </main>
   );

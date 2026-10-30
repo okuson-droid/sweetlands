@@ -19,12 +19,17 @@ import { PersonalBoard, TableauBar } from './components/PersonalBoard';
 import { loadViewSettings, LogPanel, mapFlash, Opponents, saveViewSettings, SettingsPanel, TopBar, usePanels, type LayoutProps, type LogLine, type ViewSettings } from './GameParts';
 import { LandscapeLayout, PortraitLayout, useLayoutMode } from './MobileLayout';
 
-export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { session: GameSession; hotseat: boolean; fixedViewer?: number; onExit: () => void; onFinished: () => void }) {
+/**
+ * 対局画面。viewer は画面の主役の席（「自分」の場として出す席）、own は手札など伏せた情報を見せる席。
+ * 観戦（spectator）では own を -1 にし、誰の伏せた情報も出さず、操作もできない。主役の席は、選択待ちの人を追いかける
+ */
+export function Game({ session, hotseat, fixedViewer, spectator = false, onExit, onFinished }: { session: GameSession; hotseat: boolean; fixedViewer?: number; spectator?: boolean; onExit: () => void; onFinished: () => void }) {
   const raw = session.state;
   const [lastViewer, setLastViewer] = useState(0);
-  const viewer = hotseat ? raw.pending?.player ?? lastViewer : fixedViewer ?? 0;
+  const viewer = hotseat || spectator ? raw.pending?.player ?? lastViewer : fixedViewer ?? 0;
+  const own = spectator ? -1 : viewer;
   // 同時に選べる選択待ち（手札のドラフト）は、見ている席の分だけに絞る
-  const s = useMemo(() => viewFor(raw, viewer), [raw, viewer]);
+  const s = useMemo(() => viewFor(raw, own), [raw, own]);
   useEffect(() => {
     if (s.pending) setLastViewer(s.pending.player);
   }, [s.pending]);
@@ -38,9 +43,9 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
     if (!new URLSearchParams(location.search).has('noanim')) saveViewSettings(v);
   }, []);
   useEffect(() => setSoundEnabled(settings.sound), [settings.sound]);
-  const pb = usePlayback(s, session.prev, viewer, settings.animation, session.lastWasUndo);
+  const pb = usePlayback(s, session.prev, own, settings.animation, session.lastWasUndo);
   const display = pb.display;
-  const active = !pb.playing && !!s.pending && s.pending.player === viewer && !s.finished;
+  const active = !pb.playing && !!s.pending && s.pending.player === own && !s.finished;
   const aff = useMemo(() => (active ? buildAffordances(s) : buildAffordances({ ...s, pending: null })), [s, active]);
 
   // ログ（§10）
@@ -53,7 +58,7 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
       return;
     }
     const lines = s.events
-      .map((e) => ({ text: eventText(s, redact(e, viewer)), player: 'p' in e ? e.p : null }))
+      .map((e) => ({ text: eventText(s, redact(e, own)), player: 'p' in e ? e.p : null }))
       .filter((x): x is { text: string; player: number | null } => !!x.text);
     if (lines.length) setLog((l) => [...l, ...lines.map((x) => ({ group: g, ...x }))]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -65,7 +70,7 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
   const lastPending = useRef<number | null>(null);
   useEffect(() => {
     const now = s.pending?.player ?? null;
-    if (now !== null && now !== lastPending.current && now === viewer && !session.lastWasUndo) {
+    if (now !== null && now !== lastPending.current && now === own && !session.lastWasUndo) {
       const turn = s.pending!.step === 'turn';
       setNotice(hotseat ? `${s.players[now].name}さん、${turn ? 'あなたの手番です' : 'あなたが選ぶ番です'}` : turn ? 'あなたの手番です' : 'あなたが選ぶ番です');
       setPulse(true);
@@ -79,33 +84,33 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
       };
     }
     lastPending.current = now;
-  }, [s.pending?.player, viewer, hotseat]);
+  }, [s.pending?.player, own, hotseat]);
 
   // ブラウザのタブが裏にあるとき（§7.2）
   useEffect(() => {
-    const mine = s.pending?.player === viewer;
+    const mine = s.pending?.player === own;
     document.title = mine && document.hidden ? '● あなたの手番 - スイーツランド' : 'スイーツランド';
     const f = () => (document.title = !document.hidden || !mine ? 'スイーツランド' : '● あなたの手番 - スイーツランド');
     document.addEventListener('visibilitychange', f);
     return () => document.removeEventListener('visibilitychange', f);
-  }, [s.pending?.player, viewer]);
+  }, [s.pending?.player, own]);
 
   // Ctrl+Z で取り消し、Ctrl+Y（Ctrl+Shift+Z）でやり直し
   useEffect(() => {
     const f = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
       const redoKey = (e.ctrlKey || e.metaKey) && (key === 'y' || (key === 'z' && e.shiftKey));
-      if (redoKey && session.redo && (session.redoCount ?? 0) > 0 && s.pending?.player === viewer) {
+      if (redoKey && session.redo && (session.redoCount ?? 0) > 0 && s.pending?.player === own) {
         e.preventDefault();
         session.redo();
-      } else if ((e.ctrlKey || e.metaKey) && key === 'z' && !e.shiftKey && session.canUndo && s.pending?.player === viewer) {
+      } else if ((e.ctrlKey || e.metaKey) && key === 'z' && !e.shiftKey && session.canUndo && s.pending?.player === own) {
         e.preventDefault();
         session.undo();
       }
     };
     window.addEventListener('keydown', f);
     return () => window.removeEventListener('keydown', f);
-  }, [session, s.pending?.player, viewer]);
+  }, [session, s.pending?.player, own]);
 
   useEffect(() => {
     if (s.finished && !pb.playing) onFinished();
@@ -116,10 +121,10 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
     (window as unknown as { __sl: unknown }).__sl = {
       finished: s.finished,
       step: s.pending?.step ?? null,
-      viewer,
+      viewer: own,
       moves: session.record.moves.length,
       fallback: active ? aff.fallback.map((o) => `${s.pending!.step}:${o.id}`) : [],
-      otherHands: s.players.filter((p) => p.seat !== viewer).flatMap((p) => p.hand),
+      otherHands: s.players.filter((p) => p.seat !== own).flatMap((p) => p.hand),
       sources: active ? [...aff.clicks.keys(), ...aff.drags.keys()] : [],
       // 基礎資源の内訳の候補（e2e の自動操作が、人のように＋／−で数を合わせるために使う。選択待ちの本人の情報だけ）
       splits: active && (aff.declare?.kind === 'basicGain' || aff.declare?.kind === 'basicPay') ? aff.declare.moves.map((m) => m.split) : [],
@@ -133,10 +138,10 @@ export function Game({ session, hotseat, fixedViewer, onExit, onFinished }: { se
   const mode = useLayoutMode();
   const meStyle = { ['--me' as string]: playerColor(viewer) } as React.CSSProperties;
   return (
-    <InteractionProvider state={s} viewer={viewer} aff={aff} active={active} perform={session.perform} tapOnly={mode !== 'wide'}>
-      {mode === 'portrait' && <PortraitLayout s={display} live={s} viewer={viewer} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}
-      {mode === 'landscape' && <LandscapeLayout s={display} live={s} viewer={viewer} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}
-      {mode === 'wide' && <WideLayout s={display} live={s} viewer={viewer} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}
+    <InteractionProvider state={s} viewer={own} aff={aff} active={active} perform={session.perform} tapOnly={mode !== 'wide'}>
+      {mode === 'portrait' && <PortraitLayout s={display} live={s} viewer={viewer} own={own} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}
+      {mode === 'landscape' && <LandscapeLayout s={display} live={s} viewer={viewer} own={own} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}
+      {mode === 'wide' && <WideLayout s={display} live={s} viewer={viewer} own={own} session={session} pulse={pulse} log={log} settings={settings} setSettings={setSettings} onExit={onExit} flash={pb.flash} style={meStyle} />}
       {pb.playing && <div className="skip-layer" onPointerDown={pb.skip} aria-label="演出を飛ばす" />}
       {notice && (
         <div className="notice" style={meStyle}>
@@ -173,7 +178,7 @@ function MagButton({ onClick }: { onClick: () => void }) {
 }
 
 function WideLayout(props: LayoutProps) {
-  const { s, live, viewer, session, pulse, flash, style } = props;
+  const { s, live, viewer, own, session, pulse, flash, style } = props;
   const c = useInteraction();
   const [viewing, setViewing] = useState(viewer);
   const [enlarged, setEnlarged] = useState<Enlarged | null>(initialEnlarged);
@@ -216,9 +221,9 @@ function WideLayout(props: LayoutProps) {
 
   return (
     <div className="game wide" style={style}>
-      <TopBar s={s} viewer={viewer} onLog={() => setPanel(panel === 'log' ? null : 'log')} onPeople={() => setViewing(viewer)} onSettings={() => setPanel('settings')} onExit={props.onExit} />
-      <Opponents s={s} clock={props.session.clock} viewer={viewer} viewing={viewing} setViewing={setViewing} />
-      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} onResize={() => undefined} auto={session.auto} setAuto={session.setAuto} redo={session.redo} redoCount={session.redoCount} />
+      <TopBar s={s} viewer={own} onLog={() => setPanel(panel === 'log' ? null : 'log')} onPeople={() => setViewing(viewer)} onSettings={() => setPanel('settings')} onExit={props.onExit} />
+      <Opponents s={s} clock={props.session.clock} viewer={own} viewing={viewing} setViewing={setViewing} />
+      <Band s={live} viewer={own} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} onResize={() => undefined} auto={session.auto} setAuto={session.setAuto} redo={session.redo} redoCount={session.redoCount} />
       <div className="wide-body">
         <section className="wide-shared" aria-label="共有ボード">
           <div className="board wide-main">
@@ -232,7 +237,7 @@ function WideLayout(props: LayoutProps) {
               <MineSupply me={me} />
               <SharedSupply s={s} contextual foldSide="up" />
             </div>
-            <HandRow s={s} me={me} viewer={viewer} />
+            <HandRow s={s} me={me} viewer={own} />
           </div>
           {prosEnlarged && (
             <div className="enlarged enlarged-pros" role="dialog" aria-label="繁栄トラックの拡大表示">
@@ -254,7 +259,7 @@ function WideLayout(props: LayoutProps) {
             <div className="viewing-banner">
               {p.name}さんの場を表示中
               <button className="btn" onClick={() => setViewing(viewer)}>
-                自分に戻る
+                {own < 0 ? '選んでいる人に戻る' : '自分に戻る'}
               </button>
             </div>
           )}
@@ -291,8 +296,8 @@ function WideLayout(props: LayoutProps) {
           )}
         </section>
       </div>
-      <CandidateWindow s={live} viewer={viewer} />
-      <SetupWindow s={live} viewer={viewer} />
+      <CandidateWindow s={live} viewer={own} />
+      <SetupWindow s={live} viewer={own} />
       {panel === 'log' && props.settings.log && <LogPanel s={s} log={props.log} close={() => setPanel(null)} />}
       {panel === 'settings' && <SettingsPanel session={session} settings={props.settings} setSettings={props.setSettings} close={() => setPanel(null)} />}
     </div>

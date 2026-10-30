@@ -1,6 +1,7 @@
 // オンライン対戦の受け入れ検査：プレイヤーごとに別のページ（別の利用者 ID）を開き、
 // 代わりの共有データベース（?fakedb=1、同じブラウザの localStorage）越しに、盤面の所作だけで1局を打ち切る。
 // 確かめること：全員の画面の盤面が一致する／自分の番でない人は操作できない／他人の手札の中身が DOM に出ない／エラーがない。
+// 席のない観戦者のページも1つ開き、盤面が一致する／誰の手札の中身も DOM に出ない／何も操作できないことを確かめる。
 // 使い方: node e2e/online.mjs <players> <seed> [maxSteps] [variants]
 //   variants はロビーで入れるヴァリアントのチェックの文言をカンマ区切りで（例：手札のドラフト）。
 //   手札のドラフトでは全員が同時に選ぶため、操作できる人が複数いてよく、そのうちの1人をランダムに動かす。
@@ -44,6 +45,33 @@ await host.waitForSelector('button:has-text("ゲームを始める"):not([disabl
 await host.click('button:has-text("ゲームを始める")');
 for (const p of pages) await p.waitForFunction(() => window.__sl, null, { timeout: 5000 });
 
+// ---- 観戦者：席のない利用者が、進行中のゲームを「観戦する」で開く ----
+const spec = await ctx.newPage();
+spec.on('pageerror', (e) => errors.push(`spec: ${e}`));
+await spec.goto(`${base}&uid=watcher`);
+await spec.click('text=オンライン対戦へ');
+await spec.click('button:has-text("観戦する")');
+await spec.waitForFunction(() => window.__sl, null, { timeout: 5000 });
+const specIssues = [];
+async function checkSpectator(moves, digest) {
+  const v = await spec.evaluate(() => {
+    const sl = window.__sl;
+    return {
+      moves: sl.moves,
+      digest: sl.digest,
+      viewer: sl.viewer,
+      sources: sl.sources.length,
+      // 誰の手札のカードも、手札の札（data-src）としても、表面（カード名）としても出ていないこと
+      shown: sl.otherHands.filter((id) => document.querySelector(`[data-src="card:${id}"]`)),
+      lit: document.querySelectorAll('[data-src].lit, [data-dest].lit').length,
+    };
+  });
+  if (v.viewer !== -1) specIssues.push(`viewer=${v.viewer}`);
+  if (v.sources || v.lit) specIssues.push(`active@${v.moves}`);
+  if (v.shown.length) specIssues.push(`leak@${v.moves}: ${v.shown.join(',')}`);
+  if (v.moves === moves && v.digest !== digest) specIssues.push(`mismatch@${moves}`);
+}
+
 async function visibleLit(p, sel) {
   const out = [];
   for (const e of await p.$$(sel)) if (await e.isVisible()) out.push(e);
@@ -67,6 +95,7 @@ while (steps < Number(maxArg)) {
   if (sls.every((x) => x.finished)) break;
   // 全員の画面が同じ手数に追いついたら、盤面の指紋を比べる
   if (sls.every((x) => x.moves === sls[0].moves) && sls.some((x) => x.digest !== sls[0].digest)) mismatches.push(`${sls[0].moves}`);
+  if (steps % 5 === 1 && sls.every((x) => x.moves === sls[0].moves && x.digest === sls[0].digest)) await checkSpectator(sls[0].moves, sls[0].digest);
   // 他人の手札の中身が DOM にないこと
   for (let i = 0; i < n; i++) {
     const bad = await pages[i].evaluate(() => window.__sl.otherHands.filter((id) => document.querySelector(`[data-src="card:${id}"]`)));
@@ -140,5 +169,8 @@ while (steps < Number(maxArg)) {
 await new Promise((r) => setTimeout(r, 500));
 const fin = await Promise.all(pages.map((p) => p.evaluate(() => window.__sl)));
 const same = fin.every((x) => x.digest === fin[0].digest && x.moves === fin[0].moves);
-console.log(JSON.stringify({ players: n, seed: seedArg, steps, moves: fin.map((x) => x.moves), finished: fin.map((x) => x.finished), sameAtEnd: same, concurrentSteps, mismatches: mismatches.slice(0, 3), wrongActive: wrongActive.slice(0, 3), leaks: leaks.slice(0, 3), errors: errors.slice(0, 3) }));
+await checkSpectator(fin[0].moves, fin[0].digest);
+const specFin = await spec.evaluate(() => window.__sl);
+if (specFin.moves !== fin[0].moves || specFin.digest !== fin[0].digest) specIssues.push(`end: ${specFin.moves} vs ${fin[0].moves}`);
+console.log(JSON.stringify({ players: n, seed: seedArg, steps, moves: fin.map((x) => x.moves), finished: fin.map((x) => x.finished), sameAtEnd: same, concurrentSteps, mismatches: mismatches.slice(0, 3), wrongActive: wrongActive.slice(0, 3), leaks: leaks.slice(0, 3), spectator: specIssues.slice(0, 3), errors: errors.slice(0, 3) }));
 await browser.close();

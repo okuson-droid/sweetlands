@@ -23,9 +23,10 @@ export function bandText(s: GameState, viewer: number, copying: boolean): { src:
   const src = pd.resume.src ?? null;
   const mine = pd.player === viewer;
   if (!mine) {
-    if (pd.waiting) return { src: 'ドラフト', say: `${pd.waiting.map((x) => s.players[x].name).join('さん・')}さんが選んでいます（全員同時）`, mine };
-    if (pd.step === 'turn') return { src: null, say: `${who}さんの手番です`, mine };
-    return { src: null, say: `${who}さんの入力待ち${src ? `（${src}の効果）` : ''}`, mine };
+    const watch = viewer < 0 ? '観戦中：' : ''; // 観戦者（席がない）は、帯の文の頭で観戦中と分かるようにする
+    if (pd.waiting) return { src: 'ドラフト', say: `${watch}${pd.waiting.map((x) => s.players[x].name).join('さん・')}さんが選んでいます（全員同時）`, mine };
+    if (pd.step === 'turn') return { src: null, say: `${watch}${who}さんの手番です`, mine };
+    return { src: null, say: `${watch}${who}さんの入力待ち${src ? `（${src}の効果）` : ''}`, mine };
   }
   if (copying) return { src: '特殊アクションL', say: 'コピーするアクションエリアを選んでください', mine };
   if (pd.step === 'turn')

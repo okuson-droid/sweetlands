@@ -51,7 +51,10 @@ export interface LogLine {
 export interface LayoutProps {
   s: GameState; // 表示中の盤面（演出中は写し）
   live: GameState; // 真の盤面
+  /** 画面の主役の席（「自分」の場として出す。観戦では選択待ちの人） */
   viewer: number;
+  /** 手札など伏せた情報を見せる席。観戦では -1 */
+  own: number;
   session: GameSession;
   pulse: boolean;
   log: LogLine[];
@@ -83,7 +86,7 @@ export function TopBar({ s, viewer, onLog, onPeople, onSettings, onExit }: { s: 
       <span>スタート：{s.players[s.startPlayer].name}</span>
       {s.round === 5 && <span className="chip">最終ラウンド：手札を使い切れます</span>}
       <span className="spacer" />
-      <span className="mycolor" style={{ background: playerColor(viewer) }} title="あなたの色" />
+      {viewer < 0 ? <span className="chip spectating">観戦中</span> : <span className="mycolor" style={{ background: playerColor(viewer) }} title="あなたの色" />}
       <button onClick={onPeople}>みんな</button>
       <button onClick={onLog}>ログ</button>
       <button onClick={onSettings}>設定</button>

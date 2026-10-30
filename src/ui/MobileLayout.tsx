@@ -225,12 +225,12 @@ function HandStrip({ s, me, viewer }: { s: GameState; me: PlayerState; viewer: n
 }
 
 /** 他人の場を見ているときの帯 */
-function ViewingBanner({ p, back }: { p: PlayerState; back: () => void }) {
+function ViewingBanner({ p, back, spectator = false }: { p: PlayerState; back: () => void; spectator?: boolean }) {
   return (
     <div className="viewing-banner">
       {p.name}さんの場を表示中
       <button className="btn" onClick={back}>
-        自分に戻る
+        {spectator ? '選んでいる人に戻る' : '自分に戻る'}
       </button>
     </div>
   );
@@ -280,7 +280,7 @@ const PORTRAIT_TABS: [Exclude<Pane, 'hand'>, string][] = [
 ];
 
 export function PortraitLayout(props: LayoutProps) {
-  const { s, live, viewer, session, pulse, flash, style } = props;
+  const { s, live, viewer, own, session, pulse, flash, style } = props;
   const c = useInteraction();
   const { panel, setPanel } = usePanels();
   const [menu, setMenu] = useState(false);
@@ -303,11 +303,11 @@ export function PortraitLayout(props: LayoutProps) {
   const back = () => setViewing(viewer);
   return (
     <div className="game mobile portrait" style={style}>
-      <MobileTop s={s} viewer={viewer} onMenu={() => setMenu(true)} />
+      <MobileTop s={s} viewer={own} onMenu={() => setMenu(true)} />
       <MyStatus p={me} />
-      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} compact auto={session.auto} setAuto={session.setAuto} redo={session.redo} redoCount={session.redoCount} />
+      <Band s={live} viewer={own} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} compact auto={session.auto} setAuto={session.setAuto} redo={session.redo} redoCount={session.redoCount} />
       <main className="mpane" aria-label={PORTRAIT_TABS.find(([t]) => t === pane)?.[1]}>
-        {viewing !== viewer && (pane === 'town' || pane === 'char' || pane === 'industry') && <ViewingBanner p={p} back={back} />}
+        {viewing !== viewer && (pane === 'town' || pane === 'char' || pane === 'industry') && <ViewingBanner p={p} back={back} spectator={own < 0} />}
         {pane === 'shared' && (
           <Fit className="mfit-shared" min={0.6} design={360}>
             <SharedPane s={s} flash={flash} />
@@ -336,7 +336,7 @@ export function PortraitLayout(props: LayoutProps) {
           <PeoplePane
             s={s}
             clock={session.clock}
-            viewer={viewer}
+            viewer={own}
             viewing={viewing}
             pick={(n) => {
               setViewing(n);
@@ -355,7 +355,7 @@ export function PortraitLayout(props: LayoutProps) {
           <SharedSupply s={s} contextual hideIdleDisc foldSide="up" />
           <MineSupply me={me} />
         </div>
-        {sheetOpen && <HandStrip s={s} me={me} viewer={viewer} />}
+        {sheetOpen && <HandStrip s={s} me={me} viewer={own} />}
       </section>
       <nav className="mtabs" aria-label="盤面の切り替え">
         {PORTRAIT_TABS.map(([t, label]) => (
@@ -367,8 +367,8 @@ export function PortraitLayout(props: LayoutProps) {
           </button>
         ))}
       </nav>
-      <CandidateWindow s={live} viewer={viewer} />
-      <SetupWindow s={live} viewer={viewer} />
+      <CandidateWindow s={live} viewer={own} />
+      <SetupWindow s={live} viewer={own} />
       {menu && <MobileMenu onLog={() => setPanel('log')} onSettings={() => setPanel('settings')} onExit={props.onExit} close={() => setMenu(false)} />}
       {panel === 'log' && <LogPanel s={s} log={props.log} close={() => setPanel(null)} />}
       {panel === 'settings' && <SettingsPanel session={session} settings={props.settings} setSettings={props.setSettings} close={() => setPanel(null)} />}
@@ -388,7 +388,7 @@ const LANDSCAPE_TABS: [SidePane, string][] = [
 ];
 
 export function LandscapeLayout(props: LayoutProps) {
-  const { s, live, viewer, session, pulse, flash, style } = props;
+  const { s, live, viewer, own, session, pulse, flash, style } = props;
   const c = useInteraction();
   const { panel, setPanel } = usePanels();
   const [menu, setMenu] = useState(false);
@@ -405,7 +405,7 @@ export function LandscapeLayout(props: LayoutProps) {
   const label = `${phaseLabel(s)}`;
   return (
     <div className="game mobile landscape" style={style}>
-      <MobileTop s={s} viewer={viewer} onMenu={() => setMenu(true)}>
+      <MobileTop s={s} viewer={own} onMenu={() => setMenu(true)}>
         <MyStatus p={me} />
       </MobileTop>
       <aside className="mtray" aria-label="手元のディスク・ダイヤと共通サプライ">
@@ -413,7 +413,7 @@ export function LandscapeLayout(props: LayoutProps) {
         <MineSupply me={me} />
       </aside>
       <main className="mmap" aria-label={`${p.name}の街（${label}）`}>
-        {viewing !== viewer && <ViewingBanner p={p} back={() => setViewing(viewer)} />}
+        {viewing !== viewer && <ViewingBanner p={p} back={() => setViewing(viewer)} spectator={own < 0} />}
         <div className="board mapboard">
           <MapBoard p={p} color={playerColor(p.seat)} flashKeys={mapFlash(flash, p.seat)} />
         </div>
@@ -446,12 +446,12 @@ export function LandscapeLayout(props: LayoutProps) {
               </div>
             </Fit>
           )}
-          {side === 'hand' && <HandStrip s={s} me={me} viewer={viewer} />}
+          {side === 'hand' && <HandStrip s={s} me={me} viewer={own} />}
           {side === 'people' && (
             <PeoplePane
               s={s}
               clock={session.clock}
-              viewer={viewer}
+              viewer={own}
               viewing={viewing}
               pick={(n) => {
                 setViewing(n);
@@ -461,9 +461,9 @@ export function LandscapeLayout(props: LayoutProps) {
           )}
         </div>
       </section>
-      <Band s={live} viewer={viewer} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} compact auto={session.auto} setAuto={session.setAuto} redo={session.redo} redoCount={session.redoCount} />
-      <CandidateWindow s={live} viewer={viewer} />
-      <SetupWindow s={live} viewer={viewer} />
+      <Band s={live} viewer={own} canUndo={session.canUndo} undo={session.undo} undoCount={session.undoCount} undoAll={session.undoAll} pulse={pulse} compact auto={session.auto} setAuto={session.setAuto} redo={session.redo} redoCount={session.redoCount} />
+      <CandidateWindow s={live} viewer={own} />
+      <SetupWindow s={live} viewer={own} />
       {menu && <MobileMenu onLog={() => setPanel('log')} onSettings={() => setPanel('settings')} onExit={props.onExit} close={() => setMenu(false)} />}
       {panel === 'log' && <LogPanel s={s} log={props.log} close={() => setPanel(null)} />}
       {panel === 'settings' && <SettingsPanel session={session} settings={props.settings} setSettings={props.setSettings} close={() => setPanel(null)} />}

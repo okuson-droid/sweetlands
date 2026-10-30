@@ -31,6 +31,8 @@ export function OnlineScreen({ room, onBack }: { room: Room; onBack: () => void 
   const [doc, setDoc] = useState<GameDoc | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [inGame, setInGame] = useState(true);
+  // 観戦（席のない人が、進行中のゲームを見るだけ。書き込まない）
+  const [watching, setWatching] = useState(false);
   const [result, setResult] = useState<GameRecord | null>(null);
   // リザルトから開いたリプレイ（最初から／最終盤面から）
   const [replayAt, setReplayAt] = useState<'start' | 'end' | null>(null);
@@ -83,6 +85,7 @@ export function OnlineScreen({ room, onBack }: { room: Room; onBack: () => void 
         onLobby={() => {
           setResult(null);
           setInGame(false);
+          setWatching(false);
         }}
       />
     );
@@ -91,6 +94,21 @@ export function OnlineScreen({ room, onBack }: { room: Room; onBack: () => void 
     return (
       <>
         <OnlineGame key={`${doc.seed}`} room={room} doc={doc} seat={seat} onExit={() => setInGame(false)} onFinished={setResult} onError={setError} />
+        {error && (
+          <div className="online-error floating" role="alert">
+            {error}
+            <button className="btn" onClick={() => setError(null)}>
+              閉じる
+            </button>
+          </div>
+        )}
+      </>
+    );
+
+  if (doc?.status === 'playing' && seat === null && watching)
+    return (
+      <>
+        <SpectateGame key={`${doc.seed}`} room={room} doc={doc} onExit={() => setWatching(false)} onFinished={setResult} onError={setError} />
         {error && (
           <div className="online-error floating" role="alert">
             {error}
@@ -176,7 +194,14 @@ export function OnlineScreen({ room, onBack }: { room: Room; onBack: () => void 
               対局に戻る
             </button>
           )}
-          {doc.status === 'playing' && seat === null && <p className="hint">このゲームの席はすべて埋まっています（観戦はできません）。</p>}
+          {doc.status === 'playing' && seat === null && (
+            <>
+              <p className="hint">このゲームは席がすべて埋まって進行中です。観戦できます（手札など伏せた情報は見えず、操作もできません）。</p>
+              <button className="btn primary" onClick={() => setWatching(true)}>
+                観戦する
+              </button>
+            </>
+          )}
           {isCreator && (
             <p>
               {!confirmClear ? (
@@ -226,4 +251,11 @@ function OnlineGame({ room, doc, seat, onExit, onFinished, onError }: { room: Ro
   const session = useOnlineGame(room, doc, seat, onError);
   const finished = useCallback(() => onFinished(session.record), [onFinished, session.record]);
   return <Game session={session} hotseat={false} fixedViewer={seat} onExit={onExit} onFinished={finished} />;
+}
+
+/** 観戦：席を持たずに共有ドキュメントの手の列を再生して見る。選択待ちになることはないため、書き込まない */
+function SpectateGame({ room, doc, onExit, onFinished, onError }: { room: Room; doc: GameDoc; onExit: () => void; onFinished: (r: GameRecord) => void; onError: (m: string) => void }) {
+  const session = useOnlineGame(room, doc, null, onError);
+  const finished = useCallback(() => onFinished(session.record), [onFinished, session.record]);
+  return <Game session={session} hotseat={false} spectator onExit={onExit} onFinished={finished} />;
 }

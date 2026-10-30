@@ -12,6 +12,7 @@ import { buildAffordances } from './gestures';
 import { MainBoard, SideBoard } from './components/MainBoard';
 import { MapBoard } from './components/MapBoard';
 import { PersonalBoard } from './components/PersonalBoard';
+import { CardList } from './components/Card';
 import { playerColor } from './theme';
 import { GlyphDefs } from './icons/Glyph';
 import { connectClaudeRoom, connectFakeRoom, type Room } from '../net/room';
@@ -166,6 +167,13 @@ export function ReplayScreen({ record, at, onBack }: { record: GameRecord; at: '
           </div>
           <div className="board mapboard">
             <MapBoard p={s.players[seat]} color={playerColor(seat)} flashKeys={new Set()} />
+          </div>
+          {/* 視点の人の手札（ゲームが終わったあとの振り返りなので表向きで出す） */}
+          <div className="board replay-hand" aria-label="手札">
+            <h3>
+              {s.players[seat].name}さんの手札（{s.players[seat].hand.length}枚）
+            </h3>
+            <CardList ids={s.players[seat].hand} empty="手札はありません" />
           </div>
         </div>
       </div>

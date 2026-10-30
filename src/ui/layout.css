@@ -1852,6 +1852,16 @@ fieldset {
 }
 
 /* ---- 市民カード一覧（ロビーから開く） ---- */
+/* カードの部品はゲーム中のドラッグのため touch-action: none を持つ。見るだけの一覧では、カードの上で指を動かしてもスクロールできるようにする */
+.card-browser,
+.card-browser *,
+.card-list .card {
+  touch-action: manipulation;
+}
+.cb-grid {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
 .card-browser {
   height: 100%;
   display: grid;

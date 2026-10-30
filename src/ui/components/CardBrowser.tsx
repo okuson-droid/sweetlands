@@ -1,9 +1,11 @@
-// 市民カードの一覧（ロビーから開く）。全207枚を表面つきで並べ、名前・能力の文で探し、種類・産業・タグで絞り込む。
+// 市民カード・タイルの一覧（ロビーから開く）。上のタブで、市民カードとタイルの種類（TileCatalog）を切り替える。
+// 市民カードは全207枚を表面つきで並べ、名前・能力の文で探し、種類・産業・タグで絞り込む。
 // カードをクリックすると、右の欄に拡大表示（CardFull）を出す。ゲームの局面には依存しない
 import { useMemo, useState } from 'react';
 import { CARDS } from '../../game/cards';
 import { TAGS, type CardDef, type Tag } from '../../game/types';
 import { CardFace, CardFull } from './Card';
+import { TILE_TABS, TileCatalog, type TileKind } from './TileCatalog';
 
 type TypeFilter = 'all' | 'immediate' | 'pass';
 type IndustryFilter = 'any' | 'agr' | 'for' | 'min' | 'all' | 'none';
@@ -29,6 +31,7 @@ export function CardBrowser({ onBack }: { onBack: () => void }) {
   const [tag, setTag] = useState<Tag | 'any'>('any');
   const [sort, setSort] = useState<SortKey>('id');
   const [selected, setSelected] = useState<string | null>(null);
+  const [tab, setTab] = useState<'cards' | TileKind>('cards');
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -45,74 +48,91 @@ export function CardBrowser({ onBack }: { onBack: () => void }) {
         <button className="btn" onClick={onBack}>
           ← ロビーに戻る
         </button>
-        <h1>市民カード一覧</h1>
-        <input className="cb-search" type="search" value={query} placeholder="名前・能力の文で探す" onChange={(e) => setQuery(e.target.value)} aria-label="カードを探す" />
-        <label className="field">
-          種類
-          <select value={type} onChange={(e) => setType(e.target.value as TypeFilter)}>
-            <option value="all">すべて</option>
-            <option value="immediate">即時カード</option>
-            <option value="pass">パス時カード</option>
-          </select>
-        </label>
-        <label className="field">
-          産業
-          <select value={industry} onChange={(e) => setIndustry(e.target.value as IndustryFilter)}>
-            {(Object.keys(INDUSTRY_LABEL) as IndustryFilter[]).map((k) => (
-              <option key={k} value={k}>
-                {INDUSTRY_LABEL[k]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="field">
-          タグ
-          <select value={tag} onChange={(e) => setTag(e.target.value as Tag | 'any')}>
-            <option value="any">すべて</option>
-            {TAGS.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="field">
-          並べ方
-          <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
-            {(Object.keys(SORT_LABEL) as SortKey[]).map((k) => (
-              <option key={k} value={k}>
-                {SORT_LABEL[k]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <span className="cb-count">
-          {list.length} / {ALL_CARDS.length}枚
-        </span>
-      </header>
-      <div className="cb-body">
-        <div className="cb-grid">
-          {list.map((c) => (
-            <button key={c.id} className={`card ${c.type === 'pass' ? 'pass' : ''} ${selected === c.id ? 'selected' : ''}`} onClick={() => setSelected(c.id)} aria-label={c.nameJa} aria-pressed={selected === c.id}>
-              <CardFace id={c.id} />
+        <h1>カード・タイル一覧</h1>
+        <nav className="cb-tabs" aria-label="一覧の種類">
+          {([['cards', '市民カード'], ...TILE_TABS] as ['cards' | TileKind, string][]).map(([k, label]) => (
+            <button key={k} className={`btn ${tab === k ? 'on' : ''}`} aria-pressed={tab === k} onClick={() => setTab(k)}>
+              {label}
             </button>
           ))}
-          {list.length === 0 && <p className="hint">条件に合うカードはありません。</p>}
+        </nav>
+        {tab === 'cards' && (
+          <>
+          <input className="cb-search" type="search" value={query} placeholder="名前・能力の文で探す" onChange={(e) => setQuery(e.target.value)} aria-label="カードを探す" />
+          <label className="field">
+            種類
+            <select value={type} onChange={(e) => setType(e.target.value as TypeFilter)}>
+              <option value="all">すべて</option>
+              <option value="immediate">即時カード</option>
+              <option value="pass">パス時カード</option>
+            </select>
+          </label>
+          <label className="field">
+            産業
+            <select value={industry} onChange={(e) => setIndustry(e.target.value as IndustryFilter)}>
+              {(Object.keys(INDUSTRY_LABEL) as IndustryFilter[]).map((k) => (
+                <option key={k} value={k}>
+                  {INDUSTRY_LABEL[k]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            タグ
+            <select value={tag} onChange={(e) => setTag(e.target.value as Tag | 'any')}>
+              <option value="any">すべて</option>
+              {TAGS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            並べ方
+            <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
+              {(Object.keys(SORT_LABEL) as SortKey[]).map((k) => (
+                <option key={k} value={k}>
+                  {SORT_LABEL[k]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <span className="cb-count">
+            {list.length} / {ALL_CARDS.length}枚
+          </span>
+          </>
+        )}
+      </header>
+      {tab !== 'cards' ? (
+        <div className="cb-tiles">
+          <TileCatalog kind={tab} />
         </div>
-        {/* 広い画面では右の欄、狭い画面（スマートフォン）ではカードを選んだときだけ下から出す窓（CSS で切り替える） */}
-        <aside className={`cb-detail ${selected ? 'has-card' : ''}`} aria-label="選んだカード">
-          {selected ? (
-            <>
-              <button className="btn cb-close" onClick={() => setSelected(null)}>
-                閉じる
+      ) : (
+        <div className="cb-body">
+          <div className="cb-grid">
+            {list.map((c) => (
+              <button key={c.id} className={`card ${c.type === 'pass' ? 'pass' : ''} ${selected === c.id ? 'selected' : ''}`} onClick={() => setSelected(c.id)} aria-label={c.nameJa} aria-pressed={selected === c.id}>
+                <CardFace id={c.id} />
               </button>
-              <CardFull id={selected} />
-            </>
-          ) : (
-            <p className="hint">カードをクリックすると、ここに詳しい内容を出します。</p>
-          )}
-        </aside>
-      </div>
+            ))}
+            {list.length === 0 && <p className="hint">条件に合うカードはありません。</p>}
+          </div>
+          {/* 広い画面では右の欄、狭い画面（スマートフォン）ではカードを選んだときだけ下から出す窓（CSS で切り替える） */}
+          <aside className={`cb-detail ${selected ? 'has-card' : ''}`} aria-label="選んだカード">
+            {selected ? (
+              <>
+                <button className="btn cb-close" onClick={() => setSelected(null)}>
+                  閉じる
+                </button>
+                <CardFull id={selected} />
+              </>
+            ) : (
+              <p className="hint">カードをクリックすると、ここに詳しい内容を出します。</p>
+            )}
+          </aside>
+        </div>
+      )}
     </main>
   );
 }

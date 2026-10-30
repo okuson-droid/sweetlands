@@ -101,3 +101,26 @@ export function SourceCard({ src, id, cost, why }: { src: string; id: string; co
 export function CardBack() {
   return <div className="card back" aria-label="裏向きのカード" />;
 }
+
+/** 見るだけのカード（オートメーション化したカード・捨て札の一覧）。マウスを重ねる／長押しで拡大表示する。操作の対象にはならない */
+export function ViewCard({ id }: { id: string }) {
+  const z = useZoomBind(() => <CardFull id={id} />);
+  return (
+    <div className={`card view ${CARDS[id].type === 'pass' ? 'pass' : ''}`} {...z.props} tabIndex={0} aria-label={CARDS[id].nameJa}>
+      <CardFace id={id} />
+    </div>
+  );
+}
+
+/** 見るだけのカードを並べる。newestFirst は末尾（最も新しいもの）から並べる */
+export function CardList({ ids, empty, newestFirst = false }: { ids: string[]; empty: string; newestFirst?: boolean }) {
+  const list = newestFirst ? [...ids].reverse() : ids;
+  return (
+    <div className="card-list">
+      {list.map((id) => (
+        <ViewCard key={id} id={id} />
+      ))}
+      {list.length === 0 && <span className="empty">{empty}</span>}
+    </div>
+  );
+}

@@ -3,7 +3,7 @@ import { SPECIAL_TILES, TERRAIN_FLIP } from '../../game/boards';
 import { cardCost } from '../../game/engine';
 import type { GameState, PlayerState, Terrain } from '../../game/types';
 import { useInteraction, useSource, useTarget, useZoomBind } from '../interaction';
-import { CardBack, CardFace, CardFull, SourceCard } from './Card';
+import { CardBack, CardFace, CardFull, CardList, SourceCard } from './Card';
 import { CARDS } from '../../game/cards';
 import { Glyph } from '../icons/Glyph';
 import { Icons, effToks } from '../icons/EffIcons';
@@ -146,10 +146,20 @@ export function SharedSupply({ s, foldSide = 'up', contextual, hideIdleDisc }: {
           <Glyph g="road" size={24} />
         </Pile>
       )}
-      <div className={`dropzone discard ${discard.lit ? 'lit' : ''}`} {...discard.props} {...topZoom.props} title="捨て札置き場（表向き。マウスを重ねると一番上のカード）">
-        <Glyph g="discard" size={20} />
-        <b>{s.discard.length}</b>
-      </div>
+      {discard.lit ? (
+        <div className="dropzone discard lit" {...discard.props} title="捨て札置き場（ここに置いて捨てる）">
+          <Glyph g="discard" size={20} />
+          <b>{s.discard.length}</b>
+        </div>
+      ) : (
+        // 捨て札は表向きで、誰でも見てよい。クリックで一覧を開く（マウスを重ねると一番上のカード）
+        <div className="discard-fold" {...topZoom.props}>
+          <Fold name="discard" side={foldSide} align="right" label={<Glyph g="discard" size={20} />} summary={<b>{s.discard.length}</b>} wide={460}>
+            <h3>捨て札（{s.discard.length}枚、新しい順）</h3>
+            <CardList ids={s.discard} empty="捨て札はありません" newestFirst />
+          </Fold>
+        </div>
+      )}
       <div className="deck" title="市民デッキ">
         <Glyph g="card" size={18} />
         <b>{s.deck.length}</b>

@@ -2,13 +2,13 @@
 import { skillDef, CHAR_BOARD, GRID_IRON, GRID_WOOD, SHOP_COST, SKILLS, gridBonus, printedAuto } from '../../game/boards';
 import { CARDS } from '../../game/cards';
 import { BUFF_NOTES, CHARACTERS, basicTextOf, clockTextOf, isBuffed } from '../../game/characters';
-import { buildingCount, passedIp, playedCount, rowCapacity, tagCounts, tally, terrainCount } from '../../game/queries';
+import { automatedCount, buildingCount, passedIp, playedCount, rowCapacity, tagCounts, tally, terrainCount } from '../../game/queries';
 import type { ClockReq } from '../../game/characters';
 import { TAGS, type Tag } from '../../game/types';
 import type { Tok } from '../icons/EffIcons';
 import type { GameState, PlayerState, ResKind, Row } from '../../game/types';
 import { useInteraction, useSource, useTarget, useZoomBind } from '../interaction';
-import { CardFace, CardFull } from './Card';
+import { CardFace, CardFull, CardList } from './Card';
 import { Fold } from './Fold';
 import { PIECE_LABEL } from './Icons';
 import { Glyph } from '../icons/Glyph';
@@ -216,14 +216,22 @@ function RowDrop({ s, p, row }: { s: GameState; p: PlayerState; row: Row }) {
       <Glyph g={{ k: 'ib', row }} size={16} />
       {printed.length > 0 && <Icons toks={effToks(printed)} size={13} />}
       {p.automated[row].map((id) => (
-        <span key={id} className="autocard" title={`${CARDS[id].nameJa}：${CARDS[id].autoText ?? ''}`}>
-          <Icons toks={effToks(CARDS[id].auto ?? [])} size={12} />
-        </span>
+        <AutoCard key={id} id={id} />
       ))}
       <span className="cap">
         {p.automated[row].length}/{rowCapacity(p, row, isBuffed(s.config, p.character))}
       </span>
     </div>
+  );
+}
+
+/** 産業列に入ったカード1枚。マウスを重ねる／長押しで、カード全体（即時能力・タグを含む）を拡大表示する */
+function AutoCard({ id }: { id: string }) {
+  const z = useZoomBind(() => <CardFull id={id} />);
+  return (
+    <span className="autocard" {...z.props} tabIndex={0} title={`${CARDS[id].nameJa}：${CARDS[id].autoText ?? ''}`}>
+      <Icons toks={effToks(CARDS[id].auto ?? [])} size={12} />
+    </span>
   );
 }
 
@@ -276,6 +284,28 @@ export function TableauCards({ p }: { p: PlayerState }) {
   );
 }
 
+/** オートメーション化したカードを、産業列ごとに表面つきで並べる（見るだけ） */
+export function AutomatedCards({ p }: { p: PlayerState }) {
+  const n = automatedCount(p);
+  return (
+    <div className="automated-cards">
+      <h3>オートメーション化したカード（{n}枚）</h3>
+      {n === 0 && <span className="empty">まだありません</span>}
+      {(['agr', 'for', 'min'] as Row[])
+        .filter((r) => p.automated[r].length > 0)
+        .map((r) => (
+          <div key={r} className={`auto-row ${r}`}>
+            <span className="auto-row-name">
+              <Glyph g={{ k: 'ib', row: r }} size={14} />
+              {ROW_NAME[r]}
+            </span>
+            <CardList ids={p.automated[r]} empty="" />
+          </div>
+        ))}
+    </div>
+  );
+}
+
 /** 横長レイアウト：キャラボードの下の「プレイしたカード」の帯（ui_design §21）。
  *  カードを持ち上げているあいだは帯そのものが置き先になり、置くとプレイする。それ以外のときはクリックで一覧を開く。
  *  プレイしたカードをオートメーション化する場面（tableau:ID を動かす）では、一覧を自動で開く */
@@ -296,6 +326,7 @@ export function TableauBar({ p, openForce, hint = false }: { p: PlayerState; ope
         </>} summary={`${p.played.length}枚`} force={openForce} hint={hint} wide={430} side="up" align="right">
         <h3>{p.name}さんがプレイしたカード</h3>
         <TableauCards p={p} />
+        <AutomatedCards p={p} />
       </Fold>
     </div>
   );
@@ -430,6 +461,11 @@ export function PersonalBoard({ s, p, withTableau = true }: { s: GameState; p: P
           <OwnSkill key={`${sk.adv}${sk.id}`} id={sk.id} adv={sk.adv} flipped={sk.flipped} />
         ))}
       </div>
+      {withTableau && (
+        <Fold name="automated" label="オートメーション化したカード" summary={`${automatedCount(p)}枚`} side="up" wide={340}>
+          <AutomatedCards p={p} />
+        </Fold>
+      )}
     </div>
   );
 }

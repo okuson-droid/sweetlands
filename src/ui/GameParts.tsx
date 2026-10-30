@@ -1,9 +1,9 @@
 // 対局画面の共通部品（横長・スマートフォンの各レイアウトで使う）：上の札・相手の帯・設定・ログ
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { GameState } from '../game/types';
 import { downloadRecord } from './recordFile';
 import { playerColor } from './theme';
-import type { GameSession } from './useGame';
+import { formatThink, type GameSession, type ThinkClock } from './useGame';
 import { phaseLabel } from './components/Band';
 import { Icons } from './icons/EffIcons';
 
@@ -92,7 +92,31 @@ export function TopBar({ s, viewer, onLog, onPeople, onSettings, onExit }: { s: 
   );
 }
 
-export function Opponents({ s, viewer, viewing, setViewing }: { s: GameState; viewer: number; viewing: number; setViewing: (n: number) => void }) {
+/** 選択を待っている人がいる間だけ、1秒ごとに描き直すための現在時刻 */
+function useNow(active: boolean): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!active) return;
+    setNow(Date.now());
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [active]);
+  return active ? now : Date.now();
+}
+
+/** 1人の思考時間（ゲームの開始からの合計）。いま選択を待っている人は数え続ける */
+function ThinkTime({ clock, seat, now }: { clock: ThinkClock; seat: number; now: number }) {
+  const on = clock.thinking.includes(seat);
+  const ms = (clock.totals[seat] ?? 0) + (on ? Math.max(0, now - clock.since) : 0);
+  return (
+    <span className={`think ${on ? 'on' : ''}`} title="思考時間（ゲームの開始からの合計）">
+      思考 {formatThink(ms)}
+    </span>
+  );
+}
+
+export function Opponents({ s, clock, viewer, viewing, setViewing }: { s: GameState; clock: ThinkClock; viewer: number; viewing: number; setViewing: (n: number) => void }) {
+  const now = useNow(clock.thinking.length > 0);
   return (
     <div className="opponents" role="list">
       {s.players.map((p) => (
@@ -101,6 +125,7 @@ export function Opponents({ s, viewer, viewing, setViewing }: { s: GameState; vi
           <b>{p.seat === viewer ? `${p.name}（あなた）` : p.name}</b>
           <Icons toks={[{ g: 'gold', n: p.res.gold }, { g: 'wheat', n: p.res.wheat }, { g: 'wood', n: p.res.wood }, { g: 'iron', n: p.res.iron }, { g: 'diamond', n: p.diamond }, { g: 'disc', n: p.discs }, { g: 'handCard', n: p.hand.length }]} size={15} />
           <Icons className="scores" toks={[{ g: 'vp', n: p.score.vp }, { g: 'cp', n: p.score.cp }, { g: 'ip', n: p.score.ip }]} size={15} />
+          <ThinkTime clock={clock} seat={p.seat} now={now} />
           {p.passed && <span className="busy">パス済み</span>}
           {s.pending?.player === p.seat && p.seat !== viewer && <span className="busy">操作中</span>}
         </button>

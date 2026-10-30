@@ -5,7 +5,7 @@ import { applyMove, createGame, viewFor } from '../game/engine';
 import { isCheckpoint, type GameRecord } from '../game/history';
 import type { GameState } from '../game/types';
 import type { Move } from '../ui/gestures';
-import { autoAnswer, initialAuto, saveAuto, type AutoSettings, type GameSession } from '../ui/useGame';
+import { autoAnswer, initialAuto, saveAuto, thinkers, type AutoSettings, type GameSession, type ThinkClock } from '../ui/useGame';
 import type { GameDoc, Room } from './room';
 
 interface Built {
@@ -61,13 +61,38 @@ export function useOnlineGame(room: Room, doc: GameDoc, seat: number | null, onW
   useEffect(() => {
     version.current = Math.max(version.current, doc.version);
   }, [doc.version]);
+  // 思考時間：自分が選択を待たれている間の経過を自分の画面で測り、手を送るたびに共有ドキュメントの think へ足す。
+  // ほかの人の分は、届いた think に、最後に盤面が変わってからの経過を足して表示する
+  const mineSince = useRef<number | null>(null);
+  const [think, setThink] = useState<number[]>(() => doc.think ?? doc.seats.map(() => 0));
+  useEffect(() => {
+    if (doc.think) setThink(doc.think);
+  }, [doc.think]);
+  /** 自分が測った分を取り出して、測り直す（ミリ秒） */
+  const takeElapsed = useCallback(() => {
+    const now = Date.now();
+    const d = mineSince.current === null ? 0 : now - mineSince.current;
+    if (mineSince.current !== null) mineSince.current = now;
+    return d;
+  }, []);
+  const withThink = useCallback(
+    (base: number[] | undefined, d: number): number[] => {
+      const t = [...(base ?? docRef.current.seats.map(() => 0))];
+      if (seat !== null) t[seat] = (t[seat] ?? 0) + d;
+      return t;
+    },
+    [seat],
+  );
+
   const push = useCallback(
     (moves: string[]) => {
       version.current += 1;
-      const next: GameDoc = { ...docRef.current, moves, version: version.current };
+      const t = withThink(docRef.current.think, takeElapsed());
+      setThink(t);
+      const next: GameDoc = { ...docRef.current, moves, version: version.current, think: t };
       queue.current = queue.current.then(() => room.write(next)).catch((e) => onWriteError(`手を送れませんでした（${(e as { code?: string }).code ?? 'error'}）。通信を確かめて、もう一度操作してください。`));
     },
-    [room, onWriteError],
+    [room, onWriteError, withThink, takeElapsed],
   );
 
   const mine = useCallback((s: GameState) => seat !== null && !!s.pending && viewFor(s, seat).pending!.player === seat && !s.finished, [seat]);
@@ -76,6 +101,8 @@ export function useOnlineGame(room: Room, doc: GameDoc, seat: number | null, onW
   // その末尾へ足す（同じ巡のピックは順番に依らず同じ結果になる）。合法でなければ送らない（届いた手の列で盤面が作り直される）
   const pushConcurrent = useCallback(
     (ids: string[]) => {
+      const elapsed = takeElapsed();
+      setThink((t) => withThink(t, elapsed)); // 届くまでの間も、自分の画面では足した値を出す
       queue.current = queue.current
         .then(async () => {
           const ok = await room.transact((d) => {
@@ -85,13 +112,13 @@ export function useOnlineGame(room: Room, doc: GameDoc, seat: number | null, onW
               s = applyMove(s, id);
             }
             version.current = Math.max(version.current, d.version) + 1;
-            return { ...d, moves: [...d.moves, ...ids], version: version.current };
+            return { ...d, moves: [...d.moves, ...ids], version: version.current, think: withThink(d.think, elapsed) };
           });
           if (!ok) onWriteError('ほかの人の操作と重なり、手を送れませんでした。盤面を確かめて、もう一度操作してください。');
         })
         .catch((e) => onWriteError(`手を送れませんでした（${(e as { code?: string }).code ?? 'error'}）。通信を確かめて、もう一度操作してください。`));
     },
-    [room, onWriteError],
+    [room, onWriteError, withThink, takeElapsed],
   );
 
   // 自分の手を盤面に当てて（先に画面へ出す）、手の列を共有ドキュメントへ送る
@@ -162,6 +189,14 @@ export function useOnlineGame(room: Room, doc: GameDoc, seat: number | null, onW
     if (a) applyLocal([a]);
   }, [built, auto, mine, applyLocal]);
 
+  // 自分の選択待ちが始まったら測り始め、終わったら止める（手を送らずに終わるのは、同時の選択待ちを他の人が閉じたときなど）
+  useEffect(() => {
+    if (mine(built.state)) mineSince.current ??= Date.now();
+    else mineSince.current = null;
+  }, [built, mine]);
+  const since = useMemo(() => Date.now(), [built.state, think]); // eslint-disable-line react-hooks/exhaustive-deps
+  const clock = useMemo<ThinkClock>(() => ({ totals: think, since, thinking: thinkers(built.state) }), [think, since, built.state]);
+
   const record = useMemo<GameRecord>(() => ({ config: doc.config, seed: doc.seed, moves: built.moves }), [doc.config, doc.seed, built.moves]);
   const undoCount = built.moves.length - built.cpIndex;
   return {
@@ -176,5 +211,6 @@ export function useOnlineGame(room: Room, doc: GameDoc, seat: number | null, onW
     undoAll,
     auto,
     setAuto,
+    clock,
   };
 }

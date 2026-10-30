@@ -20,6 +20,7 @@ import { PersonalBoard } from './components/PersonalBoard';
 import { Glyph } from './icons/Glyph';
 import { Icons } from './icons/EffIcons';
 import { LogPanel, mapFlash, Opponents, SettingsPanel, usePanels, type LayoutProps } from './GameParts';
+import type { ThinkClock } from './useGame';
 
 export type LayoutMode = 'wide' | 'landscape' | 'portrait';
 
@@ -244,11 +245,11 @@ function SharedPane({ s, flash }: { s: GameState; flash: Set<string> }) {
   );
 }
 
-function PeoplePane({ s, viewer, viewing, pick }: { s: GameState; viewer: number; viewing: number; pick: (n: number) => void }) {
+function PeoplePane({ s, clock, viewer, viewing, pick }: { s: GameState; clock: ThinkClock; viewer: number; viewing: number; pick: (n: number) => void }) {
   return (
     <div className="people">
       <p className="mhint">名前を押すと、その人の街・キャラボード・工業ボードを表示します。</p>
-      <Opponents s={s} viewer={viewer} viewing={viewing} setViewing={pick} />
+      <Opponents s={s} clock={clock} viewer={viewer} viewing={viewing} setViewing={pick} />
     </div>
   );
 }
@@ -334,6 +335,7 @@ export function PortraitLayout(props: LayoutProps) {
         {pane === 'people' && (
           <PeoplePane
             s={s}
+            clock={session.clock}
             viewer={viewer}
             viewing={viewing}
             pick={(n) => {
@@ -448,6 +450,7 @@ export function LandscapeLayout(props: LayoutProps) {
           {side === 'people' && (
             <PeoplePane
               s={s}
+              clock={session.clock}
               viewer={viewer}
               viewing={viewing}
               pick={(n) => {

@@ -52,6 +52,73 @@ export interface GameSession {
   redoCount?: number;
   auto: AutoSettings;
   setAuto: (a: AutoSettings) => void;
+  /** 各プレイヤーの思考時間（docs/decisions_13 §13.19） */
+  clock: ThinkClock;
+}
+
+/** 各プレイヤーの思考時間。席 x の思考時間は totals[x]（ミリ秒）に、x が thinking に入っていれば「いま − since」を足したもの */
+export interface ThinkClock {
+  totals: number[];
+  since: number;
+  thinking: number[];
+}
+
+/** いま選択を待っている席（同時に選べる選択待ちでは、まだ答えていない全員）。ゲームが終わっていれば空 */
+export function thinkers(s: GameState): number[] {
+  if (!s.pending || s.finished) return [];
+  return s.pending.waiting ? [...s.pending.waiting] : [s.pending.player];
+}
+
+/** 局面が since から now まで続いたものとして、選択を待っていた席に時間を足す（純粋関数） */
+export function accrue(totals: number[], thinking: number[], since: number, now: number): number[] {
+  const out = [...totals];
+  for (const x of thinking) out[x] = (out[x] ?? 0) + Math.max(0, now - since);
+  return out;
+}
+
+/** 思考時間の表示（分:秒。1時間以上は 時:分:秒） */
+export function formatThink(ms: number): string {
+  const sec = Math.floor(ms / 1000);
+  const two = (n: number) => String(n).padStart(2, '0');
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return h > 0 ? `${h}:${two(m)}:${two(sec % 60)}` : `${m}:${two(sec % 60)}`;
+}
+
+const THINK_KEY = 'sweetlands.think.v1';
+
+/** ローカル対局の思考時間：局面が変わるたびに、それまで選択を待っていた席に経過時間を足す。
+ *  再読み込みしても続きから数えられるよう、ゲームごと（設定とシード）にこの端末のブラウザへ保存する。
+ *  resume は保存した対局の続きか（新しく始めた対局は0から数える） */
+function useLocalClock(state: GameState, gameKey: string, resume: boolean): ThinkClock {
+  const [clock, setClock] = useState<ThinkClock>(() => {
+    let totals = state.players.map(() => 0);
+    try {
+      const v = JSON.parse(localStorage.getItem(THINK_KEY) ?? 'null') as { key?: string; totals?: unknown } | null;
+      if (resume && v?.key === gameKey && Array.isArray(v.totals) && v.totals.length === totals.length) totals = v.totals.map((x) => (typeof x === 'number' ? x : 0));
+    } catch {
+      /* 読めない環境では0から数える */
+    }
+    return { totals, since: Date.now(), thinking: thinkers(state) };
+  });
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    setClock((c) => {
+      const now = Date.now();
+      const next = { totals: accrue(c.totals, c.thinking, c.since, now), since: now, thinking: thinkers(state) };
+      try {
+        localStorage.setItem(THINK_KEY, JSON.stringify({ key: gameKey, totals: next.totals }));
+      } catch {
+        /* 保存できない環境でも遊べる */
+      }
+      return next;
+    });
+  }, [state, gameKey]);
+  return clock;
 }
 
 export interface Inner {
@@ -204,6 +271,7 @@ export function useGame(config: GameConfig, seed: number, initialMoves: string[]
   }, [inner.state, inner.lastWasUndo, inner.holdAuto, auto, applyIds]);
 
   const record = useMemo<GameRecord>(() => ({ config, seed, moves: inner.moves }), [config, seed, inner.moves]);
+  const clock = useLocalClock(inner.state, useMemo(() => JSON.stringify([config, seed]), [config, seed]), initialMoves.length > 0);
   const undoCount = inner.moves.length - inner.cpIndex;
   return {
     state: inner.state,
@@ -219,6 +287,7 @@ export function useGame(config: GameConfig, seed: number, initialMoves: string[]
     redoCount: inner.state.finished ? 0 : inner.redo.length,
     auto,
     setAuto,
+    clock,
   };
 }
 

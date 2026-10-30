@@ -1850,3 +1850,63 @@ fieldset {
 .tally .titem.total {
   color: var(--cocoa-soft);
 }
+
+/* ---- 市民カード一覧（ロビーから開く） ---- */
+.card-browser {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.cb-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--line);
+  background: var(--biscuit);
+}
+.cb-bar h1 {
+  font-size: 18px;
+  margin: 0;
+}
+.cb-search {
+  width: 220px;
+  padding: 4px 8px;
+}
+.cb-count {
+  color: var(--cocoa-soft);
+  font-variant-numeric: tabular-nums;
+}
+.cb-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  min-height: 0;
+}
+.cb-grid {
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 8px;
+}
+.cb-grid .card {
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  box-shadow: none;
+}
+.cb-grid .card.selected {
+  outline: 3px solid var(--cocoa);
+  outline-offset: 1px;
+}
+.cb-detail {
+  overflow-y: auto;
+  padding: 10px;
+  border-left: 2px solid var(--line);
+  background: var(--sugar);
+}
+.cb-detail .cardfull {
+  width: auto;
+}

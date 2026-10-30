@@ -1,6 +1,6 @@
 // 思考時間（docs/decisions_13 §13.19）
 import { describe, expect, it } from 'vitest';
-import { accrue, formatThink, thinkers } from '../src/ui/useGame';
+import { accrue, formatThink, mergeThink, thinkers } from '../src/ui/useGame';
 import { setupGame } from './helpers';
 
 describe('思考時間', () => {
@@ -22,5 +22,11 @@ describe('思考時間', () => {
     expect(formatThink(0)).toBe('0:00');
     expect(formatThink(65_999)).toBe('1:05');
     expect(formatThink(3_725_000)).toBe('1:02:05');
+  });
+
+  it('届いた値と手元の値は、席ごとに大きいほうで合わせる（自分の書き込みが戻る前の古い値で上書きしない）', () => {
+    expect(mergeThink([3000, 0], [0, 500])).toEqual([3000, 500]);
+    expect(mergeThink(undefined, [1, 2])).toEqual([1, 2]);
+    expect(mergeThink([5, 0, 0], undefined)).toEqual([5, 0, 0]);
   });
 });

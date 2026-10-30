@@ -105,6 +105,7 @@ export async function connectClaudeRoom(): Promise<Room | null> {
 
 // ---- 開発・検査用の代わり（同じブラウザのタブ同士で localStorage を共有する） ----
 // ?fakedb=1&uid=<名前> で開くと使う。e2e の複数人対戦の検査に使い、配布物の利用者には出ない。
+// &fakelag=<ミリ秒> を付けると、自分の書き込みが自分の画面へ戻ってくるのを遅らせる（本番の通信の遅れを真似る）。
 
 const FAKE_KEY = 'sweetlands.fakedb.games/current';
 
@@ -123,10 +124,13 @@ export function connectFakeRoom(uid: string): Room {
   window.addEventListener('storage', (e) => {
     if (e.key === FAKE_KEY) notify();
   });
+  const lag = Number(new URLSearchParams(location.search).get('fakelag') ?? 0);
   const put = async (d: GameDoc | null) => {
     if (d) localStorage.setItem(FAKE_KEY, JSON.stringify(d));
     else localStorage.removeItem(FAKE_KEY);
-    notify(); // storage イベントは書いたタブ自身には届かない
+    // storage イベントは書いたタブ自身には届かない
+    if (lag > 0) setTimeout(notify, lag);
+    else notify();
   };
   return {
     uid,

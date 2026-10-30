@@ -76,6 +76,12 @@ export function accrue(totals: number[], thinking: number[], since: number, now:
   return out;
 }
 
+/** 2つの思考時間を席ごとに大きいほうで合わせる（純粋関数）。思考時間は増えるだけなので、新しい値を取りこぼさない */
+export function mergeThink(a: number[] | undefined, b: number[] | undefined): number[] {
+  const n = Math.max(a?.length ?? 0, b?.length ?? 0);
+  return Array.from({ length: n }, (_, i) => Math.max(a?.[i] ?? 0, b?.[i] ?? 0));
+}
+
 /** 思考時間の表示（分:秒。1時間以上は 時:分:秒） */
 export function formatThink(ms: number): string {
   const sec = Math.floor(ms / 1000);

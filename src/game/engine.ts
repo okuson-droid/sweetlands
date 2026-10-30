@@ -1126,6 +1126,14 @@ function stepPros(s: GameState, t: Task, n: number, color?: ProsColor): void {
   ask(s, t, 'pros', `進める繁栄トラックを選んでください（あと${n}歩）`, opts, 'pros');
 }
 
+/** 繁栄トラックのマスのボーナス。上方修正のコーラル・ライラは、下段の最初のボーナス（収入値+1）で収入値が2上がる（docs/decisions_16） */
+export function prosBonus(s: GameState, p: PlayerState, track: number, pos: number): Eff[] {
+  const effs = PROS_TRACKS[track].bonus[pos] ?? [];
+  if (!(hasChar(p, 'コーラル・ライラ') && buffOn(s, p))) return effs;
+  // 収入値のボーナスは下段の最初のマスにだけある
+  return effs.map((e) => (e.k === 'income' ? { ...e, n: 2 } : e));
+}
+
 function resumePros(s: GameState, t: Task, opt: Option): void {
   const p = P(s, t);
   const i = Number(opt.data!.track);
@@ -1141,7 +1149,7 @@ function resumePros(s: GameState, t: Task, opt: Option): void {
       s.prosEndClaimed[i] = t.player;
       out.push(...tasks(t.player, tr.endBonus, '繁栄トラック右端'));
     }
-  } else if (tr.bonus[p.pros[i]]) out.push(...tasks(t.player, tr.bonus[p.pros[i]], '繁栄トラック'));
+  } else if (tr.bonus[p.pros[i]]) out.push(...tasks(t.player, prosBonus(s, p, i, p.pros[i]), '繁栄トラック'));
   out.push({ player: t.player, eff: { k: 'pros', n: n - 1, color: t.ctx!.color as ProsColor | undefined }, src: t.src });
   front(s, out);
 }
@@ -1542,6 +1550,8 @@ function execSpecial(s: GameState, t: Task, id: string): void {
         if (colors.length === 1) front(s, tasks(t.player, [{ k: 'pros', n: 2, color: colors[0] }], 'コーラル・ライラ'));
         else front(s, tasks(t.player, [{ k: 'choice', options: colors.map((c) => [{ k: 'pros', n: 2, color: c } as Eff]) }], 'コーラル・ライラ'));
       }
+      // 上方修正のロータス・チェー：地形タイル（特殊地形タイルを含む）を1枚置く（docs/decisions_16）
+      if (hasChar(p, 'ロータス・チェー') && buffOn(s, p)) front(s, tasks(t.player, [{ k: 'terrain', n: 1, kind: 'any' }], 'ロータス・チェー'));
       return;
     }
     case 'incomeTracks':
@@ -1882,9 +1892,11 @@ function areaFeasible(s: GameState, p: PlayerState, id: string, extraGold = 0): 
   return true;
 }
 
-/** アクションスペースの手札コスト（スペースの順番＝枚数）。上方修正のナタ・パステルは、工業トラックのエリア（F・Q）で常に1枚 */
+/** アクションスペースの手札コスト（スペースの順番＝枚数）。上方修正のナタ・パステルは工業トラックのエリア（F・Q）で、
+ *  リッカ・ベリーは食料トラックのエリア（B・N）で常に1枚（docs/decisions_16） */
 function slotHandCost(s: GameState, p: PlayerState, area: string, slot: number): number {
   if (hasChar(p, 'ナタ・パステル') && buffOn(s, p) && (area === 'F' || area === 'Q')) return 1;
+  if (hasChar(p, 'リッカ・ベリー') && buffOn(s, p) && (area === 'B' || area === 'N')) return 1;
   return slot + 1;
 }
 
@@ -2096,7 +2108,7 @@ function resumeAutomateOffer(s: GameState, t: Task, opt: Option): void {
 // ---- パス（§6.11） ----
 function passScoring(s: GameState, t: Task): void {
   const p = P(s, t);
-  const ip = passedIp(p, buffOn(s, p));
+  const ip = passedIp(p);
   p.ipThisPass = ip;
   const out: Task[] = [];
   const vp = (n: number) => n > 0 && addScore(s, p, 'vp', n);
@@ -2138,7 +2150,7 @@ function passRest(s: GameState, t: Task): void {
   const rate = clockOf(p, 'ロータス・チェー') || p.lotusRate ? (buffOn(s, p) && hasChar(p, 'ロータス・チェー') ? LOTUS_CITY_RATE_BUFF : LOTUS_CITY_RATE) : CITY_RATE;
   addScore(s, p, 'cp', rate[nc]);
   // ③ 工業点（①でエルサ・スカイルが地形タイルを置いた場合に備えて数え直す）
-  p.ipThisPass = passedIp(p, buffOn(s, p));
+  p.ipThisPass = passedIp(p);
   addScore(s, p, 'ip', p.ipThisPass);
   // ④ パス時支援タイル
   const up = s.supportTiles[p.supportSpace!][0];
@@ -2238,7 +2250,7 @@ export function clockReady(s: GameState, p: PlayerState): boolean {
         case 'food':
           return p.food >= r.n;
         case 'ipPassed':
-          return passedIp(p, buffOn(s, p)) >= r.n;
+          return passedIp(p) >= r.n;
         case 'wonder':
           return p.wonders >= 1;
       }

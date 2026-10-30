@@ -203,8 +203,6 @@ export const IP_ICONS = [
   { gap: 11, value: 2 },
   { gap: 16, value: 2 },
 ];
-/** キャラクターの上方修正（docs/decisions_16）でのナタ・パステルの工業点アイコンの値（IP_ICONS と同じ順） */
-export const IP_VALUES_NATA_BUFF = [1, 2, 3, 4];
 export const INDUSTRY_END = 17;
 
 // ---- 食料トラック（§12.13） ----

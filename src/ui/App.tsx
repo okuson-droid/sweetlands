@@ -223,10 +223,10 @@ function Lobby({ start, online, openOnline, openCards }: { start: (c: GameConfig
         <NewGameForm label="ゲーム開始" allowSolo onSubmit={(c) => start(c, Math.floor(Math.random() * 2 ** 31))} />
       </section>
       <section className="lobby-card">
-        <h2>カード一覧</h2>
-        <p className="hint">市民カード全{CARD_COUNT}枚を一覧で見られます。名前や能力の文で探したり、種類・産業・タグで絞り込んだりできます。</p>
+        <h2>カード・タイル一覧</h2>
+        <p className="hint">市民カード全{CARD_COUNT}枚と、マイルストーン・最終得点計算・ラウンド支援・上級スキルなど、ゲームの準備でランダムに出るタイルの一覧を見られます。</p>
         <button className="btn" onClick={openCards}>
-          カード一覧を見る
+          カード・タイル一覧を見る
         </button>
       </section>
     </main>

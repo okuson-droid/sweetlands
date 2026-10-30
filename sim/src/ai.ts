@@ -8,7 +8,7 @@ import { Rng, determinize, legal, scoreTotal, step } from './core';
 import { areaCost, cardCost } from '../../src/game/engine';
 import { WEIGHT_NAMES, baseEval, features, passesLeft, type Weights } from './evaluate';
 import { applyTemplate, templateByName, type Template } from './templates';
-import { eval3 } from './evaluate3';
+import { eval3, projection } from './evaluate3';
 
 export interface AgentConfig {
   kind: 'v0' | 'v1' | 'v2' | 'v1r';
@@ -47,6 +47,9 @@ export interface AgentConfig {
     delta?: number;
     /** 段階1c：打てない主行動に、不足分を埋める最小の両替（fa5・fa3・fa6）を前に付けた候補を足す */
     prefix?: boolean;
+    /** 段階1d：枝刈りの順位の値を「パスしたら得る得点 ＋ 第3版の最終ラウンドの見込み（Proj_5）」にする。projW は第3版のパラメータ */
+    rank?: 'score' | 'twoPly' | 'proj';
+    projW?: Weights;
   };
   /** 診断専用（段階1c の (a')）：決定化せず、実際の山札のまま判断する。情報漏れの規約の例外で、測定には使わない */
   peek?: boolean;
@@ -475,7 +478,10 @@ export class Agent {
     const ids = legal(s).map((o) => o.id);
     for (const id of ids) out.push(this.planNode(step(s, id), [...path, id]));
     if (cfg.prefix) for (const pre of this.prefixed(s, ids)) out.push(this.planNode(pre.s, [...path, ...pre.path]));
-    if (cfg.twoPly) {
+    if (cfg.rank === 'proj') {
+      // 段階1d：すべての子を同じ物差しで順位付けする（見込みは枝刈りにだけ使い、葉の最良は終局の得点で選ぶ）
+      for (const k of out) if (!k.leaf) k.rank = k.score + projection(k.s, cfg.projW!);
+    } else if (cfg.twoPly || cfg.rank === 'twoPly') {
       const delta = cfg.delta ?? 3;
       for (const k of out) {
         // 準備の手は主行動に限る（両替などのフリーアクションは、両替を前に付けた候補で扱う）

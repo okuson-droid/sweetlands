@@ -28,7 +28,7 @@ function args(): Record<string, string> {
 const o = args();
 const weights = JSON.parse(fs.readFileSync(o.weights ?? 'reports/pilot/weights/v1_eri_B.json', 'utf8')).weights;
 const cfg: AgentConfig = { ...DEFAULT_AGENT, kind: 'v1', weights, chainSub: o.chain !== '0', ...(o.eval === '3' ? { evalVersion: 3 as const } : {}), ...(o.plan
-    ? { planR5: { W: Number(o.plan.split(',')[0]), E: Number(o.plan.split(',')[1]), keepEven: o.keepEven === '1', twoPly: o.twoPly === '1', delta: Number(o.delta ?? 3), prefix: o.prefix === '1' } }
+    ? { planR5: { W: Number(o.plan.split(',')[0]), E: Number(o.plan.split(',')[1]), keepEven: o.keepEven === '1', twoPly: o.twoPly === '1', delta: Number(o.delta ?? 3), prefix: o.prefix === '1', rank: o.rank as 'score' | 'twoPly' | 'proj' | undefined, projW: o.rank === 'proj' ? JSON.parse(fs.readFileSync(o.projW ?? 'reports/pilot/weights/v3_eri_A.json', 'utf8')).weights : undefined } }
     : {}),
   // 診断専用（段階1c の (a')）：実際の山札を見て判断する。情報漏れの規約の例外で、測定には使わない
   ...(o.peek === '1' ? { peek: true } : {}) };

@@ -73,6 +73,8 @@ interface Sim {
   aheadCount: number;
   /** 変換で増えた主行動の回数（J で引いたカード） */
   bonusA: number;
+  /** 最終ラウンドの見込みか（食料の価値を「置けるラビット駒が増える分」に限る） */
+  finalRound: boolean;
   /** 収入（裏返しで増える） */
   income: { gold: number; wheat: number; wood: number; iron: number };
   /** 計画の中で得た、繁栄トラックとゴールド・ダイヤ以外の勝利点（カードの効果の見積もり） */
@@ -117,6 +119,7 @@ function simOf(s: GameState): Sim {
     ahead: 0,
     aheadCount: 0,
     bonusA: 0,
+    finalRound: false,
     income: { ...p.income },
     vp: 0,
   };
@@ -145,10 +148,19 @@ function bestProsStep(m: Sim): { i: number; vp: number } {
   let best = { i: 0, vp: -Infinity };
   for (let i = 0; i < 6; i++) {
     if (m.pros[i] >= PROS_TRACKS[i].length) continue;
-    const vp = prosStepGain(m, i);
+    // 右端のマスに入るにはダイヤ1個が要る（ダイヤ1個＝1点を失う）
+    const toEnd = m.pros[i] + 1 >= PROS_TRACKS[i].length;
+    if (toEnd && m.diamond < 1) continue;
+    const vp = prosStepGain(m, i) - (toEnd ? 1 : 0);
     if (vp > best.vp) best = { i, vp };
   }
   return best.vp === -Infinity ? { i: -1, vp: 0 } : best;
+}
+
+/** 繁栄トラック i を1歩進める（右端のマスに入るときはダイヤ1個を払う） */
+function advancePros(m: Sim, i: number): void {
+  if (m.pros[i] + 1 >= PROS_TRACKS[i].length) m.diamond--;
+  m.pros[i]++;
 }
 
 /** アクションエリア1回分の変換 */
@@ -175,7 +187,7 @@ const flipOnce = (m: Sim, ctx: Ctx) => {
   const inc = ctx.unit * ctx.incomeLeft;
   const pr = bestProsStep(m);
   if (pr.i >= 0 && pr.vp >= inc) {
-    m.pros[pr.i]++;
+    advancePros(m, pr.i);
     return pr.vp;
   }
   const b = BASICS.reduce((a, x) => (m.income[x] < m.income[a] ? x : a), BASICS[0] as Basic);
@@ -210,8 +222,12 @@ const rabbits = (m: Sim, n: number) => {
   return k * pieceRate(m, 1);
 };
 const food = (m: Sim, n: number) => {
+  // 最終ラウンドでは、置けるラビット駒の上限が増える分だけに価値がある（ラビット駒 i は食料 4+i 以上で置ける。9個まで）
+  const cap = () => Math.max(0, Math.min(m.food - 3, 9) - m.count[1]);
+  const before = cap();
   m.food += n;
-  return n * FOOD_SHARE * pieceRate(m, 1);
+  const k = m.finalRound ? cap() - before : n;
+  return k * FOOD_SHARE * pieceRate(m, 1);
 };
 const industry = (m: Sim, n: number) => {
   m.count[5] += n;
@@ -255,7 +271,7 @@ const CONVS: Conv[] = [
         const b = bestProsStep(m);
         if (b.i < 0) break;
         vp += b.vp;
-        m.pros[b.i]++;
+        advancePros(m, b.i);
       }
       return vp;
     },
@@ -406,6 +422,7 @@ export function projection(s: GameState, w: Weights, trace?: string[]): number {
     let A = nowRound ? (s.phase === 'action' && !p.passed ? p.hand.length + p.discs : 0) : aNext;
     const incomeLeft = 5 - r;
     m.ahead = Math.max(0, w[11] ?? 1) * (5 - r + 1);
+    m.finalRound = r === 5;
     m.aheadCount = Math.max(0, w[12] ?? 1.5) * (5 - r + 1);
     // 裏返しの価値：収入+1（資源1個 × 残りの収入フェイズ、表の最高の変換率で勝利点に）か、繁栄1歩
     const ctx: Ctx = { flip: 0, cJ, unit: 0, incomeLeft };
@@ -426,7 +443,33 @@ export function projection(s: GameState, w: Weights, trace?: string[]): number {
     const cards = nowRound ? p.hand.map((id) => ({ id, value: cardValue(s, p, id, m, ctx, unit, incomeLeft) })) : [];
     // 次のラウンド以降は手札が分からないので、平均的なカードを主行動1回でプレイできるものとする（ラウンドに3枚まで）
     let generic = nowRound ? 0 : 3;
-    while (A > 0) {
+    /** 主行動1回で得られる見積もりの最大（手札1枚で使えるエリアだけ） */
+    const bestAction = (t: Sim): number => {
+      let b = -Infinity;
+      for (const c of CONVS) {
+        if (!open(c.id) || slotCost(c.id) !== 1) continue;
+        const tt = cloneSim(t);
+        const spent = pay(tt, c.cost);
+        if (spent === null) continue;
+        const got = c.apply(tt, ctx);
+        if (got !== null) b = Math.max(b, got - spent);
+      }
+      return b;
+    };
+    // 主行動が尽きたあと、fa2（15ゴールド → カード1枚＝主行動1回）で買い足せる回数（最終ラウンドに限る。1手番の両替の上限まで）
+    let fa2 = r === 5 ? MAX_CONVERSIONS : 0;
+    for (;;) {
+      if (A <= 0) {
+        if (fa2 <= 0 || m.gold < 15) break;
+        // 買い足すのは、1回分の行動の見積もりが15ゴールド（3点）を上回るときだけ
+        const t = cloneSim(m);
+        t.gold -= 15;
+        if (bestAction(t) <= 3) break;
+        m.gold -= 15;
+        A += 1;
+        fa2--;
+        trace?.push(`R${r} fa2（15ゴールド → カード1枚）`);
+      }
       let best: { gain: number; per: number; act: number; next: Sim; card?: string; area?: string } | null = null;
       for (const c of CONVS) {
         if (!open(c.id)) continue;

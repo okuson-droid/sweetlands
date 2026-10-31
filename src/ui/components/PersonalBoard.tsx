@@ -31,7 +31,6 @@ const CHAR_KEYS: Record<string, [string, string][]> = {
 /** キャラクターの上方修正（docs/decisions_16）で加わる、キャラクター固有のフリーアクション */
 const CHAR_KEYS_BUFF: Record<string, [string, string][]> = {
   'ソルビー・ショコラ': [['solbee7', '食料7以上：地形タイル1']],
-  'サクラ・モチ': [['sakura2', '手札2枚 → 2枚引く']],
 };
 
 function CharAbility({ k, label, used }: { k: string; label: string; used: boolean }) {

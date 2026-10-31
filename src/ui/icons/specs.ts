@@ -123,7 +123,6 @@ export const CHAR_ABILITY_TOKS: Record<string, Tok[]> = {
   sakura: [{ g: 'handCard', n: 1, cost: true }, { g: 'payOnce' }, { g: 'disc' }],
   // キャラクターの上方修正（docs/decisions_16）で加わるもの
   solbee7: [{ g: 'food', n: 7 }, arrow, { g: { k: 'hex', kind: 'any' }, n: 1 }],
-  sakura2: [{ g: 'handCard', n: 2, cost: true }, { g: 'payOnce' }, { g: { k: 'draw', n: 2 } }],
 };
 
 /** メインボードのフリーアクション欄 */

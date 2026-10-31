@@ -2,7 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import { printedAuto } from '../src/game/boards';
 import { BUFF_NOTES, CHARACTERS, basicTextOf, clockTextOf } from '../src/game/characters';
-import { applyMove, getOptions, pieceCostAt, withEffects } from '../src/game/engine';
+import { applyMove, cardCost, getOptions, pieceCostAt, withEffects } from '../src/game/engine';
+import { CARDS } from '../src/game/cards';
 import { cities, count, neighbors, passedIp, tagCounts } from '../src/game/queries';
 import type { BuildingType, GameState, PlayerState } from '../src/game/types';
 import { setupGame } from './helpers';
@@ -233,16 +234,22 @@ describe('キャラクターの上方修正（第2弾）', () => {
     }
   });
 
-  it('サクラ：手札2枚を捨てて2枚引く（ラウンド1回）', () => {
-    const g = game('サクラ・モチ', true);
-    let s = turnOf(g.s, g.seat);
-    const n = s.players[g.seat].hand.length;
-    expect(getOptions(s).some((o) => o.id === 'faC:sakura2')).toBe(true);
-    s = applyMove(s, 'faC:sakura2');
-    while (s.pending!.step === 'payHand') s = applyMove(s, getOptions(s)[0].id);
-    expect(s.players[g.seat].hand.length).toBe(n);
-    expect(getOptions(s).some((o) => o.id === 'faC:sakura2')).toBe(false);
-    expect(getOptions(turnOf(game('サクラ・モチ', false).s, g.seat)).some((o) => o.id === 'faC:sakura2')).toBe(false);
+  it('サクラ：和菓子タグを持つカードのコストが、自分の和菓子タグ1個につき1安い（2026-10-31 に「手札2枚を捨てて2枚引く」から差し替え）', () => {
+    const wagashi = Object.values(CARDS).find((c) => c.tags.和菓子 && !c.brownie && c.cost >= 6)!.id;
+    const plain = Object.values(CARDS).find((c) => !c.tags.和菓子 && !c.brownie)!.id;
+    const on = game('サクラ・モチ', true);
+    const off = game('サクラ・モチ', false);
+    // ラウンド支援タイルの割引などは両方の局面に同じく効くため、上方修正なしとの差で比べる。和菓子タグは、上方修正で特性の2個
+    const pOn = on.s.players[on.seat];
+    const pOff = off.s.players[off.seat];
+    expect(cardCost(off.s, pOff, wagashi) - cardCost(on.s, pOn, wagashi)).toBe(2);
+    expect(cardCost(on.s, pOn, plain)).toBe(cardCost(off.s, pOff, plain));
+    // プレイした和菓子タグのカードも数える
+    const other = Object.values(CARDS).find((c) => c.tags.和菓子 && !c.brownie && c.id !== wagashi && c.cost >= 6)!.id;
+    const n = CARDS[wagashi].tags.和菓子 ?? 0;
+    expect(cardCost(off.s, { ...pOff, played: [wagashi] }, other) - cardCost(on.s, { ...pOn, played: [wagashi] }, other)).toBe(2 + n);
+    // 捨てて引くフリーアクションはもうない
+    expect(getOptions(turnOf(on.s, on.seat)).some((o) => o.id === 'faC:sakura2')).toBe(false);
   });
 
   it('ソルビー：食料7歩以上で地形タイル1枚のフリーアクション', () => {

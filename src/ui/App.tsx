@@ -1,8 +1,8 @@
 // 画面の遷移（ui_design §3）：ロビー → 準備・対局 → リザルト → リプレイ
 // ローカル版：1台で全員分を交代しながら操作する。オンライン版：各自の端末で自分の席を操作する（./Online.tsx）
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { replay, type GameRecord } from '../game/history';
-import type { GameConfig } from '../game/types';
+import { buildTimeline, replay, stateAt, type GameRecord } from '../game/history';
+import type { GameConfig, GameState } from '../game/types';
 import { Game } from './Game';
 import { downloadRecord } from './recordFile';
 import { Result } from './components/Result';
@@ -108,8 +108,16 @@ function LocalGame({ config, seed, moves, onExit, onFinished }: { config: GameCo
 }
 
 /** リザルト。onReplay の at は、リプレイを最初から見る（start）か、最終盤面から見る（end）か */
+/** リザルトの最終局面を記録ごとに覚える（リプレイから戻るたびに最初から再生し直さない） */
+const FINAL_STATE = new WeakMap<GameRecord, GameState>();
+function finalStateOf(record: GameRecord): GameState {
+  let s = FINAL_STATE.get(record);
+  if (!s) FINAL_STATE.set(record, (s = replay(record)));
+  return s;
+}
+
 export function ResultScreen({ record, onReplay, onLobby }: { record: GameRecord; onReplay: (at: 'start' | 'end') => void; onLobby: () => void }) {
-  const s = useMemo(() => replay(record), [record]);
+  const s = useMemo(() => finalStateOf(record), [record]);
   // 同じゲーム（設定・シード・手の数が同じ）のリザルトは、得点の演出を1回目だけにする
   const animKey = `${record.seed}:${record.moves.length}:${record.config.names.join(',')}`;
   return <Result s={s} onReplay={onReplay} onLobby={onLobby} onExport={() => downloadRecord(record)} animKey={animKey} />;
@@ -118,17 +126,12 @@ export function ResultScreen({ record, onReplay, onLobby }: { record: GameRecord
 export function ReplayScreen({ record, at, onBack }: { record: GameRecord; at: 'start' | 'end'; onBack: () => void }) {
   const [n, setN] = useState(at === 'start' ? 0 : record.moves.length);
   const [seat, setSeat] = useState(0);
-  const s = useMemo(() => replay(record, n), [record, n]);
+  // 手の列を1回だけ通して再生し、20手ごとの局面を覚える。以前は手数を変えるたび・ラウンドの頭を探すたびに最初から再生しており、
+  // 1000手ほどの記録では開くのに十数秒、1手動かすたびに1秒近くかかっていた（2026-10-31）
+  const timeline = useMemo(() => buildTimeline(record), [record]);
+  const s = useMemo(() => stateAt(record, timeline, n), [record, timeline, n]);
   const empty = useMemo(() => buildAffordances({ ...s, pending: null }), [s]);
-  const roundStarts = useMemo(() => {
-    const out: number[] = [];
-    let prevRound = 0;
-    for (let i = 0; i <= record.moves.length; i += 25) {
-      const r = replay(record, i).round;
-      if (r !== prevRound) out.push(i), (prevRound = r);
-    }
-    return out;
-  }, [record]);
+  const roundStarts = timeline.roundStarts;
   return (
     <InteractionProvider state={s} viewer={seat} aff={empty} active={false} perform={() => undefined}>
       <div className="replay" style={{ ['--me' as string]: playerColor(seat) }}>

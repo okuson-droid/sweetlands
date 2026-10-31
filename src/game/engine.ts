@@ -525,6 +525,7 @@ export function cardCost(s: GameState, p: PlayerState, id: string): number {
   const c = CARDS[id];
   let cost = c.cost;
   if (c.brownie || hasSkill(p, 10, true)) cost -= tagCounts(p, buffOn(s, p)).ブラウニー; // 自身のタグは含めない（手札にあるため）
+  if (c.tags.和菓子 && hasChar(p, 'サクラ・モチ') && buffOn(s, p)) cost -= tagCounts(p, true).和菓子; // 上方修正のサクラ：和菓子割引（docs/decisions_16 §16.12）
   if (supportActive(s, p, 13)) cost -= 3;
   return Math.max(0, cost);
 }
@@ -2232,7 +2233,6 @@ function freeActionOptions(s: GameState, p: PlayerState): Option[] {
     if (p.food >= 9 && !used('solbee9')) out.push({ id: 'faC:solbee9', label: '任意の繁栄トラック1歩' });
   }
   if (hasChar(p, 'サクラ・モチ') && !used('sakura') && canLoseCards(s, p, 1)) out.push({ id: 'faC:sakura', label: '手札1枚 → アクションディスク1枚' });
-  if (hasChar(p, 'サクラ・モチ') && buffOn(s, p) && !used('sakura2') && canLoseCards(s, p, 2)) out.push({ id: 'faC:sakura2', label: '手札2枚を捨てて2枚引く' });
   return out;
 }
 
@@ -2321,10 +2321,6 @@ function resumeFreeAction(s: GameState, t: Task, opt: Option): void {
     if (k === 'solbee5') q([{ k: 'road', n: 1 }]);
     if (k === 'solbee7') q([{ k: 'terrain', n: 1, kind: 'any' }]);
     if (k === 'solbee9') q([{ k: 'pros', n: 1 }]);
-    if (k === 'sakura2') {
-      q([{ k: 'pay', cost: { hand: 2 }, then: [{ k: 'draw', n: 2 }] }]);
-      s.queue[s.queue.length - 1].ctx = { basicLeft: 0, handLeft: 2, direct: true };
-    }
     if (k === 'sakura') {
       q([{ k: 'pay', cost: { hand: 1 }, then: [{ k: 'disc' }] }]);
       s.queue[s.queue.length - 1].ctx = { basicLeft: 0, handLeft: 1, direct: true };

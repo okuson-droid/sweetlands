@@ -16,8 +16,9 @@
   - `room.ts`：`Room` インターフェース（subscribe / write / clear / transact）と、検査用の偽 DB（`?fakedb=1&uid=名前`、localStorage 共有）。
   - `supabaseRoom.ts`：本番。Supabase の `public.games` テーブル（id text, doc jsonb）＋Realtime＋匿名ログイン。
   - `useOnlineGame.ts`：共有ドキュメントの手の列を各画面が再生する。書き込むのは選択待ちのプレイヤーだけ。取り消しは手の列の末尾を削る（チェックポイントまで）。
+- `src/ui/tutorial/`：実践形式のチュートリアル。`script.ts` の台本（固定のシードと、各段で選ばせる選択肢 ID）を、本物の対局画面（`Game`）で選択肢を1つに絞って進める。エンジンの選択肢 ID や乱数の消費順を変えたら `tests/tutorial.test.ts` で台本を確かめ直す。
 - `src/ui/Online.tsx`：ロビー（ゲーム作成・席・名前・開始・観戦）と対局画面。観戦は席のない人が進行中のゲームを見るだけで、`Game` の `spectator`（伏せた情報を見せる席 `own` が -1）で描く。
-- `tests/`：Vitest（117件）。`e2e/`：Playwright の自動対戦・同期検査。
+- `tests/`：Vitest（120件）。`e2e/`：Playwright の自動対戦・同期検査。
 - `deploy/`：Supabase の準備用 SQL（`supabase_setup.sql`）と手順書。
 
 ## コマンド
@@ -28,6 +29,7 @@
 - `npm run build`：`dist/index.html` に JS・CSS を埋め込んだ1枚の HTML を作る（vite-plugin-singlefile）
 - `node e2e/online.mjs 3 5 400`：3画面と観戦者1画面を偽 DB でつなぎ、400手まで同期・情報漏れ・操作権を検査する（要ビルド）
 - `node e2e/think.mjs [lagMs]`：偽 DB で自分の書き込みの戻りを遅らせ（`&fakelag=`）、思考時間が上書きで消えないことを検査する（要ビルド）
+- `node e2e/tutorial.mjs [mouse|portrait]`：ロビーからチュートリアルを開き、光っている場所と吹き出しのボタンだけで台本を最後まで進め、続きの対局に移れることを検査する（要ビルド）
 - `node e2e/autoplay.mjs mouse|portrait|landscape <seed> <players> [maxSteps] [shotDir] [variants]`：盤面の所作だけで1局を打ち切る自動対戦（要ビルド）。`portrait`（390×844）・`landscape`（844×390）はスマートフォンのタッチ操作
 - Playwright は `@playwright/test@1.56.1` に固定している。ローカルで初めて使うときは `npx playwright install chromium` が必要。
 

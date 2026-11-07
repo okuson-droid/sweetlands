@@ -72,7 +72,7 @@ function useAvoidLit(dep: unknown): { ref: React.RefObject<HTMLElement>; corner:
       const h = el.offsetHeight;
       const W = window.innerWidth;
       const H = window.innerHeight;
-      const lit = [...document.querySelectorAll('.lit, .lit-svg, .held')].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
+      const lit = [...document.querySelectorAll('.lit, .lit-svg, .held, .tutorial-focus')].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
       const rectOf = (c: Corner) => {
         const left = c === 'br' || c === 'tr' ? W - EDGE - w : EDGE;
         const top = c === 'br' || c === 'bl' ? H - EDGE - h : TOP_OFFSET;
@@ -92,12 +92,27 @@ function useAvoidLit(dep: unknown): { ref: React.RefObject<HTMLElement>; corner:
   return { ref, corner };
 }
 
+/** 説明の段で、台本の focus に当たる要素に枠を付ける。描き直しで class が外れることがあるため、しばらくのあいだ付け直す */
+function useFocus(selector: string | undefined): void {
+  useEffect(() => {
+    if (!selector) return;
+    const mark = () => document.querySelectorAll(selector).forEach((e) => e.classList.add('tutorial-focus'));
+    mark();
+    const id = window.setInterval(mark, 300);
+    return () => {
+      window.clearInterval(id);
+      document.querySelectorAll('.tutorial-focus').forEach((e) => e.classList.remove('tutorial-focus'));
+    };
+  }, [selector]);
+}
+
 /** チュートリアルの画面。onContinue は台本の手の列から、ふつうのローカル対局として続きを遊ぶ */
 export function TutorialScreen({ onExit, onContinue }: { onExit: () => void; onContinue: (record: GameRecord) => void }) {
   const { session, step, missed, next } = useTutorialSession();
   const s = TUTORIAL_STEPS[step];
   const last = step === TUTORIAL_STEPS.length - 1;
   const moveCount = TUTORIAL_STEPS.length;
+  useFocus(s?.focus);
   const { ref, corner } = useAvoidLit(step);
   return (
     <>

@@ -2125,3 +2125,24 @@ fieldset {
   gap: 6px;
   justify-content: flex-end;
 }
+
+/* チュートリアルの説明の段で目立たせる要素 */
+.tutorial-focus {
+  outline: 3px dashed var(--me, var(--cocoa));
+  outline-offset: 3px;
+  border-radius: 8px;
+  animation: tutorial-focus 1.2s ease-in-out infinite alternate;
+}
+@keyframes tutorial-focus {
+  from {
+    outline-color: var(--me, var(--cocoa));
+  }
+  to {
+    outline-color: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-focus {
+    animation: none;
+  }
+}

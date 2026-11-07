@@ -2389,9 +2389,20 @@ function describeOne(e: Eff): string {
     case 'discardDraw':
       return `${e.draw}枚引いて${e.discard}枚捨てる`;
     case 'special':
-      return e.id;
+      return SPECIAL_TEXT[e.id] ?? e.id;
   }
 }
+
+/** 個別処理の効果の文（以前は内部名の id をそのまま出しており、首都ヘクスの選択肢が「incomeAny1」と表示されていた） */
+const SPECIAL_TEXT: Record<string, string> = {
+  incomeAny1: '任意の収入値+1',
+  locomotive: '機関車駒を出す',
+  woodDiscount1: '建物駒の木材-1',
+  woodDiscount2: '建物駒の木材-2',
+  chooseSpecial: '特殊地形タイルを選んで置く',
+  clockPlace: '時計塔駒を置く',
+  carmen: '手札から2枚を無料でオートメーション化',
+};
 
 // =====================================================================
 // テスト・デバッグ用：効果を割り込ませて解決する（純粋関数）

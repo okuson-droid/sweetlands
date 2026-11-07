@@ -14,6 +14,7 @@ import { MapBoard } from './components/MapBoard';
 import { PersonalBoard } from './components/PersonalBoard';
 import { CardList } from './components/Card';
 import { CardBrowser } from './components/CardBrowser';
+import { TutorialScreen } from './tutorial/Tutorial';
 import { CARDS } from '../game/cards';
 import { playerColor } from './theme';
 import { GlyphDefs } from './icons/Glyph';
@@ -24,7 +25,7 @@ import { OnlineScreen } from './Online';
 const SAVE_KEY = 'sweetlands.local.v1';
 const CARD_COUNT = Object.keys(CARDS).length;
 
-type ScreenState = { k: 'online' } | { k: 'lobby' } | { k: 'cards' } | { k: 'game'; config: GameConfig; seed: number; moves: string[] } | { k: 'result'; record: GameRecord } | { k: 'replay'; record: GameRecord; at: 'start' | 'end' };
+type ScreenState = { k: 'online' } | { k: 'lobby' } | { k: 'cards' } | { k: 'tutorial' } | { k: 'game'; config: GameConfig; seed: number; moves: string[] } | { k: 'result'; record: GameRecord } | { k: 'replay'; record: GameRecord; at: 'start' | 'end' };
 
 function loadSaved(): GameRecord | null {
   try {
@@ -84,7 +85,8 @@ export function App() {
 }
 
 function Screen({ screen, setScreen, online }: { screen: ScreenState; setScreen: (s: ScreenState) => void; online: Room | null | undefined }) {
-  if (screen.k === 'lobby' || screen.k === 'online') return <Lobby start={(config, seed, moves = []) => setScreen({ k: 'game', config, seed, moves })} online={online} openOnline={() => setScreen({ k: 'online' })} openCards={() => setScreen({ k: 'cards' })} />;
+  if (screen.k === 'lobby' || screen.k === 'online') return <Lobby start={(config, seed, moves = []) => setScreen({ k: 'game', config, seed, moves })} online={online} openOnline={() => setScreen({ k: 'online' })} openCards={() => setScreen({ k: 'cards' })} openTutorial={() => setScreen({ k: 'tutorial' })} />;
+  if (screen.k === 'tutorial') return <TutorialScreen onExit={() => setScreen({ k: 'lobby' })} onContinue={(r) => setScreen({ k: 'game', config: r.config, seed: r.seed, moves: r.moves })} />;
   if (screen.k === 'cards') return <CardBrowser onBack={() => setScreen({ k: 'lobby' })} />;
   if (screen.k === 'game')
     return <LocalGame key={screen.seed} config={screen.config} seed={screen.seed} moves={screen.moves} onExit={() => setScreen({ k: 'lobby' })} onFinished={(record) => setScreen({ k: 'result', record })} />;
@@ -191,11 +193,18 @@ export function ReplayScreen({ record, at, onBack }: { record: GameRecord; at: '
 /** オンライン対戦に接続できなかったときの理由（画面に出して原因を特定しやすくする） */
 let onlineError = '';
 
-function Lobby({ start, online, openOnline, openCards }: { start: (c: GameConfig, seed: number, moves?: string[]) => void; online: Room | null | undefined; openOnline: () => void; openCards: () => void }) {
+function Lobby({ start, online, openOnline, openCards, openTutorial }: { start: (c: GameConfig, seed: number, moves?: string[]) => void; online: Room | null | undefined; openOnline: () => void; openCards: () => void; openTutorial: () => void }) {
   const saved = loadSaved();
   return (
     <main className="lobby">
       <h1>スイーツランド</h1>
+      <section className="lobby-card">
+        <h2>はじめての人へ：チュートリアル</h2>
+        <p className="hint">実際の盤面で1ラウンドを遊びながら、キャラクター・地図の準備、アクションエリア、カードのプレイとオートメーション化、建物駒、パスまでの流れを覚えます（1人用・約10分）。終わったら、そのまま続きを遊べます。</p>
+        <button className="btn primary" onClick={openTutorial}>
+          チュートリアルを始める
+        </button>
+      </section>
       <section className="lobby-card">
         <h2>オンライン対戦</h2>
         {online === undefined && <p className="hint">共有データベースに接続しています…</p>}

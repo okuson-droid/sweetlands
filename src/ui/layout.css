@@ -2068,3 +2068,60 @@ fieldset {
     display: inline-block;
   }
 }
+
+/* ---- チュートリアルの吹き出し ---- */
+.tutorial-bubble {
+  position: fixed;
+  z-index: 80; /* 準備の小窓・確認の小窓（70〜75）より手前、通知（85）より奥 */
+  width: min(380px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--sugar);
+  border: 2px solid var(--cocoa);
+  box-shadow: 0 8px 24px rgba(60, 30, 10, 0.25);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.tutorial-bubble.br {
+  right: 16px;
+  bottom: 16px;
+}
+.tutorial-bubble.bl {
+  left: 16px;
+  bottom: 16px;
+}
+.tutorial-bubble.tr {
+  right: 16px;
+  top: 120px;
+}
+.tutorial-bubble.tl {
+  left: 16px;
+  top: 120px;
+}
+.tutorial-bubble.doing {
+  border-color: var(--me, var(--cocoa));
+}
+.tb-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.tb-count {
+  font-size: 12px;
+  color: var(--cocoa-soft);
+  font-variant-numeric: tabular-nums;
+}
+.tutorial-bubble p {
+  margin: 6px 0;
+}
+.tb-miss {
+  color: #b5452b;
+  font-weight: 700;
+}
+.tb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}

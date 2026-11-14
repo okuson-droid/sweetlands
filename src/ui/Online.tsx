@@ -37,6 +37,9 @@ export function OnlineScreen({ room, onBack }: { room: Room; onBack: () => void 
   // リザルトから開いたリプレイ（最初から／最終盤面から）
   const [replayAt, setReplayAt] = useState<'start' | 'end' | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  // 作り直し：前の部屋を新しいゲームで上書きする。消せるのは作った人だけ（データベースの決まり）だが、上書きは誰でもできるため、
+  // 作った人が別のブラウザ・端末に移って消せなくなった部屋も作り直せる（docs/decisions_13 §13.26）
+  const [remake, setRemake] = useState<'off' | 'confirm' | 'form'>('off');
   const [myName, setMyName] = useState(loadName);
   useEffect(() => room.subscribe(setDoc, setError), [room]);
 
@@ -132,14 +135,16 @@ export function OnlineScreen({ room, onBack }: { room: Room; onBack: () => void 
       {!uid && <p className="online-error">利用者を確認できなかったため、閲覧だけになります。ページを読み込み直してください。</p>}
       {doc === undefined && <p className="hint">読み込んでいます…</p>}
 
-      {doc === null && uid && (
+      {(doc === null || remake === 'form') && uid && (
         <section className="lobby-card">
-          <h2>オンラインのゲームを作る</h2>
+          <h2>{doc === null ? 'オンラインのゲームを作る' : '新しいゲームを作り直す'}</h2>
+          {doc !== null && <p className="hint">いまの部屋のゲームは、このゲームで上書きされて消えます。</p>}
           <p className="hint">作った人は1番目の席に座ります。ほかの人は、このページを開いて空いている席に座ります。</p>
           <NewGameForm
-            label="ゲームを作る"
-            onSubmit={(config) =>
-              act(() =>
+            label={doc === null ? 'ゲームを作る' : '上書きして作り直す'}
+            onSubmit={(config) => {
+              setRemake('off');
+              return act(() =>
                 room.write({
                   status: 'lobby',
                   config,
@@ -149,8 +154,8 @@ export function OnlineScreen({ room, onBack }: { room: Room; onBack: () => void 
                   moves: [],
                   version: 1,
                 }),
-              )
-            }
+              );
+            }}
           />
         </section>
       )}
@@ -201,6 +206,32 @@ export function OnlineScreen({ room, onBack }: { room: Room; onBack: () => void 
                 観戦する
               </button>
             </>
+          )}
+          {uid && remake !== 'form' && (
+            <p>
+              {remake === 'off' ? (
+                <button className="btn" onClick={() => setRemake('confirm')}>
+                  このゲームを終わらせて、新しく作り直す
+                </button>
+              ) : (
+                <span className="confirm-row">
+                  いまのゲームは{doc.status === 'playing' ? '進行中で、' : ''}全員の進行が失われます。作り直しますか？（ゲームを作った人でなくてもできます）
+                  <button className="btn primary" onClick={() => setRemake('form')}>
+                    作り直す
+                  </button>
+                  <button className="btn" onClick={() => setRemake('off')}>
+                    やめる
+                  </button>
+                </span>
+              )}
+            </p>
+          )}
+          {remake === 'form' && (
+            <p>
+              <button className="btn" onClick={() => setRemake('off')}>
+                作り直しをやめる
+              </button>
+            </p>
           )}
           {isCreator && (
             <p>

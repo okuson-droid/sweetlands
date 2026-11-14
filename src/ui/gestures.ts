@@ -72,6 +72,14 @@ export function buildAffordances(s: GameState): Affordances {
   return a;
 }
 
+/** パスの確認の文。いま使えるフリップ（合法手の flip:）が残っていれば、その名前を添えて知らせる（判定はエンジンの合法手。docs/decisions_13 §13.27） */
+export function passConfirm(s: GameState): string {
+  const flips = getOptions(s).filter((o) => o.id.startsWith('flip:'));
+  if (!flips.length) return 'パスすると、このラウンドはもう手番がありません。パスしますか';
+  const names = flips.map((o) => `「${o.label.replace(/^フリップ：/, '')}」`).join('');
+  return `まだ使えるフリップ${names}があります。使わずにパスすると、このラウンドはもう手番がありません。パスしますか`;
+}
+
 function place(s: GameState, a: Affordances, t: Target, opt: Option, step: string): boolean {
   const one = (label = opt.label): Move => ({ ids: [opt.id], label });
   switch (t.k) {
@@ -234,7 +242,7 @@ function place(s: GameState, a: Affordances, t: Target, opt: Option, step: strin
       if (t.role === 'skip' && step === 'payConfirm') label = opt.label;
       if (t.role === 'skip' && step === 'freeAutomate') label = 'オートメーション化しない';
       const move: Move = { ...one(label) };
-      if (t.role === 'pass') move.confirm = 'パスすると、このラウンドはもう手番がありません。パスしますか';
+      if (t.role === 'pass') move.confirm = passConfirm(s);
       a.buttons.push({ role: t.role, move });
       return true;
     }

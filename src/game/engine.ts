@@ -186,6 +186,13 @@ export function createGame(config: GameConfig, seed: number): GameState {
     for (const p of order) s.queue.push(sp(p, 'setupSupport'));
   }
   s.queue.push(sp(startPlayer, 'beginGame'));
+  if (config.variants.charPool) {
+    // キャラクターの候補を「人数＋2」人に絞る（docs/decisions_13 §13.25）。このヴァリアントのないゲームの乱数の消費順を変えないよう、
+    // 場の準備の乱数をすべて引いたあとに引く
+    const [pool, r8] = shuffle(Object.keys(CHARACTERS), s.rng);
+    s.rng = r8;
+    s.charPool = pool.slice(0, Math.min(n + 2, pool.length));
+  }
   log(s, `スタートプレイヤーは ${players[startPlayer].name}`);
   run(s);
   return s;
@@ -262,9 +269,10 @@ const MAP_BOARDS = ['B1', 'B2', 'B3', 'B4', 'B5'];
 function charOptions(s: GameState): Option[] {
   const taken = new Set(s.players.map((x) => x.character).filter(Boolean) as string[]);
   const blocked = new Set(taken);
-  // 自由選択（§10.4）でなければ、選ばれたキャラクターと同じボードの裏面も選べない
-  if (!s.config.variants.freeChar) for (const [a, b] of BOARD_PAIRS) if (taken.has(a) || taken.has(b)) (blocked.add(a), blocked.add(b));
-  return Object.keys(CHARACTERS)
+  // 自由選択（§10.4）でなければ、選ばれたキャラクターと同じボードの裏面も選べない。
+  // 候補を絞るヴァリアント（charPool）では、裏面のキャラクターも選べる（持ち主の判断、docs/decisions_13 §13.25）
+  if (!s.config.variants.freeChar && !s.charPool) for (const [a, b] of BOARD_PAIRS) if (taken.has(a) || taken.has(b)) (blocked.add(a), blocked.add(b));
+  return (s.charPool ?? Object.keys(CHARACTERS))
     .filter((c) => !blocked.has(c))
     .map((c) => ({ id: `char:${c}`, label: c }));
 }

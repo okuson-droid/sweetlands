@@ -41,7 +41,7 @@ export function App() {
     const q = new URLSearchParams(location.search);
     if (q.get('auto')) {
       const n = Number(q.get('players') ?? 2);
-      return { k: 'game', config: { players: n, names: ['いちご', 'みかん', 'ぶどう', 'ミント'].slice(0, n), variants: { turnOrder: q.get('v') === '1', draft: q.get('v') === '1', advSkills: q.get('v') === '1', freeChar: q.get('v') === '1', setupDraft: q.get('v') === '1', charBuff: q.get('v') === '1' }, orderChoice: true }, seed: Number(q.get('seed') ?? 1), moves: [] };
+      return { k: 'game', config: { players: n, names: ['いちご', 'みかん', 'ぶどう', 'ミント'].slice(0, n), variants: { turnOrder: q.get('v') === '1', draft: q.get('v') === '1', advSkills: q.get('v') === '1', freeChar: q.get('v') === '1', setupDraft: q.get('v') === '1', charBuff: q.get('v') === '1', charPool: q.get('v') === '1' }, orderChoice: true }, seed: Number(q.get('seed') ?? 1), moves: [] };
     }
     return { k: 'lobby' };
   });
@@ -245,11 +245,14 @@ function Lobby({ start, online, openOnline, openCards, openTutorial }: { start: 
   );
 }
 
+/** ヴァリアントをすべて採用する／すべて外す（ロビーの「すべて選ぶ」「すべて外す」） */
+const allVariants = (on: boolean) => ({ turnOrder: on, draft: on, advSkills: on, freeChar: on, setupDraft: on, charBuff: on, charPool: on });
+
 /** 新しいゲームの設定（人数・名前・ヴァリアント）。ローカルとオンラインで共通。allowSolo のときだけ1人を選べる（ローカル） */
 export function NewGameForm({ label, onSubmit, allowSolo = false }: { label: string; onSubmit: (c: GameConfig) => void; allowSolo?: boolean }) {
   const [players, setPlayers] = useState(3);
   const [names, setNames] = useState(['いちご', 'みかん', 'ぶどう', 'ミント']);
-  const [variants, setVariants] = useState({ turnOrder: false, draft: false, advSkills: false, freeChar: false, setupDraft: false, charBuff: false });
+  const [variants, setVariants] = useState(() => allVariants(false));
   return (
     <>
         <label className="field">
@@ -272,6 +275,14 @@ export function NewGameForm({ label, onSubmit, allowSolo = false }: { label: str
         </div>
         <fieldset>
           <legend>ヴァリアントルール</legend>
+          <div className="variant-all">
+            <button type="button" className="btn" onClick={() => setVariants(allVariants(true))}>
+              すべて選ぶ
+            </button>
+            <button type="button" className="btn" onClick={() => setVariants(allVariants(false))}>
+              すべて外す
+            </button>
+          </div>
           <label className="setting">
             <input type="checkbox" checked={variants.turnOrder} onChange={(e) => setVariants({ ...variants, turnOrder: e.target.checked })} /> 手番順の調整
           </label>
@@ -286,6 +297,9 @@ export function NewGameForm({ label, onSubmit, allowSolo = false }: { label: str
           </label>
           <label className="setting">
             <input type="checkbox" checked={variants.setupDraft} onChange={(e) => setVariants({ ...variants, setupDraft: e.target.checked })} /> 準備のドラフト（キャラクター・地図ボード・ラウンド支援駒）
+          </label>
+          <label className="setting">
+            <input type="checkbox" checked={variants.charPool} onChange={(e) => setVariants({ ...variants, charPool: e.target.checked })} /> キャラクターの候補を絞る（ランダムに「人数＋2」人の中から選ぶ。同じボードの裏面のキャラクターも選べる）
           </label>
           <label className="setting">
             <input type="checkbox" checked={variants.charBuff} onChange={(e) => setVariants({ ...variants, charBuff: e.target.checked })} /> キャラクターの上方修正（アリス・ロータス・エリ・ナタ・ビスキュイ・グレーテル・サクラ・ソルビー・リッカ・カルメン・コーラル・ジャスミン）

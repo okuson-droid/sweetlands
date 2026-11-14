@@ -521,3 +521,14 @@ body:has(.game.wide .hand .hslot:hover) .zoom {
   top: 112px;
   max-height: calc(100vh - 130px);
 }
+
+/* 帯：操作の欄（内訳の入力・取り消しのボタンなど）が長いときも、説明の文の欄を押しつぶさない。
+   以前は文の欄が1文字の幅まで縮み、文が縦に並んで帯が画面いっぱいに伸びていた（2026-11-14）。操作の欄は折り返す */
+.game.wide .band .say {
+  min-width: 260px;
+}
+.game.wide .band .actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  row-gap: 4px;
+}

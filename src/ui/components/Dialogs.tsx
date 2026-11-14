@@ -111,7 +111,7 @@ function CharGrid({ s, seat, open }: { s: GameState; seat: number; open: Set<str
   return (
     <>
       <div className="chargrid">
-        {Object.keys(CHARACTERS).map((n) => (
+        {(s.charPool ?? Object.keys(CHARACTERS)).map((n) => (
           <CharChoice key={n} s={s} name={n} taken={!open.has(n)} onPreview={setPreview} />
         ))}
       </div>

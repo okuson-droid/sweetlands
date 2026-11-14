@@ -2146,3 +2146,10 @@ fieldset {
     animation: none;
   }
 }
+
+/* ヴァリアントの「すべて選ぶ／すべて外す」 */
+.variant-all {
+  display: flex;
+  gap: 6px;
+  margin: 2px 0 6px;
+}

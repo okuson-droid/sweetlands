@@ -489,3 +489,42 @@ export function edgeText(p: PlayerState, e: string): string {
   const side = info.other ? `${info.other} との間` : info.virtual ? `${info.virtual}との間` : '盤外側';
   return `ヘクス ${info.hex} の${EDGE_DIR_LABEL[info.dir]}の辺（${side}）`;
 }
+
+/** 港ごとに、接続まであと何枚の地形タイルが要るかの目安（接続済みは 0）。
+ *  港に隣接するヘクスから首都に隣接するヘクスまで、首都以外のヘクスをたどる道のうち、タイルのないヘクスが最も少ない道の枚数。
+ *  タイルの在庫と置ける順序（隣接の条件）は考えない。対話プレイ用のコマンドの点検の表示に使う */
+export function portGaps(p: PlayerState): number[] {
+  if (!p.mapId) return [];
+  const { ports } = virtualAreas(p.mapId);
+  const status = portStatus(p);
+  const cost = (k: HexKey) => (p.hexes[k].tile ? 0 : 1);
+  const nearCapital = (k: HexKey) => neighbors(p, k).some((n) => p.hexes[n].terrain === 'C');
+  return ports.map(([r, c], i) => {
+    if (status[i]) return 0;
+    const dist = new Map<HexKey, number>();
+    const queue: HexKey[] = [];
+    for (const [a, b] of neighborCoords(r, c)) {
+      const k = hexKey(a, b);
+      if (!(k in p.hexes) || p.hexes[k].terrain === 'C') continue;
+      dist.set(k, cost(k));
+      queue.push(k);
+    }
+    // 重みは 0 か 1 のため、距離の小さい順に取り出す単純な方法で足りる（ヘクスは50個程度）
+    let best = Infinity;
+    while (queue.length) {
+      queue.sort((x, y) => dist.get(x)! - dist.get(y)!);
+      const k = queue.shift()!;
+      const d = dist.get(k)!;
+      if (nearCapital(k)) best = Math.min(best, d);
+      for (const n of neighbors(p, k)) {
+        if (p.hexes[n].terrain === 'C') continue;
+        const nd = d + cost(n);
+        if (nd < (dist.get(n) ?? Infinity)) {
+          dist.set(n, nd);
+          queue.push(n);
+        }
+      }
+    }
+    return best;
+  });
+}

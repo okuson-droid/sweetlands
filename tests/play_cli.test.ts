@@ -144,3 +144,19 @@ describe('対話プレイ用のコマンド', () => {
     expect(ref.out).toContain('ルールの要約');
   }, 300_000);
 });
+
+describe('点検の派生値', () => {
+  it('portGaps：接続した港は0、タイルのない地図では正の枚数', async () => {
+    const { portGaps, connectedPorts } = await import('../src/game/queries');
+    const { replayRecord } = await import('../tools/play/record');
+    const rec = JSON.parse(readFileSync(join(__dirname, '../docs/playtest/2026-11-16/game.json'), 'utf8'));
+    const { state } = replayRecord(rec);
+    for (const p of state.players) {
+      expect(connectedPorts(p)).toBe(4);
+      expect(portGaps(p)).toEqual([0, 0, 0, 0]);
+    }
+    const early = replayRecord(rec, 40).state.players.find((p) => p.mapId && Object.values(p.hexes).every((h) => !h.tile));
+    if (early) for (const g of portGaps(early)) expect(g).toBeGreaterThan(0);
+  });
+});
+

@@ -6,12 +6,12 @@
 import { AREAS, BUILDING_LABEL, FOOD_BONUS, FOOD_END, INDUSTRY_END, LAB_GAPS, MAP_ICON, MILESTONE_LABEL, PROS_TRACKS, RABBIT_POS, SPECIAL_TILES, SUPPORT_NORMAL, SUPPORT_PASS, FINAL_TILES, gridBonus, skillDef } from '../../src/game/boards';
 import { CARDS } from '../../src/game/cards';
 import { CHARACTERS, isBuffed } from '../../src/game/characters';
-import { cardCost, clockReady, describe, pieceCostAt } from '../../src/game/engine';
+import { buildingSpots, cardCost, clockReady, describe, pieceCostAt } from '../../src/game/engine';
 import { explain } from '../../src/game/explain';
-import { cities, connectedPorts, edgeInfo, EDGE_DIR_LABEL, MAPS, passedIp, portStatus, rowCapacity, tagCounts, drawAreaReady } from '../../src/game/queries';
+import { portGaps, cities, connectedPorts, edgeInfo, EDGE_DIR_LABEL, MAPS, passedIp, portStatus, rowCapacity, tagCounts, drawAreaReady } from '../../src/game/queries';
 import { finalMetric, finalScores } from '../../src/game/scoring';
 import { parseHexKey } from '../../src/game/geometry';
-import type { Cost, GameEvent, GameState, Option, PlayerState, Row, Terrain } from '../../src/game/types';
+import type { Cost, Eff, GameEvent, GameState, Option, PlayerState, Row, Terrain } from '../../src/game/types';
 import { TAGS } from '../../src/game/types';
 import { isWaitingFor, seatOptions, shownId, waitingSeats, type StepInfo } from './record';
 
@@ -112,7 +112,26 @@ export function playerDetail(s: GameState, i: number): string[] {
   if (p.played.length) out.push(`手元のカード ${p.played.map((id) => `${id} ${CARDS[id].nameJa}${CARDS[id].type === 'pass' ? '（パス時）' : ''}`).join('、')}`);
   const tags = tagCounts(p, buff);
   out.push(`タグ ${TAGS.map((t) => `${t}${tags[t]}`).join(' ')}`);
+  out.push(...checkLines(s, i).slice(1));
   return out;
+}
+
+// ---- 点検（最終ラウンドの前に見るもの） ----
+
+/** 建物駒の置き場・港の残り・ラビットの条件・ダイヤ。派生値は queries.ts と engine.ts の buildingSpots から得る */
+export function checkLines(s: GameState, seat: number): string[] {
+  const p = s.players[seat];
+  if (!p.mapId || !p.character) return [];
+  const spots = buildingSpots(p);
+  const gaps = portGaps(p);
+  const rabbit = p.rabbitsTaken >= 9 ? 'ラビット駒9/9' : `ラビット駒${p.rabbitsTaken}/9（食料${p.food}、次は食料${RABBIT_POS(p.rabbitsTaken)}以上と建物駒のある空きヘクスが要る）`;
+  const ends = PROS_TRACKS.map((t, k) => (p.pros[k] < t.length ? `${t.label}あと${t.length - p.pros[k]}歩` : '')).filter(Boolean);
+  return [
+    `== 点検（P${seat}）`,
+    `建物駒の置き場 ${spots.length}か所${spots.length ? `：${spots.join(' ')}` : '（首都か、裏返したタイルの空きが要る）'}`,
+    `港 ${gaps.map((g, i) => `港${i + 1}${g === 0 ? '接続' : `あと${g === Infinity ? '?' : g}枚`}`).join(' ')}（接続に要る地形タイルの最少枚数の目安）`,
+    `${rabbit}｜ダイヤ${p.diamond}（右端へ1つずつ）：${ends.join(' ') || '全部右端'}`,
+  ];
 }
 
 // ---- 地図 ----
@@ -195,6 +214,13 @@ function mapBody(s: GameState, p: PlayerState, title: string, withLegend: boolea
 
 // ---- 手札 ----
 
+/** 効果に「代金なしで置く建物駒」（エリアを使わない建物駒の効果）を含むか */
+function hasFreeBuilding(effs: Eff[] | null): boolean {
+  return (effs ?? []).some((e) =>
+    e.k === 'building' ? !e.viaAction : e.k === 'choice' ? e.options.some(hasFreeBuilding) : e.k === 'pay' || e.k === 'cond' ? hasFreeBuilding(e.then) : false,
+  );
+}
+
 export function cardLine(s: GameState, p: PlayerState | null, id: string, withText: boolean): string {
   const c = CARDS[id];
   const cost = p ? cardCost(s, p, id) : c.cost;
@@ -203,7 +229,8 @@ export function cardLine(s: GameState, p: PlayerState | null, id: string, withTe
   const head = `${id} ${c.nameJa}：${cost}ゴールド${p && cost !== c.cost ? `（元${c.cost}）` : ''} ${c.type === 'pass' ? 'パス時' : '即時'} ${ind}${tags ? ` タグ ${tags}` : ''}`;
   if (!withText) return head;
   const main = c.mainText.startsWith('パス時') ? c.mainText : `${c.type === 'pass' ? 'パス時' : '即時'}：${c.mainText}`;
-  return `${head}\n    ${main}${c.autoText ? `\n    オートメーション：${c.autoText}` : ''}`;
+  const free = hasFreeBuilding(c.main) || hasFreeBuilding(c.auto) ? '\n    （この建物駒は代金なしで置く。段のボーナスは得る）' : '';
+  return `${head}${free}\n    ${main}${c.autoText ? `\n    オートメーション：${c.autoText}` : ''}`;
 }
 
 export function handLines(s: GameState, seat: number, withText: boolean): string[] {
@@ -249,6 +276,8 @@ export function sharedBlock(s: GameState): string[] {
   out.push(`最終得点計算タイル（1位15・2位7、中立の値も順位に入る）：${s.finalTiles.map((id) => { const f = FINAL_TILES.find((x) => x.id === id)!; return `${f.label}（中立${f.neutral}）`; }).join('／')}`);
   out.push(`ラウンド支援：${s.supportCols.map((c) => `列${c + 1}「${supportLabel(s, c)}」${s.supportMarkers[c] !== null ? `←P${s.supportMarkers[c]}` : ''}`).join(' ')}`);
   out.push(`スキルタイルの残り：${s.skillPiles.map((n, k) => `${k + 1}:${n}`).join(' ')}${s.advSkills.length ? `｜上級 ${s.advSkills.join(',')}` : ''}`);
+  const claimed = PROS_TRACKS.map((t, k) => (s.prosEndClaimed[k] !== null ? `${t.label}→P${s.prosEndClaimed[k]}` : '')).filter(Boolean);
+  out.push(`繁栄トラックの右端のボーナス（最初の1人だけ）：${claimed.length ? `取られた ${claimed.join(' ')}` : 'まだ誰も取っていない'}`);
   out.push(`特殊地形タイルの残り：${s.specialSupply.map((x) => `${x}「${SPECIAL_TILES[x].label}」`).join(' ') || 'なし'}｜公開済みの応用エリア ${s.revealed.join(',')}`);
   return out;
 }
@@ -270,6 +299,14 @@ export function optionLines(s: GameState, seat: number): string[] {
       const m = plain.exec(o.label);
       if (m) folded.set(m[2], [...(folded.get(m[2]) ?? []), o.id]);
     }
+  // 基礎資源の内訳（basic:麦-木材-鉄）が多いときは、一覧を出さず書き方と範囲だけを出す（ID で選ぶ）
+  if (opts.length > 12 && opts.every((o) => o.id.startsWith('basic:'))) {
+    const totals = opts.map((o) => o.id.slice(6).split('-').map(Number).reduce((a, b) => a + b, 0));
+    const p = s.players[seat];
+    out.push(`    内訳を basic:<麦>-<木材>-<鉄> で書く（${opts.length}通り。合計 ${Math.min(...totals)}〜${Math.max(...totals)}個。例 ${opts[0].id}＝${opts[0].label}）`);
+    out.push(`    いまの資源：G${p.res.gold} 麦${p.res.wheat} 木${p.res.wood} 鉄${p.res.iron}。選べない内訳は失敗し、記録は変わらない`);
+    return out;
+  }
   const foldedIds = new Set([...folded.values()].flat());
   for (const [t, list] of folded) out.push(`    ${t}（ボーナスなし）に地形タイルを置く：${list.join(' ')}`);
   opts.forEach((o, k) => {

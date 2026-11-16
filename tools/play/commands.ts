@@ -293,6 +293,9 @@ function cmdRef(a: Args, path: string): void {
     print(refCards(s, card.split(',').map((x) => x.trim()).filter(Boolean)));
     return;
   }
+  // skills は tiles の別名（スキルタイルは tiles の欄にある）
+  const raw = str(a, 'only');
+  if (raw) a.flags.set('only', raw.replace(/\bskills\b/g, 'tiles'));
   const only = listArg<RefSection>(a, 'only', REF_SECTIONS);
   print(refLines(s, seat, only ?? REF_DEFAULT));
 }

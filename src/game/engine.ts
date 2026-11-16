@@ -110,6 +110,7 @@ function buildSpotLabel(p: PlayerState, key: string, what: string): string {
   return `${what}をヘクス ${key}（${where}：${eff}）に置く`;
 }
 const cardName = (id: string) => CARDS[id].nameJa;
+const SKILL_KIND_LABEL: Record<string, string> = { instant: '取ってすぐ', pass: 'パス時', flip: 'フリップ能力', perm: '永続' };
 
 const zeroRes = (): Res => ({ gold: 0, wheat: 0, wood: 0, iron: 0 });
 
@@ -1241,7 +1242,7 @@ function stepSkill(s: GameState, t: Task, n: number): void {
   const p = P(s, t);
   const opts: Option[] = [];
   SKILLS.forEach((sk, i) => {
-    if (s.skillPiles[i] > 0 && !hasSkill(p, sk.id)) opts.push({ id: `skill:${sk.id}`, label: `スキルタイル${sk.id}「${sk.label}」を取る`, data: { id: sk.id, adv: false } });
+    if (s.skillPiles[i] > 0 && !hasSkill(p, sk.id)) opts.push({ id: `skill:${sk.id}`, label: `スキルタイル${sk.id}「${sk.label}」（${SKILL_KIND_LABEL[sk.kind]}）を取る`, data: { id: sk.id, adv: false } });
   });
   if (s.config.variants.advSkills && p.diamond >= 1)
     for (const id of s.advSkills)

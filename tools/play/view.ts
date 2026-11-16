@@ -9,7 +9,7 @@ import { CHARACTERS, isBuffed } from '../../src/game/characters';
 import { cardCost, clockReady, describe, pieceCostAt } from '../../src/game/engine';
 import { explain } from '../../src/game/explain';
 import { cities, connectedPorts, edgeInfo, EDGE_DIR_LABEL, MAPS, passedIp, portStatus, rowCapacity, tagCounts, drawAreaReady } from '../../src/game/queries';
-import { finalScores } from '../../src/game/scoring';
+import { finalMetric, finalScores } from '../../src/game/scoring';
 import { parseHexKey } from '../../src/game/geometry';
 import type { Cost, GameEvent, GameState, Option, PlayerState, Row, Terrain } from '../../src/game/types';
 import { TAGS } from '../../src/game/types';
@@ -147,7 +147,7 @@ function mapBody(s: GameState, p: PlayerState, title: string, withLegend: boolea
   const out: string[] = [title];
   if (withLegend) out.push(mapLegend());
   // 列番号は全列を出す（奇数行のヘクスは奇数列にあり、その列番号の真下に並ぶ）
-  let head = '行\\列';
+  let head = 'r\\c';
   for (let c = 0; c <= maxC; c++) head = head.padEnd(4 + c * W) + `${c}`;
   out.push(head);
   for (let r = 0; r <= maxR; r++) {
@@ -409,6 +409,10 @@ export function scoreLines(s: GameState): string[] {
   });
   out.push(`合計：${rows.map((r) => `P${r.seat} ${r.total}`).join('｜')}（0点の項目は省略）`);
   out.push(`順位 ${rows.map((r) => `${seatName(s, r.seat)} ${r.rank}位`).join('、')}（同点はラビット駒の数）`);
+  for (const id of s.finalTiles) {
+    const f = FINAL_TILES.find((x) => x.id === id)!;
+    out.push(`最終得点計算の値「${f.label}」：${s.players.map((p) => `P${p.seat} ${finalMetric(p, id)}`).join('｜')}｜中立 ${f.neutral}`);
+  }
   return out;
 }
 

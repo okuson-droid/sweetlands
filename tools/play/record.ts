@@ -180,6 +180,8 @@ export function resolveMove(s: GameState, seat: number, token: string): Option {
 
 /** 失敗の文に添える、その段の選択肢 ID の1行 */
 export function stageOptionsLine(s: GameState, seat: number, opts: Option[]): string {
+  // 少なければ ID とラベルを、多ければ ID だけを並べる
+  if (opts.length <= 12) return opts.map((o) => `${shownId(s, seat, o)}＝${o.label}`).join('／');
   const ids = opts.map((o) => shownId(s, seat, o));
   return ids.length > 40 ? `${ids.slice(0, 40).join(' ')} …ほか${ids.length - 40}個` : ids.join(' ');
 }

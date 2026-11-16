@@ -19,7 +19,7 @@
 - `src/ui/tutorial/`：実践形式のチュートリアル。`script.ts` の台本（固定のシードと、各段で選ばせる選択肢 ID）を、本物の対局画面（`Game`）で選択肢を1つに絞って進める。エンジンの選択肢 ID や乱数の消費順を変えたら `tests/tutorial.test.ts` で台本を確かめ直す。
 - `src/ui/Online.tsx`：ロビー（ゲーム作成・席・名前・開始・観戦）と対局画面。観戦は席のない人が進行中のゲームを見るだけで、`Game` の `spectator`（伏せた情報を見せる席 `own` が -1）で描く。
 - `tools/play/`：AI の打ち手が対局するための対話プレイ用のコマンド（`npm run play:build` で `dist-play/cli.js`。配布用のビルドには含めない）。記録 `{ seed, config, moves }` を `replay` と同じ手順で再生し、合法手・進行・派生値・得点はエンジンからだけ得る。運用と約束事は `docs/playtest/README.md`、打ち手への指示は `docs/playtest/player-brief.md`。
-- `tests/`：Vitest（130件）。`e2e/`：Playwright の自動対戦・同期検査。
+- `tests/`：Vitest（131件）。`e2e/`：Playwright の自動対戦・同期検査。
 - `deploy/`：Supabase の準備用 SQL（`supabase_setup.sql`）と手順書。
 
 ## コマンド

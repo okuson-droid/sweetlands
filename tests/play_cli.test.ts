@@ -196,3 +196,29 @@ describe('自動で進める段', () => {
     expect(usedOrderAuto).toBeGreaterThan(0);
   }, 60_000);
 });
+
+describe('自動で進めた段の指定', () => {
+  it('自動で進んだ段と同じ ID を続けて書いても、失敗にせず読み飛ばす', async () => {
+    const { applyTokens, seatOptions: opts, waitingSeats: ws } = await import('../tools/play/record');
+    let s = createGame({ players: 3, names: ['A', 'B', 'C'], variants: { turnOrder: false, draft: false, advSkills: false }, orderChoice: true }, 777);
+    let rng = 3;
+    let checked = 0;
+    for (let n = 0; !s.finished && n < 4000 && checked < 20; n++) {
+      const seat = ws(s)[0];
+      const o = opts(s, seat);
+      const [r, nr] = nextRandom(rng);
+      rng = nr;
+      const id = o[pickIndex(s, o, r)].id;
+      // 1手当てた後に自動で進む段があれば、その ID を後ろに足しても同じ結果になる
+      const base = applyTokens(s, seat, [id]);
+      const autos = base.applied.filter((x) => x.auto).map((x) => x.id);
+      if (autos.length) {
+        const again = applyTokens(s, seat, [id, ...autos]);
+        expect(again.applied.map((x) => x.id)).toEqual(base.applied.map((x) => x.id));
+        checked++;
+      }
+      s = base.state;
+    }
+    expect(checked).toBeGreaterThan(0);
+  }, 60_000);
+});

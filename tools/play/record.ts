@@ -216,10 +216,13 @@ export function applyTokens(s: GameState, seat: number, tokens: string[]): { sta
   let cur = s;
   const applied: Applied[] = [];
   let orderAuto = false;
+  // 直前に自動で進めた手の ID。打ち手がその段を指定していても、失敗にせず読み飛ばす
+  let lastAuto = new Set<string>();
   const advance = () => {
     const r = autoAdvance(cur, seat, orderAuto);
     cur = r.state;
     applied.push(...r.applied);
+    lastAuto = new Set(r.applied.flatMap((x) => [x.id, edgeAlias(cur, seat, x.id)]));
   };
   tokens.forEach((tok, i) => {
     if (tok === ORDER_AUTO) {
@@ -231,6 +234,10 @@ export function applyTokens(s: GameState, seat: number, tokens: string[]): { sta
     try {
       opt = resolveMove(cur, seat, tok);
     } catch (e) {
+      if (lastAuto.has(tok)) {
+        lastAuto.delete(tok);
+        return;
+      }
       // 番の初めに1択の段が残っていれば、それを進めてから指定を当てる
       const before = applied.length;
       advance();
@@ -248,6 +255,7 @@ export function applyTokens(s: GameState, seat: number, tokens: string[]): { sta
     }
     cur = applyMove(cur, opt!.id);
     applied.push({ id: opt!.id, label: opt!.label, events: cur.events });
+    lastAuto = new Set();
     advance();
   });
   return { state: cur, applied };

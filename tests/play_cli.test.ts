@@ -51,8 +51,9 @@ describe('選択肢のラベル', () => {
 });
 
 describe('対話プレイ用のコマンド', () => {
-  it('打ち手への指示は3KB以内', () => {
+  it('打ち手への指示と知見の要約は3KB以内', () => {
     expect(readFileSync(join(__dirname, '../docs/playtest/player-brief.md')).length).toBeLessThanOrEqual(3072);
+    expect(readFileSync(join(__dirname, '../docs/playtest/knowledge-play.md')).length).toBeLessThanOrEqual(3072);
   });
 
   it('コマンド経由の1局が最後まで進み、他の席の手札が出ず、選べない指定では記録が変わらない', async () => {

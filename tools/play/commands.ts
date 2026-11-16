@@ -10,6 +10,8 @@ import {
   extendReplay,
   FORMAT,
   isWaitingFor,
+  autoAdvance,
+  type Applied,
   PlayError,
   readRecord,
   readSeen,
@@ -23,7 +25,7 @@ import {
   type Replayed,
 } from './record';
 import { refCards, refLines, REF_DEFAULT, REF_SECTIONS, type RefSection } from './ref';
-import { handLines, mapLines, optionLines, ownEventText, playerDetail, playersBlock, scoreLines, sharedBlock, showLines, SHOW_SECTIONS, statusLine, stepText, turnLines, turnView, seatName, type ShowSection } from './view';
+import { setFullOptions, handLines, mapLines, optionLines, ownEventText, playerDetail, playersBlock, scoreLines, sharedBlock, showLines, SHOW_SECTIONS, statusLine, stepText, turnLines, turnView, seatName, type ShowSection } from './view';
 
 /** wait と --then-wait の既定の時間切れ（秒）。打ち手の道具の上限（約120秒）より短くする */
 const WAIT_TIMEOUT = 100;
@@ -43,6 +45,8 @@ const HELP = `スイーツランドの対話プレイ用のコマンド（1回�
       選択肢 ID か番号を順に当てる。1つでも選べなければ記録を変えずに失敗し、2行目にその段の選択肢 ID を出す。
       道駒の辺は edge:<行>,<列>:<向き>（向き e w ne nw se sw）。出力は適用した選択・自分の増減・次の選択肢（または選択待ちの席）。
       --then-wait は、選択待ちが他の席に移ったらそのまま wait と同じく番を待つ。
+      選択肢が1つだけの段は自動で進む（記録に入る）。order:auto を並べると、以後の効果の順番（bundle・eff）は表示の先頭から選ぶ。
+      行動を選ぶ段の選択肢は種類ごとに1行に畳む。番号つきの全文は --full（show・wait・move・resume で使える）。
   move --dry-run <選択肢>... --seat N
       記録を変えずに下見する（自分の増減・いま終わったときの計算の増減・次の選択待ち）。山札・乱数に触れる手の手前で止める。
   wait --seat N [--round R] [--timeout 秒]
@@ -143,23 +147,37 @@ function othersSince(rep: Replayed, seat: number, from: number): string[] {
 
 type WaitResult = 'turn' | 'roundEnd' | 'finished' | 'timeout';
 
-async function waitFor(path: string, seat: number, round: number | undefined, timeoutSec: number): Promise<{ kind: WaitResult; rec: PlayRecord; rep: Replayed }> {
+type WaitRes = { kind: WaitResult; rec: PlayRecord; rep: Replayed; auto: Applied[] };
+
+async function waitFor(path: string, seat: number, round: number | undefined, timeoutSec: number): Promise<WaitRes> {
   const start = Date.now();
+  const auto: Applied[] = [];
   for (;;) {
     const { rec, rep } = load(path);
     const s = rep.state;
-    if (s.finished) return { kind: 'finished', rec, rep };
-    if (round !== undefined && s.round > round) return { kind: 'roundEnd', rec, rep };
-    if (isWaitingFor(s, seat)) return { kind: 'turn', rec, rep };
-    if (Date.now() - start >= timeoutSec * 1000) return { kind: 'timeout', rec, rep };
+    if (s.finished) return { kind: 'finished', rec, rep, auto };
+    if (round !== undefined && s.round > round) return { kind: 'roundEnd', rec, rep, auto };
+    if (isWaitingFor(s, seat)) {
+      // 選択肢が1つだけの段は、番が来たところで進めて記録に書く（打ち手の判断の余地がないため）
+      const r = autoAdvance(s, seat, false);
+      if (r.applied.length === 0) return { kind: 'turn', rec, rep, auto };
+      if (readRecord(path).moves.length === rec.moves.length) {
+        writeRecord(path, { ...rec, moves: [...rec.moves, ...r.applied.map((x) => x.id)] });
+        if (cache) cache.stamp = '';
+        auto.push(...r.applied);
+      }
+      continue;
+    }
+    if (Date.now() - start >= timeoutSec * 1000) return { kind: 'timeout', rec, rep, auto };
     await new Promise((r) => setTimeout(r, POLL_MS));
   }
 }
 
-function waitOutput(path: string, seat: number, round: number | undefined, res: { kind: WaitResult; rec: PlayRecord; rep: Replayed }): string[] {
+function waitOutput(path: string, seat: number, round: number | undefined, res: WaitRes): string[] {
   const { rec, rep } = res;
   const s = rep.state;
   const out = othersSince(rep, seat, readSeen(path, seat));
+  if (res.auto.length) out.push(`自動で選んだ（1択）：${res.auto.map((x) => x.label).join(' → ')}`);
   writeSeen(path, seat, rec.moves.length);
   switch (res.kind) {
     case 'finished':
@@ -223,7 +241,7 @@ async function cmdMove(a: Args, path: string): Promise<void> {
   const next: PlayRecord = { ...rec, moves: [...rec.moves, ...applied.map((x) => x.id)] };
   writeRecord(path, next);
   if (cache) cache.stamp = ''; // 次の読み込みで読み直す（前回の再生の続きから）
-  const out = ['== 適用した選択', ...applied.map((x) => `・${x.label}`)];
+  const out = ['== 適用した選択', ...applied.map((x) => `・${x.auto ? '（自動）' : ''}${x.label}`)];
   const delta = ownEventText(state, seat, applied.flatMap((x) => x.events));
   if (delta) out.push(`増減：${delta}`);
   writeSeen(path, seat, next.moves.length);
@@ -333,6 +351,7 @@ async function main(argv: string[]): Promise<void> {
     return;
   }
   const path = str(a, 'file') ?? DEFAULT_RECORD_PATH;
+  setFullOptions(a.flags.has('full'));
   switch (cmd) {
     case 'new':
       return cmdNew(a, path);

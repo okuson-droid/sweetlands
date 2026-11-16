@@ -108,9 +108,13 @@ describe('対話プレイ用のコマンド', () => {
         }
         // 選べない指定：記録は変わらず、2行目にその段の選択肢が出る
         const before = readFileSync(file, 'utf8');
-        const bad = await run('move', '1', 'no-such-option', '--seat', String(seat));
+        const bad = await run('move', 'no-such-option', '--seat', String(seat));
         expect(bad.code).toBe(1);
         expect(bad.out).toContain('この段の選択肢');
+        expect(readFileSync(file, 'utf8')).toBe(before);
+        // 2つ目で選べなくても、1つ目を含めて記録は変わらない
+        const bad2 = await run('move', '1', 'no-such-option', '--seat', String(seat));
+        expect(bad2.code).toBe(1);
         expect(readFileSync(file, 'utf8')).toBe(before);
         const wrongSeat = await run('move', '1', '--seat', String((seat + 1) % 3));
         expect(wrongSeat.code).toBe(1);
@@ -126,7 +130,9 @@ describe('対話プレイ用のコマンド', () => {
       if (opt.id.startsWith('edge:')) usedEdgeAlias = true;
       const res = await run('move', token, '--seat', String(seat));
       expect(res.code, res.out).toBe(0);
-      expect(leaks(current(), seat, res.out, true)).toEqual([]);
+      const after = current();
+      expect(leaks(after, seat, res.out, true)).toEqual([]);
+      if (!after.finished) expect(seatOptions(after, seat).length === 1, '1択の段は自動で進む').toBe(false);
     }
     const s = current();
     expect(s.finished).toBe(true);
@@ -160,3 +166,29 @@ describe('点検の派生値', () => {
   });
 });
 
+
+describe('自動で進める段', () => {
+  it('order:auto は効果の順番を選ぶ段を先頭から進め、1択の段も止まらない', async () => {
+    const { applyTokens, seatOptions: opts, waitingSeats: ws } = await import('../tools/play/record');
+    let s = createGame({ players: 3, names: ['A', 'B', 'C'], variants: { turnOrder: false, draft: false, advSkills: false }, orderChoice: true }, 4242);
+    let rng = 9;
+    let usedOrderAuto = 0;
+    for (let n = 0; !s.finished && n < 5000; n++) {
+      const seat = ws(s)[0];
+      const step = s.pending!.step;
+      if (step === 'orderBundles' || step === 'orderEffects') {
+        s = applyTokens(s, seat, ['order:auto']).state;
+        usedOrderAuto++;
+        if (!s.finished && ws(s)[0] === seat) expect(['orderBundles', 'orderEffects']).not.toContain(s.pending!.step);
+        continue;
+      }
+      const o = opts(s, seat);
+      const [r, nr] = nextRandom(rng);
+      rng = nr;
+      s = applyTokens(s, seat, [o[pickIndex(s, o, r)].id]).state;
+      if (!s.finished && ws(s).includes(seat)) expect(opts(s, seat).length).not.toBe(1);
+    }
+    expect(s.finished).toBe(true);
+    expect(usedOrderAuto).toBeGreaterThan(0);
+  }, 60_000);
+});

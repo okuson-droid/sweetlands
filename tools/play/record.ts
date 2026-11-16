@@ -186,20 +186,69 @@ export function stageOptionsLine(s: GameState, seat: number, opts: Option[]): st
   return ids.length > 40 ? `${ids.slice(0, 40).join(' ')} …ほか${ids.length - 40}個` : ids.join(' ');
 }
 
-/** 選択を順に当てる。1つでも選べなければ例外を投げ、呼び出し側は記録を変えない */
-export function applyTokens(s: GameState, seat: number, tokens: string[]): { state: GameState; applied: { id: string; label: string; events: GameEvent[] }[] } {
+export type Applied = { id: string; label: string; events: GameEvent[]; auto?: boolean };
+
+/** 順番を選ぶ段（同時に起きた効果・即時能力の解決順） */
+const ORDER_STEPS = new Set(['orderBundles', 'orderEffects']);
+/** 順番を選ぶ段で、表示の先頭から順に解決させる指定（コマンドだけの指定で、記録には選んだ ID が入る） */
+export const ORDER_AUTO = 'order:auto';
+
+/** 打ち手の判断の余地がない段を進める：その席の番の間、選択肢が1つだけの段と、order:auto を指定した後の順番を選ぶ段（先頭を選ぶ）。
+ *  ルールの判断はしない（選ぶのは getOptions の選択肢だけ）。進めた手は記録に普通の手として入る */
+export function autoAdvance(s: GameState, seat: number, orderAuto: boolean): { state: GameState; applied: Applied[] } {
   let cur = s;
-  const applied: { id: string; label: string; events: GameEvent[] }[] = [];
+  const applied: Applied[] = [];
+  for (let guard = 0; guard < 500 && isWaitingFor(cur, seat); guard++) {
+    const opts = seatOptions(cur, seat);
+    let opt: Option | undefined;
+    if (opts.length === 1) opt = opts[0];
+    else if (orderAuto && ORDER_STEPS.has(cur.pending!.step)) opt = opts[0];
+    if (!opt) break;
+    cur = applyMove(cur, opt.id);
+    applied.push({ id: opt.id, label: opt.label, events: cur.events, auto: true });
+  }
+  return { state: cur, applied };
+}
+
+/** 選択を順に当てる。1つでも選べなければ例外を投げ、呼び出し側は記録を変えない。
+ *  各指定の後に autoAdvance で判断の余地がない段を進める（order:auto の後は順番を選ぶ段も先頭から進める） */
+export function applyTokens(s: GameState, seat: number, tokens: string[]): { state: GameState; applied: Applied[] } {
+  let cur = s;
+  const applied: Applied[] = [];
+  let orderAuto = false;
+  const advance = () => {
+    const r = autoAdvance(cur, seat, orderAuto);
+    cur = r.state;
+    applied.push(...r.applied);
+  };
   tokens.forEach((tok, i) => {
+    if (tok === ORDER_AUTO) {
+      orderAuto = true;
+      advance();
+      return;
+    }
     let opt: Option;
     try {
       opt = resolveMove(cur, seat, tok);
     } catch (e) {
-      if (e instanceof PlayError) throw new PlayError(`${i + 1}個目の指定で止めた（記録は変えていない）：${e.message}`, e.detail);
-      throw e;
+      // 番の初めに1択の段が残っていれば、それを進めてから指定を当てる
+      const before = applied.length;
+      advance();
+      if (applied.length > before) {
+        try {
+          opt = resolveMove(cur, seat, tok);
+        } catch (e2) {
+          if (e2 instanceof PlayError) throw new PlayError(`${i + 1}個目の指定で止めた（記録は変えていない）：${e2.message}`, e2.detail);
+          throw e2;
+        }
+      } else {
+        if (e instanceof PlayError) throw new PlayError(`${i + 1}個目の指定で止めた（記録は変えていない）：${e.message}`, e.detail);
+        throw e;
+      }
     }
-    cur = applyMove(cur, opt.id);
-    applied.push({ id: opt.id, label: opt.label, events: cur.events });
+    cur = applyMove(cur, opt!.id);
+    applied.push({ id: opt!.id, label: opt!.label, events: cur.events });
+    advance();
   });
   return { state: cur, applied };
 }

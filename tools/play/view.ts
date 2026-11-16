@@ -285,10 +285,61 @@ export function sharedBlock(s: GameState): string[] {
 // ---- 選択肢 ----
 
 /** 選択肢の欄。アクションディスクを使う版（…:disc）は、手札で払う版があれば同じ行に添えて番号を省く */
+/** 行動を選ぶ段も全文（番号つき）で出すか。--full のとき commands.ts が立てる */
+let fullOptions = false;
+export const setFullOptions = (v: boolean): void => {
+  fullOptions = v;
+};
+
+/** 行動を選ぶ段の短い形：種類ごとに1行へ畳み、ID で選ばせる（番号は --full の全文で出る） */
+function compactTurnLines(s: GameState, seat: number, opts: Option[]): string[] {
+  const pd = s.pending!;
+  const out = [`== 選択（P${seat}）：${pd.prompt}（ID で選ぶ。番号つきの全文は --full）`];
+  const ids = new Set(opts.map((o) => o.id));
+  const disc = opts.some((o) => o.id.endsWith(':disc'));
+  const hand = (label: string) => /（手札(\d+)枚）$/.exec(label)?.[1];
+  const strip = (label: string) => label.replace(/（手札\d+枚）$|（アクションディスク使用）$/, '');
+  const areas: string[] = [];
+  const copies = new Map<string, string[]>();
+  const cards: string[] = [];
+  const flips: string[] = [];
+  const key: string[] = [];
+  const free: string[] = [];
+  const rest: string[] = [];
+  for (const o of opts) {
+    const id = o.id;
+    if (id.startsWith('area:')) {
+      if (id.endsWith(':disc') && ids.has(id.slice(0, -5))) continue;
+      const parts = id.split(':');
+      const k = hand(o.label);
+      const cost = k ? `手札${k}` : 'ディスクのみ';
+      if (parts.length >= 3 && parts[2] !== 'disc') {
+        const head = `${parts[0]}:${parts[1]}（${AREAS[parts[1]].label}、${cost}）`;
+        copies.set(head, [...(copies.get(head) ?? []), parts[2]]);
+      } else areas.push(`${parts[0]}:${parts[1]} ${AREAS[parts[1]].label}［${cost}］`);
+    } else if (id.startsWith('play:')) cards.push(`${id} ${o.label.replace(/をプレイ（(\d+)ゴールド）$/, '($1G)')}`);
+    else if (id.startsWith('flip:')) flips.push(`${id} ${o.label}`);
+    else if (id.startsWith('fa4:') || id === 'fa8') key.push(`${id} ${o.label}`);
+    else if (id.startsWith('faC:')) free.push(`${id}（${o.label}）`);
+    else if (id.startsWith('fa')) free.push(id);
+    else rest.push(id);
+  }
+  if (key.length) out.push(`取れる：${key.join('／')}`);
+  if (areas.length) out.push(`エリア${disc ? '（:disc を付けるとディスクで手札コストなし）' : ''}：${areas.join('｜')}`);
+  for (const [head, targets] of copies) out.push(`${head}：コピー先 ${targets.join(' ')}（例 ${head.split('（')[0]}:${targets[0]}）`);
+  if (cards.length) out.push(`カード：${cards.join('、')}`);
+  if (flips.length) out.push(`フリップ：${flips.join('／')}`);
+  if (free.length) out.push(`フリーアクション：${free.join(' ')}（内容は ref --only free）`);
+  if (rest.length) out.push(`ほか：${rest.join(' ')}`);
+  out.push(...unavailableLines(s, seat, opts));
+  return out;
+}
+
 export function optionLines(s: GameState, seat: number): string[] {
   const opts = seatOptions(s, seat);
   if (opts.length === 0) return [];
   const pd = s.pending!;
+  if (pd.step === 'turn' && !fullOptions) return compactTurnLines(s, seat, opts);
   const out = [`== 選択（P${seat}）：${pd.prompt}`];
   const ids = new Set(opts.map((o) => o.id));
   // 地形タイルの置き場所が多いときは、ボーナスも裏返しもない置き場所を地形ごとに1行へ畳む（ID で選ぶ）

@@ -116,6 +116,10 @@ describe('対話プレイ用のコマンド', () => {
         const bad2 = await run('move', '1', 'no-such-option', '--seat', String(seat));
         expect(bad2.code).toBe(1);
         expect(readFileSync(file, 'utf8')).toBe(before);
+        // 下見に order:auto を混ぜても内部エラーにならず、記録も変わらない
+        const dry = await run('move', '--dry-run', 'order:auto', 'order:auto', opts[0].id, 'order:auto', '--seat', String(seat));
+        expect(dry.out).not.toContain('内部エラー');
+        expect(readFileSync(file, 'utf8')).toBe(before);
         const wrongSeat = await run('move', '1', '--seat', String((seat + 1) % 3));
         expect(wrongSeat.code).toBe(1);
         expect(readFileSync(file, 'utf8')).toBe(before);

@@ -262,22 +262,26 @@ function dryRun(s0: GameState, seat: number, tokens: string[]): void {
   let cur = s0;
   const out = ['== 下見（記録は変えていない）'];
   const events = [];
+  // order:auto が以後の指定に効くよう、毎回はじめから i 個目までを当て、増えた手だけを見る
+  let shown = 0;
   for (let i = 0; i < tokens.length; i++) {
     let res;
     try {
-      res = applyTokens(cur, seat, [tokens[i]]);
+      res = applyTokens(s0, seat, tokens.slice(0, i + 1));
     } catch (e) {
       if (e instanceof PlayError) throw new PlayError(`${i + 1}個目の指定で止めた：${e.message}`, e.detail);
       throw e;
     }
+    const added = res.applied.slice(shown);
     const next = res.state;
-    const hidden = next.rng !== cur.rng || next.deck.length !== cur.deck.length || next.deck[0] !== cur.deck[0] || next.events.some((e) => e.t === 'card' && (e.reason === 'draw' || e.reason === 'search' || e.reason === 'draft'));
+    const hidden = next.rng !== cur.rng || next.deck.length !== cur.deck.length || next.deck[0] !== cur.deck[0] || added.some((x) => x.events.some((e) => e.t === 'card' && (e.reason === 'draw' || e.reason === 'search' || e.reason === 'draft')));
     if (hidden) {
-      out.push(`・${res.applied[0].label} ← ここで山札か乱数に触れるため、この手から先は下見しない`);
+      out.push(`・${added[0]?.label ?? tokens[i]} ← ここで山札か乱数に触れるため、この手から先は下見しない`);
       break;
     }
-    out.push(`・${res.applied[0].label}`);
-    events.push(...res.applied[0].events);
+    for (const x of added) out.push(`・${x.auto ? '（自動）' : ''}${x.label}`);
+    for (const x of added) events.push(...x.events);
+    shown = res.applied.length;
     cur = next;
     if (!isWaitingFor(cur, seat)) break;
   }

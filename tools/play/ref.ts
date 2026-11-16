@@ -191,8 +191,11 @@ export function refLines(s: GameState, seat: number | null, sections: readonly R
 }
 
 export function refCards(s: GameState, ids: string[]): string[] {
-  return ids.map((id) => {
-    if (!CARDS[id]) throw new PlayError(`知らないカード：${id}`);
-    return cardLine(s, null, id, true);
+  return ids.map((key) => {
+    // ID か、名前（一部でもよい。1枚に絞れるとき）で引く
+    const id = CARDS[key] ? key : Object.keys(CARDS).filter((x) => CARDS[x].nameJa.includes(key));
+    if (typeof id === 'string') return cardLine(s, null, id, true);
+    if (id.length !== 1) throw new PlayError(`カードを1枚に絞れない：${key}（${id.length}枚）`);
+    return cardLine(s, null, id[0], true);
   });
 }

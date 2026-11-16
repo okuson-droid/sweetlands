@@ -268,7 +268,10 @@ function dryRun(s0: GameState, seat: number, tokens: string[]): void {
   const before = finalScores(s0)[seat].total;
   const after = finalScores(cur)[seat].total;
   out.push(`いま終わったときの計算：${before} → ${after}（${after - before >= 0 ? '+' : ''}${after - before}）`);
-  if (isWaitingFor(cur, seat)) out.push(`次の選択：${cur.pending!.prompt}`);
+  if (isWaitingFor(cur, seat)) {
+    out.push(`次の選択：${cur.pending!.prompt}`);
+    out.push(...optionLines(cur, seat).slice(1));
+  }
   else if (!cur.finished) out.push(`次の選択待ち：${waitingSeats(cur).map((x) => `P${x}`).join('・')}`);
   print(out);
 }

@@ -105,8 +105,10 @@ export function playerDetail(s: GameState, i: number): string[] {
   if (p.skills.length)
     out.push(`スキル ${p.skills.map((k) => `${k.adv ? '上級' : ''}${k.id}「${skillDef(k.id, k.adv, !!s.config.variants.charBuff).label}」${k.flipped ? '（フリップ済み）' : ''}`).join(' ')}`);
   out.push(
-    `産業列 ${(['agr', 'for', 'min'] as Row[]).map((r) => `${ROW_LABEL[r]}[${p.automated[r].map((id) => CARDS[id].nameJa).join('・')}] ${p.automated[r].length}/${rowCapacity(p, r, buff)}`).join('  ')}`,
+    `産業列（上限）${(['agr', 'for', 'min'] as Row[]).map((r) => `${ROW_LABEL[r]} ${p.automated[r].length}/${rowCapacity(p, r, buff)}`).join(' ')}`,
   );
+  for (const r of ['agr', 'for', 'min'] as Row[])
+    for (const id of p.automated[r]) out.push(`  ${ROW_LABEL[r]}列 ${id} ${CARDS[id].nameJa}：${CARDS[id].autoText ?? ''}（産業ボーナスのたびに得る）`);
   if (p.played.length) out.push(`手元のカード ${p.played.map((id) => `${id} ${CARDS[id].nameJa}${CARDS[id].type === 'pass' ? '（パス時）' : ''}`).join('、')}`);
   const tags = tagCounts(p, buff);
   out.push(`タグ ${TAGS.map((t) => `${t}${tags[t]}`).join(' ')}`);
@@ -134,7 +136,7 @@ export function mapLines(s: GameState, i: number, withLegend = true): string[] {
 
 /** 地図の面の盤面図だけ（準備で面を選ぶときの ref --only maps） */
 export function mapFaceLines(s: GameState, p: PlayerState, face: string): string[] {
-  return mapBody(s, p, `== 地図 ${face === 'A' ? 'A面（5枚とも同じ）' : `${face}面`}`, false).slice(0, -3);
+  return mapBody(s, p, `== 地図 ${face === 'A' ? 'A面（5枚とも同じ）' : `${face}面`}`, false).filter((l) => !l.startsWith('道駒') && !l.startsWith('都市'));
 }
 
 function mapBody(s: GameState, p: PlayerState, title: string, withLegend: boolean): string[] {
@@ -144,9 +146,10 @@ function mapBody(s: GameState, p: PlayerState, title: string, withLegend: boolea
   const W = 3;
   const out: string[] = [title];
   if (withLegend) out.push(mapLegend());
-  let head = '    ';
-  for (let c = 0; c <= maxC; c += 2) head = (head + `${c}`).padEnd(4 + (c + 2) * W);
-  out.push(head.trimEnd());
+  // 列番号は全列を出す（奇数行のヘクスは奇数列にあり、その列番号の真下に並ぶ）
+  let head = '行\\列';
+  for (let c = 0; c <= maxC; c++) head = head.padEnd(4 + c * W) + `${c}`;
+  out.push(head);
   for (let r = 0; r <= maxR; r++) {
     const cells: string[] = Array(4 + (maxC + 2) * W).fill(' ');
     const label = `${r}`.padEnd(4);
@@ -164,6 +167,10 @@ function mapBody(s: GameState, p: PlayerState, title: string, withLegend: boolea
     }
     out.push(cells.join('').trimEnd());
   }
+  const icons = Object.entries(p.hexes)
+    .filter(([, h]) => h.icon && !h.iconTaken)
+    .map(([k, h]) => `${k}=${ICON_CODE[h.icon!]}`);
+  out.push(`未取得のアイコンのヘクス：${icons.join(' ') || 'なし'}`);
   // 港・追加ドローエリア・道駒・都市
   const v = MAPS[p.mapId!].virtual;
   const ports = portStatus(p);
@@ -255,7 +262,18 @@ export function optionLines(s: GameState, seat: number): string[] {
   const pd = s.pending!;
   const out = [`== 選択（P${seat}）：${pd.prompt}`];
   const ids = new Set(opts.map((o) => o.id));
+  // 地形タイルの置き場所が多いときは、ボーナスも裏返しもない置き場所を地形ごとに1行へ畳む（ID で選ぶ）
+  const plain = /^地形タイルをヘクス (\S+)（(麦畑|森林|鉱山|海)）に置く$/;
+  const folded = new Map<string, string[]>();
+  if ((pd.step === 'terrain' || pd.step === 'mix') && opts.length > 12)
+    for (const o of opts) {
+      const m = plain.exec(o.label);
+      if (m) folded.set(m[2], [...(folded.get(m[2]) ?? []), o.id]);
+    }
+  const foldedIds = new Set([...folded.values()].flat());
+  for (const [t, list] of folded) out.push(`    ${t}（ボーナスなし）に地形タイルを置く：${list.join(' ')}`);
   opts.forEach((o, k) => {
+    if (foldedIds.has(o.id)) return;
     if (o.id.endsWith(':disc') && ids.has(o.id.slice(0, -5))) return;
     const disc = ids.has(`${o.id}:disc`) ? ` ［${o.id}:disc でディスク使用］` : '';
     out.push(`${String(k + 1).padStart(3)} ${shownId(s, seat, o)}  ${o.label}${disc}`);

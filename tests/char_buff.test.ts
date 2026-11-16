@@ -76,7 +76,7 @@ describe('キャラクターの上方修正', () => {
     expect(area).toBeDefined();
     s = applyMove(s, area!.id);
     while (s.pending!.step !== 'areaCost') s = applyMove(s, getOptions(s)[0].id);
-    expect(getOptions(s).map((o) => o.label)).toEqual(['麦1・ゴールド3', '麦0・ゴールド4']);
+    expect(getOptions(s).map((o) => o.label)).toEqual(['麦1・ゴールド3で払う', '麦0・ゴールド4で払う']);
     s = applyMove(s, 'split:3');
     expect(s.players[g.seat].res).toMatchObject({ gold: 2, wheat: 0, wood: 9 });
   });
@@ -88,7 +88,7 @@ describe('キャラクターの上方修正', () => {
     const area = getOptions(s).find((o) => o.id.startsWith('area:') && (o.data as { area: string }).area === 'C');
     s = applyMove(s, area!.id);
     while (s.pending!.step !== 'areaCost') s = applyMove(s, getOptions(s)[0].id);
-    expect(getOptions(s).map((o) => o.label)).toEqual(['麦1・木材3', '麦0・木材4']);
+    expect(getOptions(s).map((o) => o.label)).toEqual(['麦1・木材3で払う', '麦0・木材4で払う']);
   });
 });
 

@@ -18,6 +18,7 @@
   },
   "include": [
     "src",
-    "tests"
+    "tests",
+    "tools/play"
   ]
 }

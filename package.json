@@ -9,7 +9,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "e2e": "vite build && node e2e/autoplay.mjs mouse 11 3 15000 && node e2e/autoplay.mjs touch 13 2 15000"
+    "e2e": "vite build && node e2e/autoplay.mjs mouse 11 3 15000 && node e2e/autoplay.mjs touch 13 2 15000",
+    "play:build": "vite build --config tools/play/vite.config.ts",
+    "play": "node dist-play/cli.js"
   },
   "keywords": [],
   "author": "",

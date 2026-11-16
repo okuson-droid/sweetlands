@@ -440,3 +440,52 @@ export function outerTiles(p: PlayerState): number {
 export function maxTerrainKind(p: PlayerState): number {
   return Math.max(...(['W', 'F', 'M', 'S'] as Terrain[]).map((t) => terrainCount(p, t)));
 }
+
+// ---- 辺の呼び名（対話プレイ用のコマンドと選択肢のラベル） ----
+/** 辺の向き。hexEdges の並び（右下・左下・左・左上・右上・右）と同じ順 */
+export const EDGE_DIRS = ['se', 'sw', 'w', 'nw', 'ne', 'e'] as const;
+export type EdgeDir = (typeof EDGE_DIRS)[number];
+export const EDGE_DIR_LABEL: Record<EdgeDir, string> = { se: '右下', sw: '左下', w: '左', nw: '左上', ne: '右上', e: '右' };
+const DIR_DELTA: Record<EdgeDir, [number, number]> = { se: [1, 1], sw: [1, -1], w: [0, -2], nw: [-1, -1], ne: [-1, 1], e: [0, 2] };
+
+/** 辺の呼び名：辺に接する地図上のヘクスのうち最も上（同じ行なら左）のヘクスと、そこから見た向き。
+ *  反対側は地図上のヘクス（other）か、港・追加ドローエリア（virtual）か、どちらでもない盤外 */
+export interface EdgeInfo {
+  hex: HexKey;
+  dir: EdgeDir;
+  other: HexKey | null;
+  virtual: string | null;
+}
+export function edgeInfo(p: PlayerState, e: string): EdgeInfo | null {
+  const hexes = hexesOnEdge(p, e).sort((a, b) => {
+    const [ar, ac] = parseHexKey(a);
+    const [br, bc] = parseHexKey(b);
+    return ar - br || ac - bc;
+  });
+  if (hexes.length === 0) return null;
+  const hex = hexes[0];
+  const [r, c] = parseHexKey(hex);
+  const dir = EDGE_DIRS[hexEdges(r, c).indexOf(e)];
+  const [dr, dc] = DIR_DELTA[dir];
+  const nk = hexKey(r + dr, c + dc);
+  const other = nk in p.hexes ? nk : null;
+  let virtual: string | null = null;
+  if (!other && p.mapId)
+    for (const [name, v] of Object.entries(MAPS[p.mapId].virtual)) if (v.pos[0] === r + dr && v.pos[1] === c + dc) virtual = name.replace(/（.*$/, '');
+  return { hex, dir, other, virtual };
+}
+
+/** ヘクスと向きから辺を求める（地図上のヘクスでなければ null） */
+export function edgeAt(p: PlayerState, hex: HexKey, dir: EdgeDir): string | null {
+  if (!(hex in p.hexes)) return null;
+  const [r, c] = parseHexKey(hex);
+  return hexEdges(r, c)[EDGE_DIRS.indexOf(dir)] ?? null;
+}
+
+/** 辺の文：「ヘクス 5,7 の右下の辺（6,8 との間）」 */
+export function edgeText(p: PlayerState, e: string): string {
+  const info = edgeInfo(p, e);
+  if (!info) return '辺';
+  const side = info.other ? `${info.other} との間` : info.virtual ? `${info.virtual}との間` : '盤外側';
+  return `ヘクス ${info.hex} の${EDGE_DIR_LABEL[info.dir]}の辺（${side}）`;
+}

@@ -20,6 +20,7 @@ import {
   LOTUS_CITY_RATE,
   LOTUS_CITY_RATE_BUFF,
   MAP_ICON,
+  MILESTONE_LABEL,
   printedAuto,
   PROS_TRACKS,
   RABBIT_BONUS,
@@ -48,6 +49,7 @@ import {
   condTimes,
   connectedPorts,
   drawAreaReady,
+  edgeText,
   hexHasRoad,
   hexesOnEdge,
   initialHexes,
@@ -83,6 +85,31 @@ const RES_LABEL: Record<ResKind | 'diamond', string> = { gold: 'ゴールド', w
 const ROW_LABEL: Record<Row, string> = { agr: '農業', for: '林業', min: '鉱業' };
 const COLOR_LABEL: Record<ProsColor, string> = { O: 'オレンジ', G: '緑', Y: '灰' };
 const BASICS: Basic[] = ['wheat', 'wood', 'iron'];
+const TERRAIN_LABEL: Record<string, string> = { W: '麦畑', F: '森林', M: '鉱山', S: '海', X: '特殊地形', C: '首都' };
+
+// ---- 選択肢のラベル（ラベルだけで何を選ぶ手か分かる文にする。ID と並びは変えない） ----
+/** 地形タイルを置くヘクスの文：地形・まだ取っていないアイコンのボーナス・道に接して裏返るか */
+function terrainSpotLabel(p: PlayerState, key: string): string {
+  const h = p.hexes[key];
+  if (h.terrain === 'X') return `特殊地形タイルをヘクス ${key} に置く（種類は次に選ぶ）`;
+  const bits = [TERRAIN_LABEL[h.terrain]];
+  if (h.icon && !h.iconTaken) bits.push(`ボーナス：${describe(MAP_ICON[h.icon](h.terrain as Terrain))}`);
+  if (hexHasRoad(p, key)) bits.push(`道に接して裏返る：${describe(TERRAIN_FLIP[h.terrain as Terrain])}`);
+  return `地形タイルをヘクス ${key}（${bits.join('・')}）に置く`;
+}
+/** 道駒を置く辺の文：辺の位置と、置くと裏返る表向きのタイル */
+function roadSpotLabel(p: PlayerState, e: string): string {
+  const flips = hexesOnEdge(p, e).filter((k) => p.hexes[k].tile && !p.hexes[k].tile!.flipped);
+  return `道駒を${edgeText(p, e)}に置く${flips.length ? `（${flips.join('・')} のタイルが裏返る）` : ''}`;
+}
+/** 建物駒を置くヘクスの文：置いたときに得る効果（首都のボーナスか、タイルの裏返しの効果） */
+function buildSpotLabel(p: PlayerState, key: string, what: string): string {
+  const h = p.hexes[key];
+  const eff = h.terrain === 'C' ? describe(CAPITAL_BONUS) : describe(flipEffects(h));
+  const where = h.terrain === 'C' ? '首都' : `${h.tile?.kind === 'special' ? '特殊地形' : TERRAIN_LABEL[h.terrain]}タイル`;
+  return `${what}をヘクス ${key}（${where}：${eff}）に置く`;
+}
+const cardName = (id: string) => CARDS[id].nameJa;
 
 const zeroRes = (): Res => ({ gold: 0, wheat: 0, wood: 0, iron: 0 });
 
@@ -274,7 +301,7 @@ function charOptions(s: GameState): Option[] {
   if (!s.config.variants.freeChar && !s.charPool) for (const [a, b] of BOARD_PAIRS) if (taken.has(a) || taken.has(b)) (blocked.add(a), blocked.add(b));
   return (s.charPool ?? Object.keys(CHARACTERS))
     .filter((c) => !blocked.has(c))
-    .map((c) => ({ id: `char:${c}`, label: c }));
+    .map((c) => ({ id: `char:${c}`, label: `キャラクター「${c}」を選ぶ` }));
 }
 
 /** 地図ボード：まだ受け取られていないボードの A面・B面。A面もどのボードかを選ぶ */
@@ -602,11 +629,11 @@ function exec(s: GameState, t: Task): void {
       if (goldEach > 0) {
         // フリーアクション❸の一括：goldEach ゴールドにつき1個、払える分まで何個でも得る
         const max = Math.floor(p.res.gold / goldEach);
-        const opts = bulkCombos(1, max).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
+        const opts = bulkCombos(1, max).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: `${goldEach * comboTotal(c)}ゴールドで${comboLabel(c)}を得る`, data: c }));
         ask(s, t, 'anyBasic', `得る基礎資源の内訳を選んでください（${goldEach}ゴールドにつき1個、最大${max}個）`, opts);
         return;
       }
-      const opts = basicCombos(e.n).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
+      const opts = basicCombos(e.n).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: `${comboLabel(c)}を得る`, data: c }));
       ask(s, t, 'anyBasic', `任意の基礎資源を${e.n}個得る：内訳を選んでください`, opts);
       return;
     }
@@ -762,7 +789,7 @@ function stepTerrain(s: GameState, t: Task, n: number, kind: Terrain | 'any'): v
     return;
   }
   t.ctx = { ...(t.ctx ?? {}), n, kind };
-  const opts: Option[] = targets.map((k) => ({ id: `hex:${k}`, label: `ヘクス ${k}`, data: { hex: k } }));
+  const opts: Option[] = targets.map((k) => ({ id: `hex:${k}`, label: terrainSpotLabel(p, k), data: { hex: k } }));
   opts.push({ id: 'stop', label: 'ここで終える' });
   ask(s, t, 'terrain', `地形タイルを置くヘクスを選んでください（あと${n}枚まで）`, opts, 'hex');
 }
@@ -773,7 +800,7 @@ function stepRoad(s: GameState, t: Task, n: number): void {
   const edges = legalRoadEdges(p);
   if (edges.length === 0) return;
   t.ctx = { ...(t.ctx ?? {}), n };
-  const opts: Option[] = edges.map((e) => ({ id: `edge:${e}`, label: '辺', data: { edge: e } }));
+  const opts: Option[] = edges.map((e) => ({ id: `edge:${e}`, label: roadSpotLabel(p, e), data: { edge: e } }));
   opts.push({ id: 'stop', label: 'ここで終える' });
   ask(s, t, 'road', `道駒を置く辺を選んでください（あと${n}個まで）`, opts, 'edge');
 }
@@ -783,8 +810,8 @@ function stepMix(s: GameState, t: Task, terr: number, road: number): void {
   const p = P(s, t);
   const opts: Option[] = [];
   if (terr > 0)
-    for (const k of terrainTargets(s, p, 'any')) opts.push({ id: `hex:${k}`, label: `ヘクス ${k}`, data: { hex: k } });
-  if (road > 0) for (const e of legalRoadEdges(p)) opts.push({ id: `edge:${e}`, label: '辺', data: { edge: e } });
+    for (const k of terrainTargets(s, p, 'any')) opts.push({ id: `hex:${k}`, label: terrainSpotLabel(p, k), data: { hex: k } });
+  if (road > 0) for (const e of legalRoadEdges(p)) opts.push({ id: `edge:${e}`, label: roadSpotLabel(p, e), data: { edge: e } });
   if (opts.length === 0) return;
   t.ctx = { ...(t.ctx ?? {}), terr, road };
   opts.push({ id: 'stop', label: 'ここで終える' });
@@ -959,8 +986,8 @@ function stepBuilding(s: GameState, t: Task): void {
   }
   const opts: Option[] = pieces.map((pc) => {
     const c = pieceCost(s, p, pc);
-    const costLabel = e.viaAction ? `（木材${c.wood ?? 0}・鉄${c.iron ?? 0}）` : '';
-    return { id: `piece:${pc}`, label: `${pieceLabel(pc)}${costLabel}`, data: { piece: pc } };
+    const costLabel = e.viaAction ? `（木材${c.wood ?? 0}・鉄${c.iron ?? 0}を払う）` : '';
+    return { id: `piece:${pc}`, label: `${pieceLabel(pc)}を置く${costLabel}`, data: { piece: pc } };
   });
   opts.push({ id: 'stop', label: 'ここで終える' });
   ask(s, t, 'bldPiece', `置く建物駒を選んでください（あと${left}個まで）`, opts);
@@ -977,7 +1004,8 @@ function resumeBuilding(s: GameState, t: Task, step: string, opt: Option): void 
   if (step === 'bldPiece') {
     ctx.piece = opt.data!.piece as Piece;
     const spots = buildingSpots(p, e.onTerrain);
-    const opts = spots.map((k) => ({ id: `hex:${k}`, label: `ヘクス ${k}`, data: { hex: k } }));
+    const what = pieceLabel(ctx.piece);
+    const opts = spots.map((k) => ({ id: `hex:${k}`, label: buildSpotLabel(p, k, what), data: { hex: k } }));
     ask(s, t, 'bldSpot', `${pieceLabel(ctx.piece)}を置く場所を選んでください`, opts, 'hex');
     return;
   }
@@ -1126,7 +1154,7 @@ function stepPros(s: GameState, t: Task, n: number, color?: ProsColor): void {
     if (toEnd && p.diamond < 1) return;
     opts.push({
       id: `pros:${i}`,
-      label: `${COLOR_LABEL[tr.color]}（${tr.label}）${toEnd ? '：右端へ（ダイヤ1）' : ''}`,
+      label: `繁栄トラック「${tr.label}」（${COLOR_LABEL[tr.color]}）を1歩進める${toEnd ? '：右端へ（ダイヤ1）' : ''}`,
       data: { track: i },
     });
   });
@@ -1184,7 +1212,7 @@ function stepRabbit(s: GameState, t: Task, n: number): void {
     return;
   }
   t.ctx = { n };
-  const opts: Option[] = spots.map((k) => ({ id: `hex:${k}`, label: `ヘクス ${k}`, data: { hex: k } }));
+  const opts: Option[] = spots.map((k) => ({ id: `hex:${k}`, label: `クッキーラビット駒をヘクス ${k}（${BUILDING_LABEL[p.hexes[k].building!]}）に置く`, data: { hex: k } }));
   opts.push({ id: 'stop', label: 'ここで終える' });
   ask(s, t, 'rabbit', `クッキーラビット駒を置く場所を選んでください（あと${n}個まで）`, opts, 'hex');
 }
@@ -1213,11 +1241,11 @@ function stepSkill(s: GameState, t: Task, n: number): void {
   const p = P(s, t);
   const opts: Option[] = [];
   SKILLS.forEach((sk, i) => {
-    if (s.skillPiles[i] > 0 && !hasSkill(p, sk.id)) opts.push({ id: `skill:${sk.id}`, label: sk.label, data: { id: sk.id, adv: false } });
+    if (s.skillPiles[i] > 0 && !hasSkill(p, sk.id)) opts.push({ id: `skill:${sk.id}`, label: `スキルタイル${sk.id}「${sk.label}」を取る`, data: { id: sk.id, adv: false } });
   });
   if (s.config.variants.advSkills && p.diamond >= 1)
     for (const id of s.advSkills)
-      if (!hasSkill(p, id, true)) opts.push({ id: `adv:${id}`, label: `上級：${skillDef(id, true, skillBuff(s)).label}（ダイヤ1）`, data: { id, adv: true } });
+      if (!hasSkill(p, id, true)) opts.push({ id: `adv:${id}`, label: `上級スキルタイル${id}「${skillDef(id, true, skillBuff(s)).label}」をダイヤ1で取る`, data: { id, adv: true } });
   if (opts.length === 0) return;
   t.ctx = { n };
   ask(s, t, 'skill', `スキルタイルを選んでください（あと${n}枚）`, opts);
@@ -1257,7 +1285,7 @@ function startIb(s: GameState, t: Task, row?: Row): void {
     return;
   }
   if (!row) {
-    const opts = (['agr', 'for', 'min'] as Row[]).map((r) => ({ id: `row:${r}`, label: `${ROW_LABEL[r]}の産業ボーナス` }));
+    const opts = (['agr', 'for', 'min'] as Row[]).map((r) => ({ id: `row:${r}`, label: `${ROW_LABEL[r]}の産業ボーナスを得る` }));
     ask(s, t, 'ibRow', 'どの産業列の産業ボーナスを得ますか', opts);
     return;
   }
@@ -1298,14 +1326,14 @@ function stepPay(s: GameState, t: Task): void {
   }
   if (!canAfford(s, p, e.cost)) return;
   const opts: Option[] = [
-    { id: 'pay', label: '支払う' },
-    { id: 'skip', label: e.repeat ? 'もう支払わない' : '支払わない' },
+    { id: 'pay', label: `${costLabel(e.cost)}を支払って「${describe(e.then)}」を得る` },
+    { id: 'skip', label: e.repeat ? 'もう支払わない' : `支払わない（「${describe(e.then)}」を得ない）` },
   ];
   // 「何回でも」の支払い（→*）は、回数を選んでまとめて支払える（pay:k は k 回分を払って終える）。
   // 1回ずつの 'pay' も残すため、以前の手の列もそのまま再生できる
   if (e.repeat) {
-    opts[0] = { id: 'pay', label: '1回支払う', data: { times: 1 } };
-    for (let k = 2; k <= 99 && canAfford(s, p, scaleCost(e.cost, k)); k++) opts.push({ id: `pay:${k}`, label: `${k}回支払う`, data: { times: k } });
+    opts[0] = { id: 'pay', label: `${costLabel(e.cost)}を1回支払って「${describe(e.then)}」を得る`, data: { times: 1 } };
+    for (let k = 2; k <= 99 && canAfford(s, p, scaleCost(e.cost, k)); k++) opts.push({ id: `pay:${k}`, label: `${costLabel(e.cost)}を${k}回支払って「${describe(e.then)}」を${k}回得る`, data: { times: k } });
   }
   ask(s, t, 'payConfirm', e.repeat ? `${costLabel(e.cost)}を支払って「${describe(e.then)}」を得る回数を選んでください` : `${costLabel(e.cost)}を支払って「${describe(e.then)}」を得ますか`, opts, 'confirm');
 }
@@ -1341,16 +1369,16 @@ function resumePay(s: GameState, t: Task, step: string, opt: Option): void {
     if (ctx.bulk) {
       // 両替のフリーアクション（❺❻）の一括：bulk 個を1単位として、持っている分まで何単位でも払える
       const unit = Number(ctx.bulk);
-      const opts = bulkCombos(unit, BASICS.reduce((a, b) => a + p.res[b], 0), p.res).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
+      const opts = bulkCombos(unit, BASICS.reduce((a, b) => a + p.res[b], 0), p.res).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: `${comboLabel(c)}を払って「${describe(e.then)}」を${comboTotal(c) / unit}回分得る`, data: c }));
       ask(s, t, 'payBasic', `支払う基礎資源の内訳を選んでください（${unit}個につき${describe(e.then)}）`, opts);
       return;
     }
-    const opts = basicCombos(Number(ctx.basicLeft), p.res).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: comboLabel(c), data: c }));
+    const opts = basicCombos(Number(ctx.basicLeft), p.res).map((c) => ({ id: `basic:${c.wheat}-${c.wood}-${c.iron}`, label: `${comboLabel(c)}を払う`, data: c }));
     ask(s, t, 'payBasic', `支払う基礎資源${ctx.basicLeft}個の内訳を選んでください`, opts);
     return;
   }
   if (Number(ctx.handLeft) > 0) {
-    const opts = p.hand.map((id) => ({ id: `card:${id}`, label: CARDS[id].nameJa, data: { card: id } }));
+    const opts = p.hand.map((id) => ({ id: `card:${id}`, label: `${cardName(id)}を捨てる`, data: { card: id } }));
     ask(s, t, 'payHand', `捨てる手札を選んでください（あと${ctx.handLeft}枚）`, opts, 'card');
     return;
   }
@@ -1391,7 +1419,7 @@ function stepSearch(s: GameState, t: Task, n: number, tag?: string, pass?: boole
     return;
   }
   t.ctx = { n };
-  ask(s, t, 'search', `市民デッキから手札に加えるカードを選んでください（あと${n}枚）`, cands.map((id) => ({ id: `card:${id}`, label: CARDS[id].nameJa, data: { card: id } })), 'card');
+  ask(s, t, 'search', `市民デッキから手札に加えるカードを選んでください（あと${n}枚）`, cands.map((id) => ({ id: `card:${id}`, label: `${cardName(id)}を手札に加える`, data: { card: id } })), 'card');
 }
 
 function resumeSearch(s: GameState, t: Task, opt: Option): void {
@@ -1408,7 +1436,7 @@ function stepFlipAny(s: GameState, t: Task): void {
   const p = P(s, t);
   const keys = Object.keys(p.hexes).filter((k) => p.hexes[k].tile && !p.hexes[k].tile!.flipped);
   if (keys.length === 0) return;
-  ask(s, t, 'flipAny', '裏返す表向きの地形タイルを選んでください', keys.map((k) => ({ id: `hex:${k}`, label: `ヘクス ${k}`, data: { hex: k } })), 'hex');
+  ask(s, t, 'flipAny', '裏返す表向きの地形タイルを選んでください', keys.map((k) => ({ id: `hex:${k}`, label: `ヘクス ${k} の${p.hexes[k].tile!.kind === 'special' ? '特殊地形' : TERRAIN_LABEL[p.hexes[k].terrain]}タイルを裏返す（${describe(flipEffects(p.hexes[k]))}）`, data: { hex: k } })), 'hex');
 }
 
 function resumeFlipAny(s: GameState, t: Task, opt: Option): void {
@@ -1422,7 +1450,7 @@ function stepFreeAutomate(s: GameState, t: Task, n: number): void {
   t.ctx = { n };
   const opts: Option[] = [];
   for (const id of cands)
-    for (const r of automatableRows(s, p, id)) opts.push({ id: `auto:${id}:${r}`, label: `${CARDS[id].nameJa} → ${ROW_LABEL[r]}列`, data: { card: id, row: r } });
+    for (const r of automatableRows(s, p, id)) opts.push({ id: `auto:${id}:${r}`, label: `${cardName(id)}を${ROW_LABEL[r]}列に無料でオートメーション化`, data: { card: id, row: r } });
   if (!(t.ctx as Record<string, unknown>).mandatory) opts.push({ id: 'skip', label: 'オートメーション化しない' });
   ask(s, t, 'freeAutomate', `無料でオートメーション化するカードを選んでください（あと${n}枚）`, opts, 'card');
 }
@@ -1447,7 +1475,7 @@ function stepDiscard(s: GameState, t: Task, n: number): void {
   const p = P(s, t);
   if (n <= 0 || p.hand.length === 0) return;
   t.ctx = { n };
-  ask(s, t, 'discard', `捨てる手札を選んでください（あと${n}枚）`, p.hand.map((id) => ({ id: `card:${id}`, label: CARDS[id].nameJa, data: { card: id } })), 'card');
+  ask(s, t, 'discard', `捨てる手札を選んでください（あと${n}枚）`, p.hand.map((id) => ({ id: `card:${id}`, label: `${cardName(id)}を捨てる`, data: { card: id } })), 'card');
 }
 
 function resumeDiscard(s: GameState, t: Task, opt: Option): void {
@@ -1468,7 +1496,7 @@ function execSpecial(s: GameState, t: Task, id: string): void {
   const p = P(s, t);
   switch (id) {
     case 'incomeAny1':
-      ask(s, t, 'incomeAny', 'どの収入値を1上げますか', (['gold', 'wheat', 'wood', 'iron'] as ResKind[]).map((r) => ({ id: `res:${r}`, label: `${RES_LABEL[r]}の収入` })));
+      ask(s, t, 'incomeAny', 'どの収入値を1上げますか', (['gold', 'wheat', 'wood', 'iron'] as ResKind[]).map((r) => ({ id: `res:${r}`, label: `${RES_LABEL[r]}の収入値+1` })));
       return;
     case 'locomotive':
       if (p.loco === null) p.loco = 0;
@@ -1482,7 +1510,7 @@ function execSpecial(s: GameState, t: Task, id: string): void {
       p.woodDiscount += 2;
       return;
     case 'chooseSpecial': {
-      const opts = s.specialSupply.map((x) => ({ id: `special:${x}`, label: SPECIAL_TILES[x].label }));
+      const opts = s.specialSupply.map((x) => ({ id: `special:${x}`, label: `特殊地形タイル${x}（裏返すと：${SPECIAL_TILES[x].label}）を置く` }));
       ask(s, t, 'special', '置く特殊地形タイルを選んでください', opts);
       return;
     }
@@ -1588,7 +1616,7 @@ function execSpecial(s: GameState, t: Task, id: string): void {
       const done = (t.ctx?.done as number[] | undefined) ?? [];
       const waiting = s.turnOrder.filter((pl) => !done.includes(pl) && s.draftPacks[pl].length > 0);
       if (waiting.length === 0) return;
-      const options = waiting.flatMap((pl) => s.draftPacks[pl].map((id) => ({ id: `card:${id}`, label: CARDS[id].nameJa, data: { card: id, player: pl } })));
+      const options = waiting.flatMap((pl) => s.draftPacks[pl].map((id) => ({ id: `card:${id}`, label: `${cardName(id)}を取る`, data: { card: id, player: pl } })));
       s.pending = { player: waiting[0], kind: 'card', prompt: '手札に加えるカードを1枚選んでください', options, resume: t, step: 'draftPick', waiting };
       return;
     }
@@ -1619,7 +1647,7 @@ function execSpecial(s: GameState, t: Task, id: string): void {
       return;
     case 'cleanupKeep': {
       if (p.hand.length <= 1) return;
-      ask(s, t, 'keep', `${p.name}：次のラウンドに残す手札を1枚選んでください`, p.hand.map((id) => ({ id: `card:${id}`, label: CARDS[id].nameJa, data: { card: id } })), 'card');
+      ask(s, t, 'keep', `${p.name}：次のラウンドに残す手札を1枚選んでください`, p.hand.map((id) => ({ id: `card:${id}`, label: `${cardName(id)}を手札に残す`, data: { card: id } })), 'card');
       return;
     }
     case 'finalScoring':
@@ -1642,7 +1670,7 @@ function execSpecial(s: GameState, t: Task, id: string): void {
         return;
       }
       t.ctx = { bundles };
-      const opts = bundles.map((b, i) => ({ id: `bundle:${i}`, label: `${b.src}：${describe(b.effs)}` }));
+      const opts = bundles.map((b, i) => ({ id: `bundle:${i}`, label: `先に「${b.src}：${describe(b.effs)}」を解決する` }));
       ask(s, t, 'orderBundles', '先に解決する効果を選んでください', opts);
       return;
     }
@@ -1656,7 +1684,7 @@ function execSpecial(s: GameState, t: Task, id: string): void {
         front(s, tasks(t.player, effs, src));
         return;
       }
-      const opts = effs.map((e, i) => ({ id: `eff:${i}`, label: describe([e]) }));
+      const opts = effs.map((e, i) => ({ id: `eff:${i}`, label: `先に「${describe([e])}」を解決する` }));
       ask(s, t, 'orderEffects', `${src}：先に解決する効果を選んでください`, opts);
       return;
     }
@@ -1690,7 +1718,7 @@ function execSpecial(s: GameState, t: Task, id: string): void {
       return;
     }
     case 'clockPlace': {
-      const opts = buildingSpots(p).map((k) => ({ id: `hex:${k}`, label: `ヘクス ${k}`, data: { hex: k } }));
+      const opts = buildingSpots(p).map((k) => ({ id: `hex:${k}`, label: buildSpotLabel(p, k, '時計塔駒'), data: { hex: k } }));
       ask(s, t, 'clockPlace', '時計塔駒を置く場所を選んでください', opts, 'hex');
       return;
     }
@@ -1712,7 +1740,7 @@ function execSpecial(s: GameState, t: Task, id: string): void {
     case 'sakuraPlay': {
       const cands = p.hand.filter((id) => CARDS[id].type === 'pass');
       if (cands.length === 0) return;
-      ask(s, t, 'sakuraPlay', '無料でプレイするパス時カードを選んでください', cands.map((id) => ({ id: `card:${id}`, label: CARDS[id].nameJa, data: { card: id } })), 'card');
+      ask(s, t, 'sakuraPlay', '無料でプレイするパス時カードを選んでください', cands.map((id) => ({ id: `card:${id}`, label: `${cardName(id)}を無料でプレイする`, data: { card: id } })), 'card');
       return;
     }
     case 'endTurn':
@@ -2014,9 +2042,9 @@ function payHandCost(s: GameState, t: Task): void {
   const n = Number(t.ctx!.n);
   if (n <= 0) return;
   const opts: Option[] = [];
-  if (canLoseCards(s, p, 1)) for (const id of p.hand) opts.push({ id: `card:${id}`, label: CARDS[id].nameJa, data: { card: id } });
+  if (canLoseCards(s, p, 1)) for (const id of p.hand) opts.push({ id: `card:${id}`, label: `${cardName(id)}を捨てる（手札コスト）`, data: { card: id } });
   const reserve = Number(t.ctx!.reserve ?? 0);
-  if (hasChar(p, 'グレーテル・シュトーレン') && p.diamond - reserve > 0) opts.push({ id: 'diamond', label: 'ダイヤで払う' });
+  if (hasChar(p, 'グレーテル・シュトーレン') && p.diamond - reserve > 0) opts.push({ id: 'diamond', label: '手札コストをダイヤ1で払う' });
   ask(s, t, 'handCost', `手札コスト：捨てるカードを選んでください（あと${n}枚）`, opts, 'card');
 }
 
@@ -2049,7 +2077,7 @@ function payAreaCost(s: GameState, t: Task): void {
     // ID の数は代わりに払う個数。上方修正ではゴールド、通常は木材の個数を表す
     for (let n = 0; n <= w; n++) {
       const wheat = w - n;
-      if (wheat <= p.res.wheat && n <= spare) opts.push({ id: `split:${n}`, label: `麦${wheat}・${RES_LABEL[sub]}${n}`, data: { [sub]: n, wheat } });
+      if (wheat <= p.res.wheat && n <= spare) opts.push({ id: `split:${n}`, label: `麦${wheat}・${RES_LABEL[sub]}${n}で払う`, data: { [sub]: n, wheat } });
     }
     t.ctx = { ...t.ctx, exec };
     ask(s, t, 'areaCost', `麦の代わりに${RES_LABEL[sub]}で払う個数を選んでください`, opts);
@@ -2221,7 +2249,7 @@ function freeActionOptions(s: GameState, p: PlayerState): Option[] {
   if (p.res.gold >= 4) out.push({ id: 'fa3', label: '4ゴールド → 任意の基礎資源1' });
   s.milestones.forEach((m, i) => {
     if (m.takenBy === null && !s.milestonesClosed && checkMilestone(s, p, `${m.id}${m.side}`))
-      out.push({ id: `fa4:${i}`, label: `マイルストーン${m.id}${m.side}を獲得`, data: { idx: i } });
+      out.push({ id: `fa4:${i}`, label: `マイルストーン${m.id}${m.side}「${MILESTONE_LABEL[`${m.id}${m.side}`]}」を獲得（10勝利点）`, data: { idx: i } });
   });
   if (basics >= 1) out.push({ id: 'fa5', label: '基礎資源1 → 1ゴールド' });
   if (basics >= 3) out.push({ id: 'fa6', label: '基礎資源3 → 任意の基礎資源1' });

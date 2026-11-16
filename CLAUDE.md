@@ -18,7 +18,8 @@
   - `useOnlineGame.ts`：共有ドキュメントの手の列を各画面が再生する。書き込むのは選択待ちのプレイヤーだけ。取り消しは手の列の末尾を削る（チェックポイントまで）。
 - `src/ui/tutorial/`：実践形式のチュートリアル。`script.ts` の台本（固定のシードと、各段で選ばせる選択肢 ID）を、本物の対局画面（`Game`）で選択肢を1つに絞って進める。エンジンの選択肢 ID や乱数の消費順を変えたら `tests/tutorial.test.ts` で台本を確かめ直す。
 - `src/ui/Online.tsx`：ロビー（ゲーム作成・席・名前・開始・観戦）と対局画面。観戦は席のない人が進行中のゲームを見るだけで、`Game` の `spectator`（伏せた情報を見せる席 `own` が -1）で描く。
-- `tests/`：Vitest（125件）。`e2e/`：Playwright の自動対戦・同期検査。
+- `tools/play/`：AI の打ち手が対局するための対話プレイ用のコマンド（`npm run play:build` で `dist-play/cli.js`。配布用のビルドには含めない）。記録 `{ seed, config, moves }` を `replay` と同じ手順で再生し、合法手・進行・派生値・得点はエンジンからだけ得る。運用と約束事は `docs/playtest/README.md`、打ち手への指示は `docs/playtest/player-brief.md`。
+- `tests/`：Vitest（128件）。`e2e/`：Playwright の自動対戦・同期検査。
 - `deploy/`：Supabase の準備用 SQL（`supabase_setup.sql`）と手順書。
 
 ## コマンド
@@ -27,6 +28,7 @@
 - `npx tsc --noEmit -p .`：型検査
 - `npx vitest run`：テスト（全件通ること）
 - `npm run build`：`dist/index.html` に JS・CSS を埋め込んだ1枚の HTML を作る（vite-plugin-singlefile）
+- `npm run play:build`：対話プレイ用のコマンド `dist-play/cli.js` を作る。`node dist-play/cli.js --help` で使い方
 - `node e2e/online.mjs 3 5 400`：3画面と観戦者1画面を偽 DB でつなぎ、400手まで同期・情報漏れ・操作権を検査する（要ビルド）
 - `node e2e/think.mjs [lagMs]`：偽 DB で自分の書き込みの戻りを遅らせ（`&fakelag=`）、思考時間が上書きで消えないことを検査する（要ビルド）
 - `node e2e/tutorial.mjs [mouse|portrait]`：ロビーからチュートリアルを開き、光っている場所と吹き出しのボタンだけで台本を最後まで進め、続きの対局に移れることを検査する（要ビルド）

@@ -43,7 +43,7 @@ export function statusLine(s: GameState): string {
   const waiting = waitingSeats(s).map((i) => `P${i}`).join('・');
   const parts = [`第${s.round}ラウンド（全5）・${PHASE_LABEL[s.phase] ?? s.phase}`];
   if (s.phase !== 'setup') parts.push(`手番順 ${order}`);
-  if (passed.length) parts.push(`パス済み ${passed.join('・')}`);
+  if (passed.length && s.phase === 'action') parts.push(`パス済み ${passed.join('・')}`);
   parts.push(`選択待ち ${waiting || 'なし'}`);
   parts.push(`山札${s.deck.length}・捨て札${s.discard.length}`);
   return `== ${parts.join('｜')}`;

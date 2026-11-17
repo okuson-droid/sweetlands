@@ -329,9 +329,9 @@ function cmdResume(a: Args, path: string): void {
   const out = [statusLine(s), `あなたは ${seatName(s, seat)}。変わらない文言（ルールの要約・ID の型・個人ボード・トラック）は ref で引く。`];
   out.push(...playersBlock(s, seat), ...sharedBlock(s), ...playerDetail(s, seat), ...mapLines(s, seat), ...handLines(s, seat, true));
   const mine = rep.steps.filter((x) => x.player === seat);
-  if (mine.length) out.push('== あなたのこれまでの手番', ...turnLines(s, mine, seat, { max: 12 }));
+  if (mine.length) out.push('== あなたの最近の手番', ...turnLines(s, mine, seat, { max: 4 }));
   const thisRound = rep.steps.filter((x) => x.round === s.round && x.player !== seat);
-  if (thisRound.length) out.push('== このラウンドの他の席の手番', ...turnLines(s, thisRound, seat, { max: 20 }));
+  if (thisRound.length) out.push('== このラウンドの他の席の手番', ...turnLines(s, thisRound, seat, { max: 10 }));
   if (!s.finished) out.push(...scoreLines(s));
   if (isWaitingFor(s, seat)) out.push(...optionLines(s, seat));
   else if (!s.finished) out.push(`選択待ち：${waitingSeats(s).map((x) => seatName(s, x)).join('・')}（wait で待つ）`);

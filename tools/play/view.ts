@@ -5,7 +5,7 @@
 
 import { AREAS, BUILDING_LABEL, FOOD_BONUS, FOOD_END, INDUSTRY_END, LAB_GAPS, MAP_ICON, MILESTONE_LABEL, PROS_TRACKS, RABBIT_POS, SPECIAL_TILES, SUPPORT_NORMAL, SUPPORT_PASS, FINAL_TILES, gridBonus, skillDef } from '../../src/game/boards';
 import { CARDS } from '../../src/game/cards';
-import { CHARACTERS, isBuffed } from '../../src/game/characters';
+import { basicTextOf, CHARACTERS, clockTextOf, isBuffed } from '../../src/game/characters';
 import { buildingSpots, cardCost, clockReady, describe, pieceCostAt } from '../../src/game/engine';
 import { explain } from '../../src/game/explain';
 import { portGaps, cities, connectedPorts, edgeInfo, EDGE_DIR_LABEL, MAPS, passedIp, portStatus, rowCapacity, tagCounts, drawAreaReady } from '../../src/game/queries';
@@ -75,6 +75,7 @@ export function playerDetail(s: GameState, i: number): string[] {
   const def = CHARACTERS[p.character];
   const out: string[] = [];
   out.push(`== ${seatName(s, i)} 個人ボード ${def.board}・地図 ${p.mapId ?? '未選択'}`);
+  out.push(`能力：${basicTextOf(s.config, p.character)}／時計塔：${clockTextOf(s.config, p.character)}`);
   out.push(`資源 ${resText(p)}｜${incomeText(p)}｜手元のディスク${p.discs}｜手札${p.hand.length}`);
   const nCities = cities(p, buff).length;
   out.push(`得点 ${scoreText(p)}｜都市${nCities} 接続している港${connectedPorts(p)}/4 ワンダー${p.wonders}${p.woodDiscount ? `｜建物駒の木材-${p.woodDiscount}` : ''}`);
@@ -358,8 +359,17 @@ export function optionLines(s: GameState, seat: number): string[] {
     out.push(`    いまの資源：G${p.res.gold} 麦${p.res.wheat} 木${p.res.wood} 鉄${p.res.iron}。選べない内訳は失敗し、記録は変わらない`);
     return out;
   }
-  const foldedIds = new Set([...folded.values()].flat());
-  for (const [t, list] of folded) out.push(`    ${t}（ボーナスなし）に地形タイルを置く：${list.join(' ')}`);
+  // 道駒の置き場所が多いときは、タイルが裏返る辺と、港・追加ドローエリアとの境の辺だけを全文で出し、残りは ID だけを1行にまとめる
+  const edgeOpts = opts.filter((o) => o.id.startsWith('edge:'));
+  if (edgeOpts.length > 8) {
+    const plainEdges = edgeOpts.filter((o) => !/裏返る|追加ドローエリア|港/.test(o.label));
+    if (plainEdges.length) {
+      folded.set('__edges', plainEdges.map((o) => o.id));
+      out.push(`    ほかの辺（裏返るタイルも境もない）${plainEdges.length}本：${plainEdges.map((o) => shownId(s, seat, o)).join(' ')}`);
+    }
+  }
+  const foldedIds = new Set([...folded.entries()].flatMap(([, v]) => v));
+  for (const [t, list] of folded) if (t !== '__edges') out.push(`    ${t}（ボーナスなし）に地形タイルを置く：${list.join(' ')}`);
   opts.forEach((o, k) => {
     if (foldedIds.has(o.id)) return;
     if (o.id.endsWith(':disc') && ids.has(o.id.slice(0, -5))) return;
